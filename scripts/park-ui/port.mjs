@@ -43,6 +43,11 @@ export function trackPasswordInput(source) {
   )
 }
 
+/** Render `Card.Footer` as a div (Park: h3) so footer buttons stay out of a heading. Idempotent. */
+export function cardFooterAsDiv(source) {
+  return source.replace(/(withContext\(\s*ark\.)h3(\s*,\s*(['"])footer\3\s*\))/, '$1div$2')
+}
+
 /** Apply the Panda v1 -> v2 transforms to one registry file. Idempotent. */
 export function portSource(source, filePath, uiRoot) {
   let rel = toPosix(path.relative(path.dirname(filePath), uiRoot))
@@ -55,6 +60,7 @@ export function portSource(source, filePath, uiRoot) {
   out = out.replace(/(from\s*)(['"])styled-system\//g, `$1$2${rel}/styled-system/`)
   if (path.basename(filePath).startsWith('checkbox')) out = collapseCheckboxControl(out)
   if (path.basename(filePath) === 'input.ts') out = trackPasswordInput(out)
+  if (path.basename(filePath) === 'card.tsx') out = cardFooterAsDiv(out)
   return out
 }
 

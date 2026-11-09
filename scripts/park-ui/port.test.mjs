@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import {
   appendColor,
   appendExport,
+  cardFooterAsDiv,
   checkPorted,
   collapseCheckboxControl,
   detectRecipeKind,
@@ -198,4 +199,17 @@ test('portSource tracks PasswordInput in the input recipe only, once', () => {
   assert.equal(portSource(out, file, UI_ROOT), out)
   assert.equal(trackPasswordInput(out), out)
   assert.equal(portSource(src, 'packages/ui/src/theme/recipes/badge.ts', UI_ROOT), src)
+})
+
+test('portSource renders Card.Footer as a div in card.tsx only, once', () => {
+  const src = `export const Footer = withContext(ark.h3, 'footer')
+export const Title = withContext(ark.h3, 'title')
+`
+  const out = portSource(src, CARD, UI_ROOT)
+  assert.match(out, /export const Footer = withContext\(ark\.div, 'footer'\)/)
+  assert.match(out, /export const Title = withContext\(ark\.h3, 'title'\)/)
+  assert.equal(portSource(out, CARD, UI_ROOT), out)
+  assert.equal(cardFooterAsDiv(out), out)
+  const other = 'packages/ui/src/components/ui/dialog.tsx'
+  assert.equal(portSource(src, other, UI_ROOT), src)
 })

@@ -93,6 +93,7 @@ Park's registry targets Panda v1, so the script ports each file to the v2 API:
 - bare `styled-system/*` imports become relative imports
 - the checkbox control nesting is fixed
 - `'PasswordInput'` is added to the input recipe's `jsx` list
+- `Card.Footer` renders a `div` instead of Park's `h3`, so footer buttons are not inside a heading
 
 It also scans the incoming recipes for color palettes the theme does not ship. Park's alert recipe,
 for example, needs blue and orange. A missing palette stops the add and tells you to re-run with

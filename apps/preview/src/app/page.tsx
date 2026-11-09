@@ -193,12 +193,9 @@ function CardSection() {
         <Card.Body>
           <Text>Members get access to every project in the workspace.</Text>
         </Card.Body>
-        {/* Park's Card.Footer renders an h3; asChild keeps the buttons out of the heading outline. */}
-        <Card.Footer asChild>
-          <div>
-            <Button variant="outline">Cancel</Button>
-            <Button>Invite</Button>
-          </div>
+        <Card.Footer>
+          <Button variant="outline">Cancel</Button>
+          <Button>Invite</Button>
         </Card.Footer>
       </Card.Root>
     </Section>
