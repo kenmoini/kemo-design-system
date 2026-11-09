@@ -58,7 +58,7 @@ jobs:
           retention-days: 7
 
   container:
-    needs: check
+    needs: [check, e2e]
     runs-on: ubuntu-latest
     permissions:
       contents: read
