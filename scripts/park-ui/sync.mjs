@@ -111,14 +111,15 @@ function portedFiles() {
   return [...walk(path.join(SRC, 'components/ui'), '.tsx'), ...walk(path.join(SRC, 'theme'), '.ts')]
 }
 
-function runPort() {
+// `listAll` (the `port` command) reports one status line per scanned file;
+// after init/add the files were already reported, so only rewrites are noted.
+function runPort({ listAll = false } = {}) {
   for (const file of portedFiles()) {
     const before = fs.readFileSync(file, 'utf8')
     const after = portSource(before, file, UI_ROOT)
-    if (after !== before) {
-      fs.writeFileSync(file, after)
-      console.log(`ported    ${rel(file)}`)
-    }
+    if (after !== before) fs.writeFileSync(file, after)
+    if (listAll) report(after !== before ? 'written' : 'unchanged', file)
+    else if (after !== before) console.log(`ported    ${rel(file)}`)
   }
 }
 
@@ -163,7 +164,7 @@ async function main() {
     throw new Error(USAGE)
   }
 
-  runPort()
+  runPort({ listAll: command === 'port' })
 
   let missing = missingPalettes()
   if (missing.length && values['with-colors']) {
