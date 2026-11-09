@@ -84,7 +84,8 @@ function applyItems(items, { force }) {
         continue
       }
       report(writeIfUnchanged(target, content, { force }), target)
-      if (file.type === 'registry:ui') exportLines.push(...lines(file.exports))
+      // Whole statements: Park's multi-line `export {…} from` strings must not be split per line.
+      if (file.type === 'registry:ui') exportLines.push(...[file.exports ?? []].flat())
       if (file.type === 'registry:color') colorNames.push(path.basename(target, '.ts'))
       if (file.type === 'registry:recipe')
         for (const line of lines(file.imports))

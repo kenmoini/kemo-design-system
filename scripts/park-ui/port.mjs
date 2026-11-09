@@ -102,11 +102,26 @@ export function registerRecipe(indexSource, importLine, kind) {
   )
 }
 
-export function appendExport(indexSource, exportLine) {
-  const target = (l) => /from\s*['"]([^'"]+)['"]/.exec(l)?.[1] ?? l
-  const lines = new Set(indexSource.split('\n').filter((l) => l.trim()))
-  lines.add(exportLine.trim())
-  return `${[...lines].sort((a, b) => target(a).localeCompare(target(b))).join('\n')}\n`
+/** Export statements in `text`, each kept whole (a multi-line `export {…} from` is one statement). */
+function exportStatements(text) {
+  return [...text.matchAll(/\bexport\b[\s\S]*?\bfrom\s*(['"])[^'"]+\1;?/g)].map((m) => m[0].trim())
+}
+
+// Formatting-insensitive identity of a statement: whitespace collapsed, trailing comma dropped.
+const statementKey = (s) =>
+  s
+    .replace(/\s+/g, ' ')
+    .replace(/,\s*\}/, ' }')
+    .replace(/\{\s*/, '{ ')
+    .replace(/;$/, '')
+
+/** Add the export statement(s) in `exportText` to a barrel, once each, sorted by module path. */
+export function appendExport(indexSource, exportText) {
+  const target = (s) => /from\s*['"]([^'"]+)['"]/.exec(s)?.[1] ?? s
+  const statements = new Map()
+  for (const s of [...exportStatements(indexSource), ...exportStatements(exportText)])
+    if (!statements.has(statementKey(s))) statements.set(statementKey(s), s)
+  return `${[...statements.values()].sort((a, b) => target(a).localeCompare(target(b))).join('\n')}\n`
 }
 
 export function appendColor(barrelSource, name) {

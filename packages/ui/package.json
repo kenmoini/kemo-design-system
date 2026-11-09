@@ -45,6 +45,14 @@
     },
     "./types": {
       "types": "./styled-system/types/index.d.ts"
+    },
+    "./recipes": {
+      "types": "./styled-system/recipes/index.d.ts",
+      "default": "./styled-system/recipes/index.js"
+    },
+    "./recipes/*": {
+      "types": "./styled-system/recipes/*.d.ts",
+      "default": "./styled-system/recipes/*.js"
     }
   },
   "scripts": {

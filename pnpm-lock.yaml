@@ -169,6 +169,9 @@ importers:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.14.0(supports-color@10.2.2))
+      '@pandacss/eslint-plugin':
+        specifier: ^2.5.0
+        version: 2.5.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(eslint@10.14.0(supports-color@10.2.2))
       concurrently:
         specifier: ^10.0.7
         version: 10.0.7
@@ -728,6 +731,12 @@ packages:
     peerDependenciesMeta:
       postcss:
         optional: true
+
+  '@pandacss/eslint-plugin@2.5.0':
+    resolution: {integrity: sha512-yIUsrhdYjLd4v0KdETu3QxT3OfZpzT0YK55hOpu0B6G9r+vYrLu7tQdPlsaVquAvkUJfPHnWTUj8P5Jrfg3QKg==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      eslint: '>=9'
 
   '@pandacss/postcss@2.5.0':
     resolution: {integrity: sha512-ruN4sZbsTXlxgxHXAiLu9TL2aIIEDitWTUFLQrv82OxqTQTGSgxrsd4ZpDbonQjnduJhhsYEKdYQrZqTZidIXw==}
@@ -2663,6 +2672,16 @@ snapshots:
       '@pandacss/types': 2.5.0
     optionalDependencies:
       postcss: 8.5.32
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
+
+  '@pandacss/eslint-plugin@2.5.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(eslint@10.14.0(supports-color@10.2.2))':
+    dependencies:
+      '@pandacss/compiler': 2.5.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
+      '@pandacss/compiler-shared': 2.5.0
+      '@pandacss/config': 2.5.0
+      eslint: 10.14.0(supports-color@10.2.2)
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'

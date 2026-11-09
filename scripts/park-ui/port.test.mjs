@@ -134,6 +134,36 @@ test('appendExport appends once and sorts', () => {
   assert.equal(src, `export { Button } from './button'\nexport * as Card from './card'\n`)
 })
 
+test('appendExport keeps multi-line export statements whole', () => {
+  // Shape of Park UI's skeleton registry item `exports` string.
+  const skeleton = `export {
+  Skeleton,
+  SkeletonCircle,
+  type SkeletonCircleProps,
+  type SkeletonProps,
+  SkeletonText,
+  type SkeletonTextProps,
+} from './skeleton'`
+  let src = appendExport('', `export { Span, type SpanProps } from './span'`)
+  src = appendExport(src, skeleton)
+  src = appendExport(src, `export * as Alert from './alert'`)
+  assert.equal(
+    src,
+    `export * as Alert from './alert'\n${skeleton}\nexport { Span, type SpanProps } from './span'\n`,
+  )
+  // Re-adding the statement, also wrapped differently, is a no-op.
+  assert.equal(appendExport(src, skeleton), src)
+  assert.equal(appendExport(src, skeleton.replace(/\s+/g, ' ')), src)
+})
+
+test('appendExport accepts text holding several statements', () => {
+  const src = appendExport(
+    '',
+    `export { B } from './b'\nexport {\n  A,\n  type AProps,\n} from './a'\n`,
+  )
+  assert.equal(src, `export {\n  A,\n  type AProps,\n} from './a'\nexport { B } from './b'\n`)
+})
+
 test('appendColor adds import and key once', () => {
   let src = `export const colors = {}\n`
   src = appendColor(src, 'red')
