@@ -1,0 +1,10 @@
+node_modules
+**/styled-system
+**/dist
+**/.next
+playwright-report
+test-results
+coverage
+.env*.local
+*.tsbuildinfo
+.superpowers/

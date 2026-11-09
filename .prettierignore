@@ -1,0 +1,5 @@
+**/styled-system
+**/dist
+**/.next
+pnpm-lock.yaml
+.superpowers
