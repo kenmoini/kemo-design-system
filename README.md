@@ -2,10 +2,10 @@
 
 A React design system and the live preview app used to design with it. `@kemo/ui` is a Park UI
 component library (Ark UI headless components styled with Panda CSS recipes) with a fixed theme.
-`@kemo/preview` is a Next.js app that renders a component gallery and stub routes for the first
-page set to build: Login, Forgot Password, Register and Complete Profile (for OIDC logins whose
-scopes or mappers leave the profile incomplete). Other Kemo apps are meant to consume `@kemo/ui`
-so a token or component change lands everywhere.
+`@kemo/preview` is a Next.js app that renders the components on standalone pages and stub routes
+for the first page set to build: Login, Forgot Password, Register and Complete Profile (for OIDC
+logins whose scopes or mappers leave the profile incomplete). Other Kemo apps are meant to consume
+`@kemo/ui` so a token or component change lands everywhere.
 
 This repository is the scaffold: tooling, theme, components, preview and CI. The visual design of
 the auth pages comes later (see [Roadmap](#roadmap)).
@@ -29,7 +29,7 @@ container use; the repo requires Node >= 24 and works on newer releases.
 ## Repo layout
 
 ```
-apps/preview/        @kemo/preview: Next.js gallery, auth route stubs, Playwright e2e suite
+apps/preview/        @kemo/preview: Next.js component pages, auth route stubs, Playwright e2e suite
 packages/ui/         @kemo/ui: theme, Park UI components, Panda config (`panda lib` output in dist/)
 scripts/park-ui/     Park UI registry sync and the Panda v2 port transform (with tests)
 docs/superpowers/    Design spec for the scaffold
@@ -42,7 +42,11 @@ Makefile             Front door for every task below
 make install && make dev
 ```
 
-Open http://localhost:3000. `make help` lists every target. Every target is a thin wrapper over a
+Open http://localhost:3000. Every preview page renders on its own, without a header. The round
+button in the bottom-right corner opens the preview panel, a drawer with links to the auth stubs
+(`/login`, `/register`, `/forgot-password`, `/complete-profile`), the component pages
+(`/components/buttons`, `/components/forms`, `/components/surfaces`, `/components/typography`)
+and the theme toggle. `make help` lists every target. Every target is a thin wrapper over a
 `pnpm` script, so `pnpm dev`, `pnpm build` and so on work the same way.
 
 ## Dev workflow
@@ -176,8 +180,8 @@ this workspace (`apps/*` or `packages/*`) can consume it, the way `apps/preview`
    is loaded, text falls back to `ui-sans-serif, system-ui, sans-serif`.
 
 Panda's `jsx` tracking covers the Park components by name. Add `staticCss: { recipes: '*' }` to
-the app config only if you need every recipe variant pre-generated; the preview does, for the
-gallery.
+the app config only if you need every recipe variant pre-generated; the preview does, for its
+component pages.
 
 ## Testing
 
@@ -189,8 +193,10 @@ gallery.
 | `make e2e` (`pnpm test:e2e`) | Builds, then runs the Playwright smoke suite in `apps/preview/e2e` |
 | `make check`                 | Lint, format check, typecheck and unit tests                       |
 
-The e2e suite covers the gallery and auth routes, the theme (font, palette, radii) and dark mode.
-It runs against a built preview, so build first (`make e2e` does).
+The e2e suite loads every route (landing page, auth stubs, component pages) and fails on any
+console error. It also checks the theme (font, radii), dark mode through the preview panel's theme
+toggle, and that the panel navigates, closes and marks the current page. It runs against a built
+preview, so build first (`make e2e` does).
 
 ## CI
 
@@ -213,6 +219,6 @@ access because `next build` fetches DM Sans from Google Fonts.
 ## Roadmap
 
 1. Design phase for the four auth pages (Login, Forgot Password, Register, Complete Profile),
-   worked out against the live gallery in `apps/preview`.
+   worked out against the live component pages in `apps/preview`.
 2. Page templates under `packages/ui/src/pages`, exported from `@kemo/ui`.
 3. Publishing `@kemo/ui`, once the package prefix is decided.

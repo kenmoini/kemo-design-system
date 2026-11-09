@@ -1,3 +1,4 @@
+import { drawer } from './drawer'
 import { skeleton } from './skeleton'
 import { badge } from './badge'
 import { icon } from './icon'
@@ -32,6 +33,7 @@ export const slotRecipes = {
   alert,
   card,
   checkbox,
+  drawer,
   field,
   fieldset,
   inputGroup,
