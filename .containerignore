@@ -4,7 +4,8 @@ node_modules
 **/dist
 **/styled-system
 .git
-playwright-report
-test-results
+**/playwright-report
+**/test-results
 .superpowers
-coverage
+**/coverage
+**/.env*
