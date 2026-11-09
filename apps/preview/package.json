@@ -9,6 +9,7 @@
     "prebuild": "panda codegen",
     "build": "next build",
     "start": "next start",
+    "pretypecheck": "panda codegen",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:e2e": "playwright test"
