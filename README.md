@@ -12,13 +12,13 @@ the auth pages comes later (see [Roadmap](#roadmap)).
 
 ## Stack and design language
 
-| Setting              | Value                                         | Where it lives                                                                                   |
-| -------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Component foundation | Park UI (Ark UI headless + Panda CSS recipes) | `packages/ui/src/components/ui`, `packages/ui/src/theme`                                         |
-| Font family          | DM Sans                                       | `fonts.body` / `fonts.heading` tokens resolve to `var(--font-dm-sans)`; the preview sets the var |
-| Gray color           | Neutral (Radix 12-step)                       | `semanticTokens.colors.gray` aliases `neutral`                                                   |
-| Accent color         | Neutral                                       | `html { colorPalette: 'gray' }` in the global CSS                                                |
-| Radius               | XS                                            | `radii.l1 = 0.0625rem`, `l2 = {radii.xs}` (0.125rem), `l3 = {radii.sm}` (0.25rem)                |
+| Setting              | Value                                         | Where it lives                                                                                                                                    |
+| -------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Component foundation | Park UI (Ark UI headless + Panda CSS recipes) | `packages/ui/src/components/ui`, `packages/ui/src/theme`                                                                                          |
+| Font family          | DM Sans                                       | `fonts.body` / `fonts.heading` tokens resolve to `var(--font-dm-sans, 'DM Sans'), ui-sans-serif, system-ui, sans-serif`; the preview sets the var |
+| Gray color           | Neutral (Radix 12-step)                       | `semanticTokens.colors.gray` aliases `neutral`                                                                                                    |
+| Accent color         | Neutral                                       | `html { colorPalette: 'gray' }` in the global CSS                                                                                                 |
+| Radius               | XS                                            | `radii.l1 = 0.0625rem`, `l2 = {radii.xs}` (0.125rem), `l3 = {radii.sm}` (0.25rem)                                                                 |
 
 Palettes shipped with the theme: neutral, red, green, blue, orange.
 
@@ -133,10 +133,13 @@ add, because the barrel files are written unformatted.
    const nextConfig = { transpilePackages: ['@kemo/ui'] }
    ```
 
-5. Define `--font-dm-sans`. In Next.js use `next/font/google` (`DM_Sans` with
-   `variable: '--font-dm-sans'`) and put its class on `<html>`. Elsewhere, load DM Sans with
-   `@fontsource-variable/dm-sans` or a `<link>` and set the variable yourself. If the variable is
-   not defined the tokens fall back to `ui-sans-serif, system-ui, sans-serif`.
+5. Provide DM Sans. The `fonts.body` and `fonts.heading` tokens are
+   `var(--font-dm-sans, 'DM Sans'), ui-sans-serif, system-ui, sans-serif`. In Next.js use
+   `next/font/google` (`DM_Sans` with `variable: '--font-dm-sans'`) and put its class on `<html>`.
+   Elsewhere, a Google Fonts `<link>` or `@fontsource/dm-sans` registers the family as `DM Sans`,
+   which the tokens pick up without the variable. `@fontsource-variable/dm-sans` registers
+   `DM Sans Variable` instead, so with it set `--font-dm-sans: 'DM Sans Variable'`. If no DM Sans
+   is loaded, text falls back to `ui-sans-serif, system-ui, sans-serif`.
 
 Panda's `jsx` tracking covers the Park components by name. Add `staticCss: { recipes: '*' }` to
 the app config only if you need every recipe variant pre-generated; the preview does, for the

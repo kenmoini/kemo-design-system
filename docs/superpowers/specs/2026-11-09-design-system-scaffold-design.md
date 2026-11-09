@@ -16,14 +16,14 @@ design of the four auth pages is a separate, later brainstorm against the live p
 
 ## Design language (fixed by the owner)
 
-| Setting              | Value                                         | Where it lives                                                                                     |
-| -------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Framework            | React 19 / Next.js 16 (App Router)            | `apps/preview`, consumer apps                                                                      |
-| Component foundation | Park UI (Ark UI headless + Panda CSS recipes) | `packages/ui/src/components/ui`, `packages/ui/src/theme`                                           |
-| Font family          | DM Sans                                       | `fonts.body`/`fonts.heading` tokens → `var(--font-dm-sans)`; preview sets the var with `next/font` |
-| Gray color           | Neutral (Radix 12-step)                       | `semanticTokens.colors.gray` aliases `neutral`                                                     |
-| Accent color         | Neutral                                       | `html { colorPalette: 'gray' }` (Park's global CSS)                                                |
-| Radius               | XS                                            | `radii.l1 = 0.0625rem`, `l2 = {radii.xs}` (0.125rem), `l3 = {radii.sm}` (0.25rem)                  |
+| Setting              | Value                                         | Where it lives                                                                                                                                      |
+| -------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework            | React 19 / Next.js 16 (App Router)            | `apps/preview`, consumer apps                                                                                                                       |
+| Component foundation | Park UI (Ark UI headless + Panda CSS recipes) | `packages/ui/src/components/ui`, `packages/ui/src/theme`                                                                                            |
+| Font family          | DM Sans                                       | `fonts.body`/`fonts.heading` tokens → `var(--font-dm-sans, 'DM Sans'), ui-sans-serif, system-ui, sans-serif`; preview sets the var with `next/font` |
+| Gray color           | Neutral (Radix 12-step)                       | `semanticTokens.colors.gray` aliases `neutral`                                                                                                      |
+| Accent color         | Neutral                                       | `html { colorPalette: 'gray' }` (Park's global CSS)                                                                                                 |
+| Radius               | XS                                            | `radii.l1 = 0.0625rem`, `l2 = {radii.xs}` (0.125rem), `l3 = {radii.sm}` (0.25rem)                                                                   |
 
 ## Goals
 

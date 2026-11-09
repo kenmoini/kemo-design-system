@@ -3,8 +3,10 @@ import { token } from '../../styled-system/tokens'
 import { radii } from './radii'
 
 describe('theme tokens', () => {
-  it('fonts point at the DM Sans variable with a sans-serif fallback', () => {
-    expect(token('fonts.body')).toBe('var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif')
+  it('fonts point at the DM Sans variable with DM Sans and sans-serif fallbacks', () => {
+    expect(token('fonts.body')).toBe(
+      "var(--font-dm-sans, 'DM Sans'), ui-sans-serif, system-ui, sans-serif",
+    )
     expect(token('fonts.heading')).toBe(token('fonts.body'))
   })
   it('defines the XS radius scale as semantic tokens', () => {
