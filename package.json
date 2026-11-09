@@ -12,7 +12,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test",
+    "test": "pnpm -r test && pnpm test:scripts",
+    "test:scripts": "node --test scripts/park-ui/",
+    "park-ui": "node scripts/park-ui/sync.mjs",
     "clean": "find . -type d \\( -name node_modules -o -name styled-system -o -name dist -o -name .next -o -name playwright-report -o -name test-results \\) -prune -exec rm -rf {} +"
   },
   "devDependencies": {
@@ -20,6 +22,7 @@
     "concurrently": "^10.0.7",
     "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.14.0",
     "prettier": "^3.9.10",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.72.1"
