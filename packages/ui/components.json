@@ -1,0 +1,11 @@
+{
+  "$schema": "https://park-ui.com/registry/schema.json",
+  "aliases": {
+    "components": "~/components",
+    "ui": "~/components/ui",
+    "theme": "~/theme",
+    "recipes": "~/theme/recipes",
+    "hooks": "~/hooks",
+    "lib": "~/lib"
+  }
+}
