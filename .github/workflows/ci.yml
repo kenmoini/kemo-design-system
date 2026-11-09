@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Build order: the ui lib must be built before anything in the preview
+      # (its pre-hooks run panda codegen and the Panda ESLint plugin loads the ui config).
+      - run: pnpm --filter @kemo/ui lib
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  e2e:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Build order: the ui lib must be built before anything in the preview.
+      - run: pnpm --filter @kemo/ui lib
+      # next build downloads DM Sans from Google Fonts, so the runner needs network access.
+      - run: pnpm --filter @kemo/preview build
+      - run: pnpm e2e:install
+      - run: pnpm test:e2e
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/preview/playwright-report
+          retention-days: 7
+
+  container:
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Lowercase repository owner
+        id: owner
+        run: echo "name=${OWNER,,}" >> "$GITHUB_OUTPUT"
+        env:
+          OWNER: ${{ github.repository_owner }}
+      # The Containerfile runs next build, which downloads DM Sans from Google Fonts (network required).
+      - name: Build image
+        id: build
+        uses: redhat-actions/buildah-build@v3
+        with:
+          containerfiles: ./Containerfile
+          image: ghcr.io/${{ steps.owner.outputs.name }}/kemo-design-system
+          tags: latest ${{ github.sha }}
+      - name: Push image to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: redhat-actions/push-to-registry@v3
+        with:
+          image: ${{ steps.build.outputs.image }}
+          tags: ${{ steps.build.outputs.tags }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
