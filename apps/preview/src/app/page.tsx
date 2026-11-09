@@ -29,8 +29,8 @@ export default function GalleryPage() {
           Component gallery
         </Heading>
         <Text color="fg.muted">
-          Every @kemo/ui component in the theme: DM Sans, neutral palette, XS radii. Use the toggle
-          to check dark mode.
+          The @kemo/ui components the auth pages build on, in the theme: DM Sans, neutral palette,
+          XS radii. Use the toggle to check dark mode.
         </Text>
       </Stack>
       <ButtonsSection />
