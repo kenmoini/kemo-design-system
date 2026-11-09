@@ -9,3 +9,4 @@ coverage
 *.tsbuildinfo
 .superpowers/
 next-env.d.ts
+apps/preview/AGENTS.md

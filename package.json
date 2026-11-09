@@ -15,7 +15,11 @@
     "test": "pnpm -r test && pnpm test:scripts",
     "test:scripts": "node --test scripts/park-ui/",
     "park-ui": "node scripts/park-ui/sync.mjs",
-    "clean": "find . -type d \\( -name node_modules -o -name styled-system -o -name dist -o -name .next -o -name playwright-report -o -name test-results \\) -prune -exec rm -rf {} +"
+    "clean": "find . -type d \\( -name node_modules -o -name styled-system -o -name dist -o -name .next -o -name playwright-report -o -name test-results \\) -prune -exec rm -rf {} +",
+    "dev": "pnpm --filter @kemo/ui lib && concurrently -k -n ui,preview -c blue,green \"pnpm --filter @kemo/ui watch\" \"pnpm --filter @kemo/preview dev\"",
+    "build": "pnpm --filter @kemo/ui lib && pnpm --filter @kemo/preview build",
+    "test:e2e": "pnpm --filter @kemo/preview test:e2e",
+    "e2e:install": "pnpm --filter @kemo/preview exec playwright install --with-deps chromium"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
