@@ -1,4 +1,7 @@
+import type { Metadata } from 'next'
 import { Heading, Text } from '@kemo/ui'
+
+export const metadata: Metadata = { title: 'Create your account' }
 
 export default function RegisterPage() {
   return (

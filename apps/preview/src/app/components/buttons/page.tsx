@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Badge, Button, IconButton, Text } from '@kemo/ui'
 import { PlusIcon } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
@@ -6,6 +7,8 @@ import { HStack, Stack } from '../../../../styled-system/jsx'
 
 const buttonVariants = ['solid', 'subtle', 'surface', 'outline', 'plain'] as const
 const buttonSizes = ['xs', 'sm', 'md', 'lg'] as const
+
+export const metadata: Metadata = { title: 'Buttons' }
 
 export default function ButtonsPage() {
   return (

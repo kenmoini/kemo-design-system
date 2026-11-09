@@ -1,4 +1,7 @@
+import type { Metadata } from 'next'
 import { Heading, Text } from '@kemo/ui'
+
+export const metadata: Metadata = { title: 'Sign in' }
 
 export default function LoginPage() {
   return (

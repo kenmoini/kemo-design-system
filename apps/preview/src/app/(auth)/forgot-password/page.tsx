@@ -1,4 +1,7 @@
+import type { Metadata } from 'next'
 import { Heading, Text } from '@kemo/ui'
+
+export const metadata: Metadata = { title: 'Reset your password' }
 
 export default function ForgotPasswordPage() {
   return (

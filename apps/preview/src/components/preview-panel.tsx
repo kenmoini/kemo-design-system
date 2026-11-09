@@ -75,12 +75,14 @@ export function PreviewPanel() {
           </Drawer.Header>
           <Drawer.Body>
             <Stack gap="8" width="full">
-              <PanelSection title="Pages">
-                <RouteList routes={pageRoutes} pathname={pathname} onNavigate={close} />
-              </PanelSection>
-              <PanelSection title="Components">
-                <RouteList routes={componentRoutes} pathname={pathname} onNavigate={close} />
-              </PanelSection>
+              <Stack as="nav" aria-label="Preview routes" gap="8" width="full">
+                <PanelSection title="Pages">
+                  <RouteList routes={pageRoutes} pathname={pathname} onNavigate={close} />
+                </PanelSection>
+                <PanelSection title="Components">
+                  <RouteList routes={componentRoutes} pathname={pathname} onNavigate={close} />
+                </PanelSection>
+              </Stack>
               <PanelSection title="Theme">
                 <ThemeToggle />
               </PanelSection>
@@ -95,7 +97,7 @@ export function PreviewPanel() {
 function PanelSection({ title, children }: Readonly<{ title: string; children: ReactNode }>) {
   return (
     <Stack as="section" gap="3" alignItems="flex-start">
-      <Heading as="h2" textStyle="sm" color="fg.muted">
+      <Heading as="h3" textStyle="sm" color="fg.muted">
         {title}
       </Heading>
       {children}

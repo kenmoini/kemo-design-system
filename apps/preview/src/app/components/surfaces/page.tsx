@@ -1,7 +1,10 @@
+import type { Metadata } from 'next'
 import { Alert, Button, Card, Skeleton, SkeletonCircle, SkeletonText, Text } from '@kemo/ui'
 import { PageHeader } from '@/components/page-header'
 import { Section } from '@/components/section'
 import { HStack } from '../../../../styled-system/jsx'
+
+export const metadata: Metadata = { title: 'Surfaces' }
 
 export default function SurfacesPage() {
   return (

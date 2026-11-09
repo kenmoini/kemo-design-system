@@ -8,7 +8,10 @@ import './globals.css'
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans', display: 'swap' })
 
 export const metadata: Metadata = {
-  title: 'Kemo design system preview',
+  title: {
+    template: '%s · kemo-design-system preview',
+    default: 'kemo-design-system preview',
+  },
   description: 'Live preview of @kemo/ui: component pages and auth route stubs.',
 }
 

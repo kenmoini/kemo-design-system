@@ -1,7 +1,10 @@
+import type { Metadata } from 'next'
 import { Checkbox, Field, Input, PasswordInput } from '@kemo/ui'
 import { PageHeader } from '@/components/page-header'
 import { Section } from '@/components/section'
 import { Grid, HStack } from '../../../../styled-system/jsx'
+
+export const metadata: Metadata = { title: 'Forms' }
 
 export default function FormsPage() {
   return (

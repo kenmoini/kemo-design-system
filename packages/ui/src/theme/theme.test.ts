@@ -9,6 +9,10 @@ describe('theme tokens', () => {
     )
     expect(token('fonts.heading')).toBe(token('fonts.body'))
   })
+  it('defines the emphasized drawer easings', () => {
+    expect(token('easings.emphasized-in')).toBeDefined()
+    expect(token('easings.emphasized-out')).toBeDefined()
+  })
   it('defines the XS radius scale as semantic tokens', () => {
     expect(radii.l1.value).toBe('0.0625rem')
     expect(radii.l2.value).toBe('{radii.xs}')
