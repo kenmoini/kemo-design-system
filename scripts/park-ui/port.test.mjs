@@ -9,6 +9,7 @@ import {
   findMissingPalettes,
   portSource,
   registerRecipe,
+  trackPasswordInput,
 } from './port.mjs'
 
 const UI_ROOT = 'packages/ui'
@@ -187,4 +188,14 @@ test('findMissingPalettes returns unavailable palette names', () => {
     ),
     ['red'],
   )
+})
+
+test('portSource tracks PasswordInput in the input recipe only, once', () => {
+  const src = `export const input = {\n  jsx: ['Input', 'Field.Input'],\n}\n`
+  const file = 'packages/ui/src/theme/recipes/input.ts'
+  const out = portSource(src, file, UI_ROOT)
+  assert.match(out, /jsx: \['Input', 'Field\.Input', 'PasswordInput'\]/)
+  assert.equal(portSource(out, file, UI_ROOT), out)
+  assert.equal(trackPasswordInput(out), out)
+  assert.equal(portSource(src, 'packages/ui/src/theme/recipes/badge.ts', UI_ROOT), src)
 })

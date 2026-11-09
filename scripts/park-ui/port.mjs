@@ -36,6 +36,13 @@ function matchingBrace(source, open) {
   return -1
 }
 
+/** Track our hand-written `PasswordInput` in the input recipe's `jsx` list. Idempotent. */
+export function trackPasswordInput(source) {
+  return source.replace(/jsx:\s*\[([^\]]*)\]/, (match, items) =>
+    /(['"])PasswordInput\1/.test(items) ? match : `jsx: [${items.trim()}, 'PasswordInput']`,
+  )
+}
+
 /** Apply the Panda v1 -> v2 transforms to one registry file. Idempotent. */
 export function portSource(source, filePath, uiRoot) {
   let rel = toPosix(path.relative(path.dirname(filePath), uiRoot))
@@ -47,6 +54,7 @@ export function portSource(source, filePath, uiRoot) {
   )
   out = out.replace(/(from\s*)(['"])styled-system\//g, `$1$2${rel}/styled-system/`)
   if (path.basename(filePath).startsWith('checkbox')) out = collapseCheckboxControl(out)
+  if (path.basename(filePath) === 'input.ts') out = trackPasswordInput(out)
   return out
 }
 

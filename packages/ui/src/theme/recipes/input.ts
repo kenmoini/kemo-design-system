@@ -2,7 +2,7 @@ import type { RecipeConfig } from '@pandacss/types'
 
 export const input = {
   className: 'input',
-  jsx: ['Input', 'Field.Input'],
+  jsx: ['Input', 'Field.Input', 'PasswordInput'],
   base: {
     appearance: 'none',
     borderRadius: 'l2',
