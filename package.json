@@ -22,6 +22,7 @@
     "@pandacss/eslint-plugin": "^2.5.0",
     "concurrently": "^10.0.7",
     "eslint": "^10.14.0",
+    "eslint-config-next": "^16.4.5",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.14.0",
     "prettier": "^3.9.10",
