@@ -31,6 +31,8 @@ export default defineConfig({
   plugins: [removePandaPresetColors],
   preflight: true,
   include: ['./src/**/*.{ts,tsx}'],
+  // Keep tests out of the shipped manifest (buildinfo.json) so consumers get no test-only styles.
+  exclude: ['./src/**/*.test.{ts,tsx}', './src/test/**'],
   outdir: 'styled-system',
   jsxFramework: 'react',
   // No staticCss: `panda lib` bakes this config into the preset every consumer loads; the preview app sets it.

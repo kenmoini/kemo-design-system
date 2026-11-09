@@ -67,6 +67,11 @@ export default defineConfig([
     files: ['packages/ui/src/components/ui/skeleton.tsx'],
     rules: { '@pandacss/no-dynamic-styling': 'off' },
   },
+  {
+    // Panda extraction skips tests (same globs as `exclude` in packages/ui/panda.config.ts).
+    files: ['packages/ui/src/**/*.test.{ts,tsx}', 'packages/ui/src/test/**'],
+    rules: { '@pandacss/file-not-included': 'off' },
+  },
   ...scopeToPreview(nextVitals),
   ...scopeToPreview(nextTs),
   // Same shape as the packages/ui block: the preview's Panda config resolves `designSystem` from its dir.
