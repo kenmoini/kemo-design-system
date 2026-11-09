@@ -13,9 +13,9 @@ export { Icon, type IconProps } from './icon'
 export { IconButton, type IconButtonProps } from './icon-button'
 export { Input, type InputProps } from './input'
 export { InputGroup, type InputGroupProps } from './input-group'
-export { PasswordInput, type PasswordInputProps } from './password-input'
 export { Link, type LinkProps } from './link'
 export { Loader, type LoaderProps } from './loader'
+export { PasswordInput, type PasswordInputProps } from './password-input'
 export {
   Skeleton,
   SkeletonCircle,
