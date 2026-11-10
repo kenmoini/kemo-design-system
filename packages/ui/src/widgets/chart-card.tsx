@@ -19,7 +19,7 @@ export function ChartCard({ title, caption, table, children }: ChartCardProps) {
       <Card.Header>
         <Flex align="center" justify="space-between" gap="3">
           <Box>
-            <Card.Title>{title}</Card.Title>
+            <Card.Title as="h2">{title}</Card.Title>
             {caption ? (
               <Text color="fg.muted" textStyle="sm">
                 {caption}

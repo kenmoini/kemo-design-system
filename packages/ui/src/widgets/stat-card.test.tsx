@@ -14,6 +14,7 @@ describe('StatCard', () => {
     )
     expect(screen.getByText('Revenue')).toBeInTheDocument()
     expect(screen.getByText('$12,400')).toBeInTheDocument()
+    expect(screen.getByText('$12,400')).toHaveClass(/textStyle_2xl/)
     expect(screen.getByTestId('stat-delta')).toHaveTextContent('▲ increase 8.2% vs yesterday')
     expect(screen.getByRole('img', { name: 'Revenue trend' })).toBeInTheDocument()
   })

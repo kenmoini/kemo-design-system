@@ -111,7 +111,7 @@ function Panel({
   return (
     <Card.Root variant="outline" {...rootProps}>
       <Card.Header>
-        <Card.Title>{title}</Card.Title>
+        <Card.Title as="h2">{title}</Card.Title>
         {caption ? (
           <Text color="fg.muted" textStyle="sm">
             {caption}

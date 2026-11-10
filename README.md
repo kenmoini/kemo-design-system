@@ -183,6 +183,10 @@ this workspace (`apps/*` or `packages/*`) can consume it, the way `apps/preview`
    `DM Sans Variable` instead, so with it set `--font-dm-sans: 'DM Sans Variable'`. If no DM Sans
    is loaded, text falls back to `ui-sans-serif, system-ui, sans-serif`.
 
+The preset also carries a `jsxMatchTag` rule, `{ from: 'recharts', ignore: true }`, that stops Panda
+treating Recharts props as style props. `jsxMatchTag` replaces rather than merges, so an app that
+defines its own `jsxMatchTag` must include that rule in it.
+
 Panda's `jsx` tracking covers the Park components by name. Add `staticCss: { recipes: '*' }` to
 the app config only if you need every recipe variant pre-generated; the preview does, for its
 component pages.

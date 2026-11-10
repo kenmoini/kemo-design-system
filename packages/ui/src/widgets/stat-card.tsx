@@ -18,14 +18,19 @@ export function StatCard({ value, label, delta, sparkline }: StatCardProps) {
         <Text color="fg.muted" textStyle="sm">
           {label}
         </Text>
-        <Text textStyle="3xl" fontWeight="semibold" fontVariantNumeric="tabular-nums">
+        <Text
+          textStyle="2xl"
+          fontWeight="semibold"
+          letterSpacing="tight"
+          fontVariantNumeric="tabular-nums"
+        >
           {value}
         </Text>
         {/* The delta keeps its natural width, so it never wraps beside the sparkline: the sparkline takes
             64–96px next to it, or moves below it when that does not fit. */}
         <Flex align="center" justify="space-between" wrap="wrap" columnGap="3" rowGap="2">
           {delta ? (
-            <Text as="p" textStyle="sm" data-testid="stat-delta">
+            <Text as="p" textStyle="xs" data-testid="stat-delta">
               <Box
                 as="span"
                 whiteSpace="nowrap"
