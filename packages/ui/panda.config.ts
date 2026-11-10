@@ -38,6 +38,9 @@ export default defineConfig({
   exclude: ['./src/**/*.test.{ts,tsx}', './src/test/**'],
   outdir: 'styled-system',
   jsxFramework: 'react',
+  // Recharts props such as stroke, fill, width and cursor share CSS property names but are SVG/Recharts
+  // props, not style props: extracting them ships dead utilities and nested-property warnings.
+  jsxMatchTag: [{ from: 'recharts', ignore: true }],
   // No staticCss: `panda lib` bakes this config into the preset every consumer loads; the preview app sets it.
   // No prefix (pre-publish decision).
   conditions,
