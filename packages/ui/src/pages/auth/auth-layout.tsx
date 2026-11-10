@@ -53,17 +53,11 @@ export function AuthLayout({
         placement="start"
         size={{ base: 'full', md: 'lg' }}
       >
-        {/* `.dark` forces Park's dark color mode on the drawer whatever the host theme, and
-            `colorScheme` does the same for native parts (scrollbars, autofill). The global
-            `html { colorPalette }` resolves the palette variables in the host theme, so they are
-            declared again here or buttons and focus rings inherit light-mode values. The
+        {/* `.dark` forces Park's dark color mode on the drawer whatever the host theme (the
+            theme's global CSS re-declares the palette variables on every `.dark` and `.light`
+            subtree), and `colorScheme` does the same for native parts (scrollbars, autofill). The
             positioner covers the viewport, so it lets pointer events through to the page. */}
-        <Drawer.Positioner
-          className="dark"
-          colorScheme="dark"
-          colorPalette="gray"
-          pointerEvents="none"
-        >
+        <Drawer.Positioner className="dark" colorScheme="dark" pointerEvents="none">
           <Drawer.Content
             pointerEvents="auto"
             // No motion on load: drop the recipe's slide-in, which would play on every page view.

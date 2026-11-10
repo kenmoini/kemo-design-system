@@ -49,6 +49,10 @@ export default defineConfig({
         '--global-font-body': 'fonts.body',
         '--global-font-mono': 'fonts.mono',
       },
+      // `html { colorPalette }` resolves the palette variables in the page's color mode, and
+      // descendants inherit the resolved values. Re-declare them on every subtree that forces a
+      // mode (the auth drawer's `.dark`, say) so buttons and focus rings follow that mode.
+      '.dark, .light': { colorPalette: 'gray' },
     },
   },
   theme: {
