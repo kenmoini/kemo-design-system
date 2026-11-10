@@ -115,6 +115,8 @@ describe('RegisterPage', () => {
     const box = await screen.findByRole('checkbox')
     await waitFor(() => expect(box).toHaveAttribute('aria-invalid', 'true'))
     expect(box).toHaveAccessibleDescription('You need to agree to continue.')
+    // The description carries the message; only the host's FormAlert is an alert.
+    expect(screen.queryByRole('alert')).toBeNull()
   })
 
   it('renders links', () => {

@@ -142,7 +142,7 @@ export function RegisterPage({
               />
             </Checkbox.Root>
             {errors.acceptTerms && (
-              <Text id={termsErrorId} textStyle="sm" color="error" role="alert">
+              <Text id={termsErrorId} textStyle="sm" color="error">
                 {errors.acceptTerms.message}
               </Text>
             )}

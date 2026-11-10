@@ -99,6 +99,19 @@ describe('ProviderButtons', () => {
     expect(screen.getByRole('button', { name: 'Sign up with Google' })).toBeInTheDocument()
   })
 
+  it('hides a host icon from assistive technology', () => {
+    render(
+      <ProviderButtons
+        verb="Continue"
+        providers={[
+          { id: 'gh', label: 'GitHub', icon: <svg data-testid="icon" />, onSelect: vi.fn() },
+        ]}
+      />,
+    )
+    expect(screen.getByTestId('icon').parentElement).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByRole('button')).toHaveAccessibleName('Continue with GitHub')
+  })
+
   it('renders nothing for an empty list', () => {
     const { container } = render(<ProviderButtons verb="Continue" providers={[]} />)
     expect(container).toBeEmptyDOMElement()

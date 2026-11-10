@@ -3,6 +3,10 @@ import { Stack, styled } from '../../../styled-system/jsx'
 import { Button } from '../../components/ui'
 import type { AuthProvider } from './types'
 
+// Holds a host-supplied icon: decorative, since the label names the provider. Inline-flex keeps an
+// SVG off the text baseline.
+const IconSlot = styled('span', { base: { display: 'inline-flex' } })
+
 // Neutral stand-in when a provider supplies no icon.
 const NeutralIcon = styled('span', {
   base: {
@@ -32,7 +36,11 @@ export function ProviderButtons({ providers, verb }: ProviderButtonsProps) {
           width="full"
           onClick={provider.onSelect}
         >
-          {provider.icon ?? <NeutralIcon aria-hidden />}
+          {provider.icon ? (
+            <IconSlot aria-hidden>{provider.icon}</IconSlot>
+          ) : (
+            <NeutralIcon aria-hidden />
+          )}
           {verb} with {provider.label}
         </Button>
       ))}

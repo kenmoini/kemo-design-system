@@ -94,7 +94,7 @@ export function CompleteProfilePage({
       >
         <Stack gap="4">
           <IdentityChip>
-            <Dot />
+            <Dot aria-hidden />
             Signed in with {identity.provider} as {identity.email}
           </IdentityChip>
           <FormAlert message={error} />

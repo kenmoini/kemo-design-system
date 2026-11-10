@@ -15,7 +15,10 @@ describe('CompleteProfilePage', () => {
         onSignOut={vi.fn()}
       />,
     )
-    expect(screen.getByText('Signed in with Keycloak as ken@acme.com')).toBeVisible()
+    const chip = screen.getByText('Signed in with Keycloak as ken@acme.com')
+    expect(chip).toBeVisible()
+    // The status dot is decorative.
+    expect(chip.firstElementChild).toHaveAttribute('aria-hidden', 'true')
   })
 
   it('renders the email as a read-only field', () => {
