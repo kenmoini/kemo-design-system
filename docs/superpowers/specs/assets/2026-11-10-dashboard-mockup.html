@@ -1,0 +1,228 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<style>
+  .fs { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; font-size: 11px; line-height: 1.35; border-radius: 6px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; border: 1px solid #ddd; }
+  .fs * { box-sizing: border-box; }
+  .light { --canvas:#fcfcfc; --card:#ffffff; --ink:#202020; --muted:#646464; --subtle:#838383; --line:#e8e8e8; --line2:#f0f0f0; --solid:#000; --solidfg:#fff; --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --good:#0ca30c; --warn:#fab219; --crit:#d03b3b; --grid:#e1e0d9; --sub:#f0f0f0; --sub2:#f9f9f9; }
+  .dark  { --canvas:#111111; --card:#191919; --ink:#eeeeee; --muted:#b4b4b4; --subtle:#7b7b7b; --line:#2a2a2a; --line2:#222222; --solid:#fff; --solidfg:#111; --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --good:#0ca30c; --warn:#fab219; --crit:#d03b3b; --grid:#2c2c2a; --sub:#222222; --sub2:#1d1d1d; }
+  .fs { background: var(--canvas); color: var(--ink); }
+  .top { height: 44px; border-bottom: 1px solid var(--line); background: var(--card); display: flex; align-items: center; gap: 12px; padding: 0 16px; }
+  .body { display: grid; grid-template-columns: 200px 1fr; min-height: 0; }
+  .side { border-right: 1px solid var(--line); background: var(--card); padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .nav { padding: 6px 10px; border-radius: 2px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .nav.on { background: var(--sub); color: var(--ink); font-weight: 500; }
+  .nav i { width: 12px; height: 12px; border-radius: 2px; background: currentColor; opacity: .5; display: inline-block; }
+  .nav em { margin-left: auto; font-style: normal; font-size: 9px; background: var(--sub); color: var(--muted); padding: 0 5px; border-radius: 2px; }
+  .sec { font-size: 9.5px; color: var(--subtle); padding: 10px 10px 3px; }
+  .main { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .grid { display: grid; gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 4px; padding: 12px; min-width: 0; }
+  .compact .card { padding: 8px 10px; border-color: transparent; background: var(--sub2); }
+  .compact .main { gap: 8px; } .compact .grid { gap: 8px; }
+  .ch { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .ch b { font-weight: 600; font-size: 11.5px; }
+  .ch span { color: var(--subtle); font-size: 10px; }
+  .kpi .n { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+  .compact .kpi .n { font-size: 18px; }
+  .kpi .l { color: var(--muted); margin-top: 4px; }
+  .kpi .d { font-size: 10px; margin-top: 3px; }
+  .up { color: var(--good); } .dn { color: var(--crit); }
+  .btn { height: 26px; padding: 0 10px; border-radius: 2px; display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; border: 1px solid var(--line); color: var(--ink); background: var(--card); white-space: nowrap; }
+  .btn.solid { background: var(--solid); color: var(--solidfg); border-color: var(--solid); }
+  .btn.plain { border-color: transparent; background: transparent; color: var(--muted); }
+  .search { flex: 1; max-width: 300px; height: 26px; border: 1px solid var(--line); border-radius: 2px; padding: 0 8px; color: var(--subtle); display: flex; align-items: center; justify-content: space-between; background: var(--canvas); }
+  .pill { font-size: 9.5px; padding: 2px 7px; border-radius: 2px; background: var(--sub); color: var(--muted); white-space: nowrap; }
+  .av { width: 22px; height: 22px; border-radius: 50%; background: var(--s1); display: inline-grid; place-items: center; color: #fff; font-size: 9px; font-weight: 600; flex: none; }
+  .tag { font-size: 9.5px; padding: 1px 6px; border-radius: 2px; font-weight: 500; white-space: nowrap; }
+  .tag.ok { background: rgba(12,163,12,.14); color: var(--good); } .tag.wn { background: rgba(250,178,25,.18); color: #8a5a00; } .tag.er { background: rgba(208,59,59,.14); color: var(--crit); } .tag.nu { background: var(--sub); color: var(--muted); }
+  .dark .tag.wn { color: #fab219; }
+  table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  th { text-align: left; color: var(--subtle); font-weight: 500; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  td { padding: 6px 6px; border-bottom: 1px solid var(--line2); white-space: nowrap; }
+  .compact td { padding: 3px 6px; }
+  .prog { height: 6px; border-radius: 2px; background: var(--sub); overflow: hidden; margin: 4px 0 8px; }
+  .prog i { display: block; height: 100%; background: var(--s1); border-radius: 2px; }
+  .sgrid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; }
+  .sgrid i { aspect-ratio: 1; border-radius: 2px; background: var(--good); opacity: .85; }
+  .sgrid i.w { background: var(--warn); } .sgrid i.c { background: var(--crit); } .sgrid i.o { background: var(--line); }
+  .heat { display: grid; grid-template-columns: repeat(16, 1fr); gap: 3px; }
+  .heat i { aspect-ratio: 1; border-radius: 1px; background: var(--s1); }
+  .h0 { opacity: .08 } .h1 { opacity: .25 } .h2 { opacity: .45 } .h3 { opacity: .7 } .h4 { opacity: 1 }
+  .ev { display: grid; grid-template-columns: 44px 12px 1fr; gap: 0 8px; font-size: 10.5px; }
+  .ev .t { color: var(--subtle); } .ev .dot { position: relative; } .ev .dot::before { content:''; position:absolute; left:3px; top:5px; width:6px; height:6px; border-radius:50%; background: var(--s1); }
+  .ev .dot::after { content:''; position:absolute; left:6px; top:13px; bottom:-8px; width:1px; background: var(--line); }
+  .ev .dot.w::before { background: var(--warn); } .ev .dot.c::before { background: var(--crit); } .ev .dot.g::before { background: var(--good); }
+  .ev > div { padding-bottom: 8px; }
+  .act { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid var(--line2); font-size: 10.5px; }
+  .act .av { width: 18px; height: 18px; font-size: 8px; background: var(--s3); } .act .av.b { background: var(--s2); } .act .av.c { background: var(--s1); } .act .av.d { background: var(--s5); }
+  .lg { display: flex; gap: 10px; font-size: 9.5px; color: var(--muted); margin-top: 4px; } .lg i { display: inline-block; width: 10px; height: 2px; vertical-align: middle; margin-right: 4px; border-radius: 1px; }
+  .foot { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 10px; display: flex; justify-content: space-between; color: var(--subtle); font-size: 10px; }
+  .foot span b { color: var(--good); font-weight: 500; }
+  svg text { font-family: inherit; fill: var(--subtle); font-size: 8px; }
+  .filters { display: flex; gap: 8px; align-items: center; }
+  .banner { border: 1px solid rgba(208,59,59,.35); background: rgba(208,59,59,.08); border-radius: 4px; padding: 8px 12px; display: flex; gap: 10px; align-items: center; font-size: 10.5px; }
+  .banner b { color: var(--crit); }
+  .tabs { display: flex; gap: 12px; font-size: 10.5px; color: var(--muted); border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  .tabs span { padding: 0 0 6px; } .tabs span.on { color: var(--ink); font-weight: 500; border-bottom: 2px solid var(--ink); margin-bottom: -1px; }
+  .rank { display: grid; grid-template-columns: 90px 1fr 36px; gap: 6px; align-items: center; font-size: 10.5px; margin-bottom: 5px; }
+  .rank .bar { height: 10px; background: var(--s1); border-radius: 2px; } .rank .v { text-align: right; color: var(--muted); }
+  .seg { display: flex; height: 10px; border-radius: 2px; overflow: hidden; gap: 2px; }
+  .seg i { display: block; height: 100%; }
+  .mini { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+  .mini > div { font-size: 10px; color: var(--muted); }
+  .empty { border: 1px dashed var(--line); border-radius: 4px; padding: 16px; text-align: center; color: var(--subtle); }
+  .pager { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 10px; color: var(--subtle); }
+  .thumbs .option { display: block; margin-bottom: 1rem; }
+  .thumb { font-size: 8px; }
+  .thumb .top { height: 26px; padding: 0 8px; } .thumb .side { width: 92px; padding: 6px; } .thumb .body { grid-template-columns: 92px 1fr; } .thumb .main { padding: 8px; gap: 6px; } .thumb .grid { gap: 6px; } .thumb .card { padding: 6px; } .thumb .kpi .n { font-size: 13px; } .thumb .nav { padding: 3px 6px; font-size: 7.5px; } .thumb .nav i { width: 7px; height: 7px; } .thumb .sec { font-size: 7px; padding: 5px 6px 2px; } .thumb .btn { height: 16px; font-size: 7px; padding: 0 5px; } .thumb .search { height: 16px; } .thumb .ch b { font-size: 8px; } .thumb .ch span { font-size: 7px; }
+  .thumb.compact .card { padding: 4px 6px; } .thumb.compact .kpi .n { font-size: 11px; }
+</style>
+
+<h2>Console, refined</h2>
+<p class="subtitle">The full widget set in the chosen shell, at readable size. Scroll through it, then pick a treatment below (density and card surface). Everything here maps to Park components: Button, Input, Badge, Table, Progress, Avatar, Tabs, Card, Alert, Skeleton, Menu, plus a chart layer.</p>
+
+<div class="fs light" id="full">
+  <div class="top">
+    <b style="font-size:12px">Acme Console</b>
+    <div class="search"><span>Search services, deployments, users</span><span class="pill">⌘K</span></div>
+    <span style="flex:1"></span>
+    <span class="pill">prod-us-east ▾</span>
+    <span class="btn plain">Help</span><span class="btn plain">Bell · 3</span>
+    <span class="av">K</span>
+  </div>
+  <div class="body">
+    <div class="side">
+      <div class="sec">Platform</div>
+      <div class="nav on"><i></i>Overview</div><div class="nav"><i></i>Deployments <em>12</em></div><div class="nav"><i></i>Services</div><div class="nav"><i></i>Events</div><div class="nav"><i></i>Alerts <em>3</em></div>
+      <div class="sec">Manage</div>
+      <div class="nav"><i></i>Users</div><div class="nav"><i></i>Billing</div><div class="nav"><i></i>Settings</div>
+      <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px"><span class="pill">Workspace: Core team ▾</span><span class="pill" style="background:transparent;border:1px solid var(--line)">Collapse sidebar</span></div>
+    </div>
+    <div class="main">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div style="font-size:18px;font-weight:600;letter-spacing:-0.015em">Overview</div><div style="color:var(--muted)">Tuesday, November 10 · updated 12 seconds ago</div></div>
+        <div class="filters"><span class="btn">Last 24 hours ▾</span><span class="btn">All services ▾</span><span class="btn">Export</span><span class="btn solid">+ Add widget</span></div>
+      </div>
+      <div class="banner"><b>Incident INC-418</b> checkout-api p95 latency above 300 ms for 9 minutes. 2 responders active.<span style="flex:1"></span><span class="btn">Open incident</span></div>
+      <div class="grid" style="grid-template-columns: repeat(4,1fr);">
+        <div class="card kpi"><div class="l">Requests per minute</div><div class="n">12,480</div><div class="d up">▲ 8.2% vs yesterday</div><svg width="100%" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="var(--s1)" stroke-width="1.5" points="0,18 12,15 24,16 36,11 48,12 60,8 72,9 84,5 100,6"/></svg></div>
+        <div class="card kpi"><div class="l">Error rate</div><div class="n">0.31%</div><div class="d up">▼ 0.04 pts</div><svg width="100%" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="var(--s1)" stroke-width="1.5" points="0,6 20,8 40,7 50,12 60,9 80,10 100,12"/></svg></div>
+        <div class="card kpi"><div class="l">p95 latency</div><div class="n">184 ms</div><div class="d dn">▲ 12 ms slower</div><svg width="100%" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="var(--s1)" stroke-width="1.5" points="0,14 20,13 40,14 60,10 80,8 100,5"/></svg></div>
+        <div class="card kpi"><div class="l">Active users</div><div class="n">8,214</div><div class="d up">▲ 3.1% this week</div><svg width="100%" height="22" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="var(--s1)" stroke-width="1.5" points="0,16 20,15 40,12 60,11 80,8 100,6"/></svg></div>
+      </div>
+      <div class="grid" style="grid-template-columns: 2fr 1fr;">
+        <div class="card"><div class="ch"><b>Requests per minute</b><span>API, Web, Jobs · last 24 hours</span></div>
+          <svg width="100%" height="110" viewBox="0 0 400 110" preserveAspectRatio="none">
+            <line x1="30" y1="20" x2="400" y2="20" stroke="var(--grid)" stroke-width=".6"/><line x1="30" y1="50" x2="400" y2="50" stroke="var(--grid)" stroke-width=".6"/><line x1="30" y1="80" x2="400" y2="80" stroke="var(--grid)" stroke-width=".6"/><line x1="30" y1="100" x2="400" y2="100" stroke="var(--grid)"/>
+            <text x="0" y="23">15k</text><text x="0" y="53">10k</text><text x="0" y="83">5k</text>
+            <polyline fill="none" stroke="var(--s1)" stroke-width="2" points="30,78 70,72 110,75 150,58 190,62 230,44 270,48 310,36 350,38 400,26"/>
+            <polyline fill="none" stroke="var(--s2)" stroke-width="2" points="30,92 70,90 110,91 150,86 190,88 230,80 270,82 310,76 350,77 400,70"/>
+            <polyline fill="none" stroke="var(--s3)" stroke-width="2" points="30,97 70,98 110,96 150,97 190,95 230,96 270,94 310,95 350,93 400,92"/>
+            <text x="30" y="109">00:00</text><text x="200" y="109">12:00</text><text x="372" y="109">now</text>
+          </svg>
+          <div class="lg"><span><i style="background:var(--s1)"></i>API</span><span><i style="background:var(--s2)"></i>Web</span><span><i style="background:var(--s3)"></i>Jobs</span></div>
+        </div>
+        <div class="card"><div class="ch"><b>Capacity</b><span>cluster</span></div>
+          <div style="display:flex;gap:14px;align-items:center;margin-bottom:10px">
+            <svg width="64" height="64" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="var(--sub)" stroke-width="5"/><circle cx="18" cy="18" r="14" fill="none" stroke="var(--s1)" stroke-width="5" stroke-dasharray="61.6 88" stroke-linecap="round" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle" style="font-size:8.5px;fill:var(--ink);font-weight:600">70%</text></svg>
+            <div style="font-size:10.5px;color:var(--muted)">CPU 340 of 480 cores<br>Memory 1.7 of 1.9 TB<br>48 nodes, 46 ready</div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Storage 2.4 of 4 TB</div>
+          <div class="seg"><i style="width:48%;background:var(--s1)"></i><i style="width:10%;background:var(--s2)"></i><i style="width:3%;background:var(--s3)"></i><i style="flex:1;background:var(--sub)"></i></div>
+          <div class="lg"><span><i style="background:var(--s1)"></i>Objects</span><span><i style="background:var(--s2)"></i>Databases</span><span><i style="background:var(--s3)"></i>Logs</span></div>
+        </div>
+      </div>
+      <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="card"><div class="ch"><b>Deployments per day</b><span>7 days</span></div>
+          <svg width="100%" height="80" viewBox="0 0 150 80"><g fill="var(--s1)"><rect x="6" y="36" width="10" height="36" rx="2"/><rect x="26" y="24" width="10" height="48" rx="2"/><rect x="46" y="44" width="10" height="28" rx="2"/><rect x="66" y="12" width="10" height="60" rx="2"/><rect x="86" y="30" width="10" height="42" rx="2"/><rect x="106" y="50" width="10" height="22" rx="2"/><rect x="126" y="20" width="10" height="52" rx="2"/></g><g fill="var(--s2)"><rect x="17" y="60" width="6" height="12" rx="2"/><rect x="37" y="54" width="6" height="18" rx="2"/><rect x="57" y="66" width="6" height="6" rx="2"/><rect x="77" y="58" width="6" height="14" rx="2"/><rect x="97" y="64" width="6" height="8" rx="2"/><rect x="117" y="68" width="6" height="4" rx="2"/><rect x="137" y="60" width="6" height="12" rx="2"/></g><text x="6" y="79">Wed</text><text x="126" y="79">Tue</text></svg>
+          <div class="lg"><span><i style="background:var(--s1)"></i>Succeeded</span><span><i style="background:var(--s2)"></i>Rolled back</span></div>
+        </div>
+        <div class="card"><div class="ch"><b>Node health</b><span>46 of 48 ready</span></div>
+          <div class="sgrid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="w"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="c"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="o"></i><i class="o"></i></div>
+          <div class="lg"><span><i style="background:var(--good);height:7px;width:7px"></i>Ready</span><span><i style="background:var(--warn);height:7px;width:7px"></i>Pressure</span><span><i style="background:var(--crit);height:7px;width:7px"></i>NotReady</span><span><i style="background:var(--line);height:7px;width:7px"></i>Cordoned</span></div>
+        </div>
+        <div class="card"><div class="ch"><b>Top endpoints</b><span>requests, last hour</span></div>
+          <div class="rank"><span>/api/cart</span><div class="bar" style="width:100%"></div><span class="v">4.1k</span></div>
+          <div class="rank"><span>/api/search</span><div class="bar" style="width:80%"></div><span class="v">3.3k</span></div>
+          <div class="rank"><span>/api/checkout</span><div class="bar" style="width:49%"></div><span class="v">2.0k</span></div>
+          <div class="rank"><span>/api/profile</span><div class="bar" style="width:31%"></div><span class="v">1.3k</span></div>
+          <div class="rank"><span>/api/orders</span><div class="bar" style="width:22%"></div><span class="v">0.9k</span></div>
+        </div>
+      </div>
+      <div class="grid" style="grid-template-columns: 2fr 1fr;">
+        <div class="card"><div class="ch"><b>Recent deployments</b><span>View all</span></div>
+          <div class="tabs"><span class="on">All</span><span>Production</span><span>Staging</span><span>Failed</span></div>
+          <table><tr><th>Service</th><th>Version</th><th>Environment</th><th>By</th><th>Status</th><th>Latency</th><th>When</th></tr>
+            <tr><td>checkout-api</td><td>v2.14.0</td><td>production</td><td>Priya</td><td><span class="tag ok">Live</span></td><td><svg width="50" height="12" viewBox="0 0 50 12"><polyline fill="none" stroke="var(--s1)" stroke-width="1.2" points="0,9 10,8 20,9 30,5 40,6 50,3"/></svg></td><td>4 min ago</td></tr>
+            <tr><td>web-frontend</td><td>v9.3.1</td><td>production</td><td>Marcus</td><td><span class="tag wn">Canary 10%</span></td><td><svg width="50" height="12" viewBox="0 0 50 12"><polyline fill="none" stroke="var(--s1)" stroke-width="1.2" points="0,6 10,7 20,5 30,6 40,4 50,5"/></svg></td><td>22 min ago</td></tr>
+            <tr><td>search-indexer</td><td>v1.8.2</td><td>production</td><td>Ken</td><td><span class="tag er">Rolled back</span></td><td><svg width="50" height="12" viewBox="0 0 50 12"><polyline fill="none" stroke="var(--s1)" stroke-width="1.2" points="0,4 10,5 20,3 30,8 40,10 50,11"/></svg></td><td>1 h ago</td></tr>
+            <tr><td>auth-service</td><td>v4.0.0</td><td>staging</td><td>Sofia</td><td><span class="tag nu">Queued</span></td><td><svg width="50" height="12" viewBox="0 0 50 12"><polyline fill="none" stroke="var(--s1)" stroke-width="1.2" points="0,7 10,7 20,6 30,7 40,6 50,6"/></svg></td><td>3 h ago</td></tr>
+            <tr><td>billing-worker</td><td>v0.9.4</td><td>production</td><td>Priya</td><td><span class="tag ok">Live</span></td><td><svg width="50" height="12" viewBox="0 0 50 12"><polyline fill="none" stroke="var(--s1)" stroke-width="1.2" points="0,8 10,7 20,8 30,6 40,7 50,5"/></svg></td><td>Yesterday</td></tr></table>
+          <div class="pager"><span>Showing 5 of 128</span><span>‹ 1 2 3 … 26 ›</span></div>
+        </div>
+        <div class="card"><div class="ch"><b>Rollouts</b><span>in progress</span></div>
+          <div style="font-size:10.5px">web-frontend v9.3.1 <span style="float:right;color:var(--muted)">10%</span></div><div class="prog"><i style="width:10%"></i></div>
+          <div style="font-size:10.5px">Postgres 16 migration <span style="float:right;color:var(--muted)">72%</span></div><div class="prog"><i style="width:72%"></i></div>
+          <div style="font-size:10.5px">Cert rotation <span style="float:right;color:var(--muted)">100%</span></div><div class="prog"><i style="width:100%;background:var(--good)"></i></div>
+          <div style="font-size:10.5px">Index rebuild <span style="float:right;color:var(--crit)">Failed at 41%</span></div><div class="prog"><i style="width:41%;background:var(--crit)"></i></div>
+          <div class="ch" style="margin-top:12px"><b>Regions</b><span>p95 latency, 1h</span></div>
+          <div class="mini">
+            <div>us-east<svg width="100%" height="24" viewBox="0 0 60 24" preserveAspectRatio="none"><polyline fill="none" stroke="var(--s1)" stroke-width="1.5" points="0,16 10,14 20,15 30,10 40,12 50,8 60,9"/></svg></div>
+            <div>us-west<svg width="100%" height="24" viewBox="0 0 60 24" preserveAspectRatio="none"><polyline fill="none" stroke="var(--s1)" stroke-width="1.5" points="0,10 10,11 20,9 30,12 40,10 50,11 60,10"/></svg></div>
+            <div>eu-west<svg width="100%" height="24" viewBox="0 0 60 24" preserveAspectRatio="none"><polyline fill="none" stroke="var(--s1)" stroke-width="1.5" points="0,18 10,16 20,17 30,13 40,14 50,9 60,6"/></svg></div>
+            <div>ap-south<svg width="100%" height="24" viewBox="0 0 60 24" preserveAspectRatio="none"><polyline fill="none" stroke="var(--s1)" stroke-width="1.5" points="0,12 10,12 20,11 30,12 40,11 50,12 60,11"/></svg></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="card"><div class="ch"><b>Event stream</b><span>live</span></div>
+          <div class="ev"><div class="t">14:02:11</div><div class="dot c"></div><div>Alert fired: p95 latency over 300 ms on checkout-api</div><div class="t">14:01:48</div><div class="dot"></div><div>checkout-api v2.14.0 promoted to 100%</div><div class="t">13:58:05</div><div class="dot w"></div><div>Node ip-10-0-3-17 reported memory pressure</div><div class="t">13:55:30</div><div class="dot"></div><div>Autoscaler added 2 replicas to search-indexer</div><div class="t">13:41:02</div><div class="dot g"></div><div>Incident INC-412 resolved by Sofia</div></div>
+        </div>
+        <div class="card"><div class="ch"><b>Activity</b><span>team</span></div>
+          <div class="act"><span class="av">P</span><div><b style="font-weight:500">Priya</b> promoted checkout-api v2.14.0 <span style="color:var(--subtle)">4m</span></div></div>
+          <div class="act"><span class="av b">M</span><div><b style="font-weight:500">Marcus</b> started a canary for web-frontend <span style="color:var(--subtle)">22m</span></div></div>
+          <div class="act"><span class="av c">S</span><div><b style="font-weight:500">Sofia</b> resolved incident INC-412 <span style="color:var(--subtle)">1h</span></div></div>
+          <div class="act"><span class="av d">K</span><div><b style="font-weight:500">Ken</b> rolled back search-indexer v1.8.2 <span style="color:var(--subtle)">1h</span></div></div>
+          <div class="act"><span class="av">P</span><div><b style="font-weight:500">Priya</b> invited 2 people to Core team <span style="color:var(--subtle)">3h</span></div></div>
+        </div>
+        <div class="card"><div class="ch"><b>Deploy frequency</b><span>last 16 weeks</span></div>
+          <div class="heat"><i class="h1"></i><i class="h2"></i><i class="h0"></i><i class="h3"></i><i class="h2"></i><i class="h4"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h0"></i><i class="h2"></i><i class="h4"></i><i class="h3"></i><i class="h1"></i><i class="h2"></i><i class="h4"></i><i class="h0"></i><i class="h1"></i><i class="h2"></i><i class="h2"></i><i class="h3"></i><i class="h1"></i><i class="h0"></i><i class="h4"></i><i class="h2"></i><i class="h3"></i><i class="h1"></i><i class="h2"></i><i class="h0"></i><i class="h3"></i><i class="h4"></i><i class="h2"></i><i class="h2"></i><i class="h3"></i><i class="h1"></i><i class="h0"></i><i class="h4"></i><i class="h3"></i><i class="h2"></i><i class="h1"></i><i class="h3"></i><i class="h2"></i><i class="h0"></i><i class="h1"></i><i class="h4"></i><i class="h3"></i><i class="h2"></i><i class="h3"></i><i class="h1"></i><i class="h0"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i><i class="h2"></i><i class="h1"></i><i class="h3"></i><i class="h0"></i><i class="h2"></i><i class="h4"></i><i class="h3"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h0"></i><i class="h1"></i><i class="h2"></i><i class="h4"></i><i class="h2"></i><i class="h3"></i><i class="h1"></i><i class="h0"></i><i class="h2"></i><i class="h4"></i><i class="h3"></i><i class="h2"></i><i class="h1"></i><i class="h3"></i><i class="h2"></i><i class="h0"></i><i class="h4"></i><i class="h1"></i><i class="h3"></i><i class="h2"></i><i class="h2"></i><i class="h0"></i><i class="h3"></i><i class="h4"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h0"></i><i class="h2"></i><i class="h1"></i><i class="h4"></i><i class="h3"></i><i class="h2"></i><i class="h1"></i><i class="h3"></i><i class="h0"></i><i class="h2"></i><i class="h4"></i><i class="h3"></i><i class="h1"></i><i class="h2"></i><i class="h2"></i><i class="h3"></i><i class="h0"></i><i class="h4"></i><i class="h1"></i><i class="h3"></i><i class="h2"></i><i class="h0"></i></div>
+          <div class="lg"><span>Less</span><span><i class="h1" style="background:var(--s1);height:7px;width:7px"></i></span><span><i class="h2" style="background:var(--s1);height:7px;width:7px"></i></span><span><i class="h3" style="background:var(--s1);height:7px;width:7px"></i></span><span><i class="h4" style="background:var(--s1);height:7px;width:7px"></i></span><span>More</span></div>
+          <div class="empty" style="margin-top:10px">No scheduled maintenance. <span style="color:var(--ink)">Schedule a window</span></div>
+        </div>
+      </div>
+      <div class="foot"><span>Acme Console v1.4.2</span><span><b>●</b> All systems normal</span><span>Docs &nbsp;&nbsp;&nbsp; Support &nbsp;&nbsp;&nbsp; Status &nbsp;&nbsp;&nbsp; Privacy</span></div>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top:1.5rem">Treatment</h3>
+<p class="subtitle">Same shell, three treatments. Pick one; the widget set stays as above.</p>
+
+<div class="thumbs">
+  <div class="option" data-choice="comfortable-outlined" onclick="toggleSelect(this)">
+    <div class="letter">1</div>
+    <div class="content">
+      <h3>Comfortable, outlined</h3>
+      <p class="desc" style="font-size:.85rem;margin:0 0 .5rem">As shown above: light, 12px gaps, outlined cards, 24px headline numbers.</p>
+      <div class="fs light thumb"><div class="top"><b>Acme Console</b><div class="search"><span>Search</span></div><span style="flex:1"></span><span class="av" style="width:14px;height:14px;font-size:7px">K</span></div><div class="body"><div class="side"><div class="sec">Platform</div><div class="nav on"><i></i>Overview</div><div class="nav"><i></i>Deployments</div><div class="nav"><i></i>Services</div><div class="sec">Manage</div><div class="nav"><i></i>Users</div><div class="nav"><i></i>Settings</div></div><div class="main"><div class="grid" style="grid-template-columns:repeat(4,1fr)"><div class="card kpi"><div class="l">Requests/min</div><div class="n">12,480</div><div class="d up">▲ 8.2%</div></div><div class="card kpi"><div class="l">Error rate</div><div class="n">0.31%</div><div class="d up">▼ 0.04</div></div><div class="card kpi"><div class="l">p95</div><div class="n">184 ms</div><div class="d dn">▲ 12 ms</div></div><div class="card kpi"><div class="l">Users</div><div class="n">8,214</div><div class="d up">▲ 3.1%</div></div></div><div class="grid" style="grid-template-columns:2fr 1fr"><div class="card"><div class="ch"><b>Requests</b><span>24h</span></div><svg width="100%" height="40" viewBox="0 0 200 40" preserveAspectRatio="none"><polyline fill="none" stroke="var(--s1)" stroke-width="1.5" points="0,30 40,26 80,20 120,16 160,10 200,8"/><polyline fill="none" stroke="var(--s2)" stroke-width="1.5" points="0,36 40,35 80,33 120,31 160,28 200,26"/></svg></div><div class="card"><div class="ch"><b>Node health</b></div><div class="sgrid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="w"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="c"></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div></div></div></div>
+    </div>
+  </div>
+  <div class="option" data-choice="compact-tinted" onclick="toggleSelect(this)">
+    <div class="letter">2</div>
+    <div class="content">
+      <h3>Compact, tinted</h3>
+      <p class="desc" style="font-size:.85rem;margin:0 0 .5rem">Tighter: 8px gaps, no card borders (a faint tint instead), 18px headline numbers, denser table rows. Fits more on one screen.</p>
+      <div class="fs light thumb compact"><div class="top"><b>Acme Console</b><div class="search"><span>Search</span></div><span style="flex:1"></span><span class="av" style="width:14px;height:14px;font-size:7px">K</span></div><div class="body"><div class="side"><div class="sec">Platform</div><div class="nav on"><i></i>Overview</div><div class="nav"><i></i>Deployments</div><div class="nav"><i></i>Services</div><div class="sec">Manage</div><div class="nav"><i></i>Users</div><div class="nav"><i></i>Settings</div></div><div class="main"><div class="grid" style="grid-template-columns:repeat(4,1fr)"><div class="card kpi"><div class="l">Requests/min</div><div class="n">12,480</div><div class="d up">▲ 8.2%</div></div><div class="card kpi"><div class="l">Error rate</div><div class="n">0.31%</div><div class="d up">▼ 0.04</div></div><div class="card kpi"><div class="l">p95</div><div class="n">184 ms</div><div class="d dn">▲ 12 ms</div></div><div class="card kpi"><div class="l">Users</div><div class="n">8,214</div><div class="d up">▲ 3.1%</div></div></div><div class="grid" style="grid-template-columns:2fr 1fr"><div class="card"><div class="ch"><b>Requests</b><span>24h</span></div><svg width="100%" height="40" viewBox="0 0 200 40" preserveAspectRatio="none"><polyline fill="none" stroke="var(--s1)" stroke-width="1.5" points="0,30 40,26 80,20 120,16 160,10 200,8"/><polyline fill="none" stroke="var(--s2)" stroke-width="1.5" points="0,36 40,35 80,33 120,31 160,28 200,26"/></svg></div><div class="card"><div class="ch"><b>Node health</b></div><div class="sgrid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="w"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="c"></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div></div></div></div>
+    </div>
+  </div>
+  <div class="option" data-choice="dark-outlined" onclick="toggleSelect(this)">
+    <div class="letter">3</div>
+    <div class="content">
+      <h3>Dark, outlined</h3>
+      <p class="desc" style="font-size:.85rem;margin:0 0 .5rem">The comfortable layout in Park's dark mode (the same tokens the theme toggle already flips). Series colors switch to their dark-surface steps.</p>
+      <div class="fs dark thumb"><div class="top"><b>Acme Console</b><div class="search"><span>Search</span></div><span style="flex:1"></span><span class="av" style="width:14px;height:14px;font-size:7px">K</span></div><div class="body"><div class="side"><div class="sec">Platform</div><div class="nav on"><i></i>Overview</div><div class="nav"><i></i>Deployments</div><div class="nav"><i></i>Services</div><div class="sec">Manage</div><div class="nav"><i></i>Users</div><div class="nav"><i></i>Settings</div></div><div class="main"><div class="grid" style="grid-template-columns:repeat(4,1fr)"><div class="card kpi"><div class="l">Requests/min</div><div class="n">12,480</div><div class="d up">▲ 8.2%</div></div><div class="card kpi"><div class="l">Error rate</div><div class="n">0.31%</div><div class="d up">▼ 0.04</div></div><div class="card kpi"><div class="l">p95</div><div class="n">184 ms</div><div class="d dn">▲ 12 ms</div></div><div class="card kpi"><div class="l">Users</div><div class="n">8,214</div><div class="d up">▲ 3.1%</div></div></div><div class="grid" style="grid-template-columns:2fr 1fr"><div class="card"><div class="ch"><b>Requests</b><span>24h</span></div><svg width="100%" height="40" viewBox="0 0 200 40" preserveAspectRatio="none"><polyline fill="none" stroke="var(--s1)" stroke-width="1.5" points="0,30 40,26 80,20 120,16 160,10 200,8"/><polyline fill="none" stroke="var(--s2)" stroke-width="1.5" points="0,36 40,35 80,33 120,31 160,28 200,26"/></svg></div><div class="card"><div class="ch"><b>Node health</b></div><div class="sgrid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="w"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="c"></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div></div></div></div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:.5rem;">Pick a treatment, then tell me in the terminal about anything in the big one you'd add, drop, or move. If it all reads right, say so and we'll talk about how it becomes components and which chart library to use.</p>
