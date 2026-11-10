@@ -136,7 +136,14 @@ describe('SignInPage', () => {
 
   it('tab order', async () => {
     const user = userEvent.setup()
-    render(<SignInPage brand="Acme" links={links} onSubmit={vi.fn()} />)
+    render(
+      <SignInPage
+        brand="Acme"
+        links={links}
+        onSubmit={vi.fn()}
+        providers={[{ id: 'github', label: 'GitHub', onSelect: vi.fn() }]}
+      />,
+    )
     await user.click(screen.getByLabelText('Email or username'))
     expect(screen.getByLabelText('Email or username')).toHaveFocus()
     await user.tab()
@@ -145,5 +152,11 @@ describe('SignInPage', () => {
     expect(screen.getByRole('button', { name: /password/i })).toHaveFocus()
     await user.tab()
     expect(screen.getByRole('button', { name: 'Sign in' })).toHaveFocus()
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'Continue with GitHub' })).toHaveFocus()
+    await user.tab()
+    expect(screen.getByRole('link', { name: 'Create an account' })).toHaveFocus()
+    await user.tab()
+    expect(screen.getByRole('link', { name: 'Forgot your password?' })).toHaveFocus()
   })
 })
