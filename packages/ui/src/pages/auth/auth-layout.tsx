@@ -77,11 +77,13 @@ export function AuthLayout({
                 </Text>
               </HStack>
               <Stack gap="2" mt="12" mb="8">
+                {/* Focusable only from script (see above), so no ring: it is not a control. */}
                 <Drawer.Title asChild>
                   <Heading
                     ref={headingRef}
                     as="h1"
                     tabIndex={-1}
+                    outline="none"
                     textStyle="xl"
                     fontWeight="semibold"
                     letterSpacing="tight"
