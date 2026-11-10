@@ -17,7 +17,7 @@ This repository holds the tooling, theme, components, auth pages, preview and CI
 | Component foundation | Park UI (Ark UI headless + Panda CSS recipes) | `packages/ui/src/components/ui`, `packages/ui/src/theme`                                                                                          |
 | Font family          | DM Sans                                       | `fonts.body` / `fonts.heading` tokens resolve to `var(--font-dm-sans, 'DM Sans'), ui-sans-serif, system-ui, sans-serif`; the preview sets the var |
 | Gray color           | Neutral (Radix 12-step)                       | `semanticTokens.colors.gray` aliases `neutral`                                                                                                    |
-| Accent color         | Neutral                                       | `html { colorPalette: 'gray' }` in the global CSS                                                                                                 |
+| Accent color         | Neutral                                       | `colorPalette: 'gray'` on `html`, `.dark` and `.light` in the global CSS                                                                          |
 | Radius               | XS                                            | `radii.l1 = 0.0625rem`, `l2 = {radii.xs}` (0.125rem), `l3 = {radii.sm}` (0.25rem)                                                                 |
 
 Palettes shipped with the theme: neutral, red, green, blue, orange.
@@ -192,22 +192,44 @@ the host theme; it has no close button and Escape does not dismiss it.
 
 The pages are presentational: they validate their form and call `onSubmit(values)`, and the host
 does the rest, passing back `error` and `isSubmitting` and supplying `brand`, `logo`, `footer`,
-`links` (hrefs) and single sign-on `providers` (`{ id, label, icon?, onSelect }`). Page-specific
-props are typed in `packages/ui/src/pages/auth/*-page.tsx`; for example `ForgotPasswordPage`
-shows its "Check your email" state once `onSubmit` resolves, so a host rejects to stay on the form.
+`links` (hrefs) and, on sign in and register, single sign-on `providers`
+(`{ id, label, icon?, onSelect }`; the icon is decorative and hidden from assistive technology).
+
+Every page follows one submit contract: `onSubmit` may resolve or reject; a rejection keeps the
+form, is passed to the optional `onSubmitError(error)`, and the page shows whatever you pass as
+`error`. A rejection never escapes as an unhandled promise rejection, so a handler such as
+`async (values) => { await signIn(values) }` can simply throw on bad credentials; set `error` from
+`onSubmitError` (or catch inside `onSubmit`). `error` stays on screen until you change it. While
+`onSubmit` is pending the submit button shows a spinner and ignores clicks; `isSubmitting`
+overrides that state when you track it yourself.
+
+Page-specific props are typed in `packages/ui/src/pages/auth/*-page.tsx`:
+
+- `ForgotPasswordPage` shows its "Check your email" state once `onSubmit` resolves; a rejection
+  keeps the form. `sent` forces the confirmation state on or off instead.
+- `CompleteProfilePage` takes `identity` (`{ provider, email }`, shown in a chip and as the
+  read-only Email field), optional `defaultValues` to prefill the username and names, and
+  `onSignOut`, called by its "Sign out" button. It renders no links, so it accepts `linkComponent`
+  only for symmetry with the other pages.
+
+Hosting notes:
 
 - The pages use the `fonts.body` token, so they need DM Sans as described in step 6 above
   (`--font-dm-sans`).
 - Links render as Park's `Link` with a plain `href`. Pass the router's link as `linkComponent` for
   client-side navigation; in Next.js that is `linkComponent={NextLink}` (`next/link`). It receives
   `href`, `className` and `children`.
+- On load the drawer focuses the element marked `data-autofocus`, which on every page is the first
+  field. Without one (an `AuthLayout` you fill yourself) it focuses the first tabbable element, so
+  give a linked logo `data-no-autofocus` to keep focus off it. When a page changes state (the sent
+  state), focus moves to the new heading.
 
 The preview wires each page to mock handlers: the route files in `apps/preview/src/app/(auth)`
 render client demos from `apps/preview/src/components/auth/*-demo.tsx`, which use the mock data in
 `apps/preview/src/lib/mock-auth.ts` and the `useMockSubmit` hook in
-`apps/preview/src/lib/use-mock-submit.ts`. Submits resolve after 600 ms, an identifier or email that
-starts with `fail` returns "Something went wrong. Try again.", and the two providers log to the
-console.
+`apps/preview/src/lib/use-mock-submit.ts`. Submits resolve after 600 ms. One whose identifier or
+email starts with `fail` (on complete profile, the username) rejects instead, and the demo shows
+"Something went wrong. Try again." through `onSubmitError`. The two providers log to the console.
 
 ## Testing
 
@@ -220,12 +242,14 @@ console.
 | `make check`                 | Lint, format check, typecheck and unit tests                       |
 
 The e2e suite loads every route (landing page, auth pages, component pages) and fails on any
-console error. It also checks the theme (font, radii), dark mode through the preview panel's theme
-toggle, and that the panel navigates, closes and marks the current page. On the auth pages it
-checks validation and the mock error, the sent and read-only states, that a click on the terms
-link leaves the checkbox alone, and that the drawer stays dark in a light host, ignores Escape,
-fills a 375px viewport and leaves the preview panel usable. It runs against a built preview, so
-build first (`make e2e` does).
+console error or uncaught page error. It also checks the theme (font, radii), dark mode through the
+preview panel's theme toggle, and that the panel navigates, closes and marks the current page. On
+the auth pages, where any uncaught page error (such as an escaped `onSubmit` rejection) fails the
+test, it checks validation and the mock error on every form, the sent state and that its heading
+takes focus, the read-only email, that a click on the terms link leaves the checkbox alone, and
+that the drawer stays dark in a light host, ignores Escape, fills a 375px viewport with the paired
+fields stacked, and leaves the preview panel usable. It runs against a built preview, so build
+first (`make e2e` does).
 
 ## CI
 
