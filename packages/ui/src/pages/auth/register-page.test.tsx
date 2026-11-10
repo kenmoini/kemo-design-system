@@ -119,6 +119,11 @@ describe('RegisterPage', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
+  it("marks the first field for the drawer's initial focus", () => {
+    render(<RegisterPage brand="Acme" links={links} onSubmit={vi.fn()} />)
+    expect(screen.getByLabelText('First name')).toHaveAttribute('data-autofocus')
+  })
+
   it('renders links', () => {
     render(<RegisterPage brand="Acme" links={links} onSubmit={vi.fn()} />)
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/sign-in')

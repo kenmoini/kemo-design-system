@@ -90,7 +90,7 @@ export function ForgotPasswordPage({
             label="Email"
             autoComplete="email"
             error={errors.email?.message}
-            {...{ 'data-autofocus': '' }}
+            data-autofocus=""
             {...register('email')}
           />
           <Button type="submit" width="full" loading={submitting}>

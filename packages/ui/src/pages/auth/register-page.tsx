@@ -81,7 +81,7 @@ export function RegisterPage({
               label="First name"
               autoComplete="given-name"
               error={errors.firstName?.message}
-              {...{ 'data-autofocus': '' }}
+              data-autofocus=""
               {...register('firstName')}
             />
             <TextField

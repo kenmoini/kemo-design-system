@@ -119,6 +119,18 @@ describe('CompleteProfilePage', () => {
     expect(onSignOut).toHaveBeenCalledTimes(1)
   })
 
+  it("marks the username field for the drawer's initial focus", () => {
+    render(
+      <CompleteProfilePage
+        brand="Acme"
+        identity={identity}
+        onSubmit={vi.fn()}
+        onSignOut={vi.fn()}
+      />,
+    )
+    expect(screen.getByLabelText('Username')).toHaveAttribute('data-autofocus')
+  })
+
   it('prefills from defaultValues', () => {
     render(
       <CompleteProfilePage

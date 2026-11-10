@@ -129,6 +129,11 @@ describe('SignInPage', () => {
     )
   })
 
+  it("marks the first field for the drawer's initial focus", () => {
+    render(<SignInPage brand="Acme" links={links} onSubmit={vi.fn()} />)
+    expect(screen.getByLabelText('Email or username')).toHaveAttribute('data-autofocus')
+  })
+
   it('tab order', async () => {
     const user = userEvent.setup()
     render(<SignInPage brand="Acme" links={links} onSubmit={vi.fn()} />)

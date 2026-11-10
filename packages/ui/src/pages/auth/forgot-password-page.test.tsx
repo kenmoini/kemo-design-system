@@ -18,6 +18,11 @@ describe('ForgotPasswordPage', () => {
     )
   })
 
+  it("marks the email field for the drawer's initial focus", () => {
+    render(<ForgotPasswordPage brand="Acme" links={links} onSubmit={vi.fn()} />)
+    expect(screen.getByLabelText('Email')).toHaveAttribute('data-autofocus')
+  })
+
   it('shows an error for an invalid email', async () => {
     const user = userEvent.setup()
     const onSubmit = vi.fn()

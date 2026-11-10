@@ -110,7 +110,7 @@ export function CompleteProfilePage({
             autoComplete="username"
             error={errors.username?.message}
             helperText={errors.username ? undefined : 'Letters, numbers and dashes only.'}
-            {...{ 'data-autofocus': '' }}
+            data-autofocus=""
             {...register('username')}
           />
           <Grid columns={{ base: 1, sm: 2 }} gap="4" alignItems="start">

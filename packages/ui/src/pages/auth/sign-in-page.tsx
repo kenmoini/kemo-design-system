@@ -83,7 +83,7 @@ export function SignInPage({
             label="Email or username"
             autoComplete="username"
             error={errors.identifier?.message}
-            {...{ 'data-autofocus': '' }}
+            data-autofocus=""
             {...register('identifier')}
           />
           <PasswordField
