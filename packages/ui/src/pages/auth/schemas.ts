@@ -40,3 +40,11 @@ export type RegisterValues = z.infer<typeof registerSchema>
 export const forgotPasswordSchema = z.object({ email: emailSchema })
 
 export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>
+
+export const completeProfileSchema = z.object({
+  username: usernameSchema,
+  firstName: nameSchema('first name'),
+  lastName: nameSchema('last name'),
+})
+
+export type CompleteProfileValues = z.infer<typeof completeProfileSchema>

@@ -15,3 +15,5 @@ export {
 } from './schemas'
 export { ForgotPasswordPage, type ForgotPasswordPageProps } from './forgot-password-page'
 export { forgotPasswordSchema, type ForgotPasswordValues } from './schemas'
+export { CompleteProfilePage, type CompleteProfilePageProps } from './complete-profile-page'
+export { completeProfileSchema, type CompleteProfileValues } from './schemas'
