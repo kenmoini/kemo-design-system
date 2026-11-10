@@ -14,6 +14,7 @@ interface Route {
 
 const pageRoutes: Route[] = [
   { href: '/', label: 'Home' },
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/login', label: 'Sign in' },
   { href: '/register', label: 'Create your account' },
   { href: '/forgot-password', label: 'Reset your password' },

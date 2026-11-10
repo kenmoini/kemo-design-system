@@ -7,8 +7,10 @@ page set, the auth pages: Login, Forgot Password, Register and Complete Profile 
 whose scopes or mappers leave the profile incomplete). Other Kemo apps are meant to consume
 `@kemo/ui` so a token or component change lands everywhere.
 
-This repository holds the tooling, theme, components, auth pages, preview and CI (see
-[Auth pages](#auth-pages) and [Roadmap](#roadmap)).
+This repository holds the tooling, theme, components, auth pages, the application shell and
+dashboard widgets, the preview and CI (see [Auth pages](#auth-pages),
+[Application shell and dashboard widgets](#application-shell-and-dashboard-widgets) and
+[Roadmap](#roadmap)).
 
 ## Stack and design language
 
@@ -20,19 +22,20 @@ This repository holds the tooling, theme, components, auth pages, preview and CI
 | Accent color         | Neutral                                       | `colorPalette: 'gray'` on `html`, `.dark` and `.light` in the global CSS                                                                          |
 | Radius               | XS                                            | `radii.l1 = 0.0625rem`, `l2 = {radii.xs}` (0.125rem), `l3 = {radii.sm}` (0.25rem)                                                                 |
 
-Palettes shipped with the theme: neutral, red, green, blue, orange.
+Palettes shipped with the theme: neutral, red, green, blue, orange, amber. Charts use their own
+series tokens, `colors.chart.1` to `chart.5`.
 
-Main versions: Next.js 16.4.5, React 19.3.1, Panda CSS 2.5.0, Ark UI 5.40.0, TypeScript 5.9.3,
+Main versions: Next.js 16.4.5, React 19.3.1, Panda CSS 2.5.0, Ark UI 5.40.0, Recharts 3.10, TypeScript 5.9.3,
 Vitest 5.1, Playwright 1.65, ESLint 10, Prettier 3.9, pnpm 12.4.2. Node 24 is what CI and the
 container use; the repo requires Node >= 24 and works on newer releases.
 
 ## Repo layout
 
 ```
-apps/preview/        @kemo/preview: Next.js component pages, auth page demos, Playwright e2e suite
+apps/preview/        @kemo/preview: component pages, auth and dashboard demos, Playwright e2e suite
 packages/ui/         @kemo/ui: theme, Park UI components, Panda config (`panda lib` output in dist/)
 scripts/park-ui/     Park UI registry sync and the Panda v2 port transform (with tests)
-docs/superpowers/    Design specs and plans (scaffold, auth pages)
+docs/superpowers/    Design specs and plans (scaffold, auth pages, dashboard)
 Makefile             Front door for every task below
 ```
 
@@ -43,8 +46,9 @@ make install && make dev
 ```
 
 Open http://localhost:3000. Every preview page renders on its own, without a header. The round
-button in the bottom-right corner opens the preview panel, a drawer with links to the auth pages
-(`/login`, `/register`, `/forgot-password`, `/complete-profile`), the component pages
+button in the bottom-right corner opens the preview panel, a drawer with links to the overview
+dashboard (`/dashboard`), the auth pages (`/login`, `/register`, `/forgot-password`,
+`/complete-profile`), the component pages
 (`/components/buttons`, `/components/forms`, `/components/surfaces`, `/components/typography`)
 and the theme toggle. `make help` lists every target. Every target is a thin wrapper over a
 `pnpm` script, so `pnpm dev`, `pnpm build` and so on work the same way.
@@ -120,7 +124,7 @@ add, because the barrel files are written unformatted.
 
 ## Consuming @kemo/ui from another app
 
-`@kemo/ui` is not published yet (see [Roadmap](#roadmap), item 3), so for now only apps inside
+`@kemo/ui` is not published yet (see [Roadmap](#roadmap), item 4), so for now only apps inside
 this workspace (`apps/*` or `packages/*`) can consume it, the way `apps/preview` does.
 
 1. Add `"@kemo/ui": "workspace:*"` to the app's dependencies, and the dev dependencies
@@ -231,6 +235,68 @@ render client demos from `apps/preview/src/components/auth/*-demo.tsx`, which us
 email starts with `fail` (on complete profile, the username) rejects instead, and the demo shows
 "Something went wrong. Try again." through `onSubmitError`. The two providers log to the console.
 
+## Application shell and dashboard widgets
+
+`@kemo/ui` also ships the signed-in surface of an app. Everything is presentational: data in through
+props, nothing fetched.
+
+- Shell: `AppShell` with `TopBar`, `SideNav`, `PageHeader` and `PageFooter` (each usable on its
+  own), plus `AppShellProvider`, `useAppShell()`, `SkipLink` and `useMediaQuery`. `AppShell`
+  renders the landmarks (`header`, `nav aria-label="Primary"`, `main`, `footer`) and a "Skip to
+  content" link, and owns the responsive behaviour: a 240px side navigation from `lg`, a 56px icon
+  rail from `md` (or when collapsed), and a drawer opened from the top bar below `md`.
+- Widgets: `StatCard`, `ChartCard`, `LineChart`, `BarChart`, `DonutGauge`, `ArcGauge`,
+  `SegmentedBar`, `StatusGrid`, `ProgressList`, `RankedBars`, `SmallMultiples`, `Sparkline`,
+  `CalendarHeatmap`, `DataTableCard`, `EventStream`, `ActivityFeed`, `AlertBanner`, `EmptyState`
+  and `QuickActions`, with the chart helpers `seriesColors`, `colorForSeries`, `foldSeries` and
+  `ChartTooltip` and the types `Series`, `Point`, `TableData`, `Column`, `Delta` and `StatusTone`.
+  `LineChart` and `BarChart` are built on Recharts; the rest is hand-rolled SVG and CSS.
+
+Chart rules:
+
+1. Series take the tokens `chart.1` to `chart.5` in a fixed order, never cycled; a sixth series
+   and beyond fold into a gray "Other", and dark mode is the token flip.
+2. The status palette (`green.9`, `amber.9`, `red.9`, `gray.6`) is reserved for state, never a
+   series, and always comes with a label or glyph.
+3. A chart with two or more series gets a legend, and every `ChartCard` has a "View as table"
+   toggle that shows the same data as a table (the keyboard and screen-reader channel).
+
+Using the shell in an app:
+
+```tsx
+'use client'
+import { AppShell, type NavGroup, PageFooter, PageHeader, SideNav, TopBar } from '@kemo/ui'
+import NextLink from 'next/link'
+import type { ReactNode } from 'react'
+
+const account = { initials: 'KM', name: 'Ken M.', menu: [{ label: 'Sign out' }] }
+const status = { tone: 'good', text: 'All systems normal' } as const
+
+export function Shell({ nav, children }: { nav: NavGroup[]; children: ReactNode }) {
+  return (
+    <AppShell
+      topBar={<TopBar brand={{ name: 'Acme' }} account={account} />}
+      sideNav={<SideNav groups={nav} linkComponent={NextLink} />}
+      footer={<PageFooter product="Acme" version="v1.0.0" status={status} links={[]} />}
+    >
+      <PageHeader title="Overview" />
+      {children}
+    </AppShell>
+  )
+}
+```
+
+`linkComponent` is the router's link, used for every side-navigation item. It receives `href`,
+`className`, `aria-current`, `onClick` and `children`, so it must forward the rest of its props and
+its `ref` to the `<a>`; Next.js's `Link` does. Mark the current page with `active: true` on its nav
+item.
+
+The preview's `/dashboard` is the full example: a 12-column grid with every widget, built only
+from these parts. The demo is in `apps/preview/src/components/dashboard/` and its mock data in
+`apps/preview/src/lib/mock-dashboard.ts`; `apps/preview/src/lib/use-live-events.ts` prepends a
+mock event to the stream every 4 seconds (keeping the newest 20). Its controls are inert: only the
+environment select, the table tabs and the pager hold state.
+
 ## Testing
 
 | Command                      | What it runs                                                       |
@@ -248,8 +314,11 @@ the auth pages, where any uncaught page error (such as an escaped `onSubmit` rej
 test, it checks validation and the mock error on every form, the sent state and that its heading
 takes focus, the read-only email, that a click on the terms link leaves the checkbox alone, and
 that the drawer stays dark in a light host, ignores Escape, fills a 375px viewport with the paired
-fields stacked, and leaves the preview panel usable. It runs against a built preview, so build
-first (`make e2e` does).
+fields stacked, and leaves the preview panel usable. On the dashboard it checks the shell's
+landmarks and the nine card titles, the chart's table toggle, that dark mode changes the series
+colours, the icon rail just below `lg` (1023px), the navigation drawer and no horizontal overflow
+at 375px, and that the live event stream grows. It runs against a built preview, so build first
+(`make e2e` does).
 
 ## CI
 
@@ -275,4 +344,8 @@ access because `next build` fetches DM Sans from Google Fonts.
    Profile); spec in `docs/superpowers/specs/2026-11-09-auth-pages-design.md`.
 2. Done: page templates under `packages/ui/src/pages/auth`, exported from `@kemo/ui` (see
    [Auth pages](#auth-pages)).
-3. Publishing `@kemo/ui`, once the package prefix is decided.
+3. Done: application shell and overview dashboard widgets, exported from `@kemo/ui`, with the
+   `/dashboard` demo in the preview (see
+   [Application shell and dashboard widgets](#application-shell-and-dashboard-widgets)); spec in
+   `docs/superpowers/specs/2026-11-10-dashboard-design.md`.
+4. Publishing `@kemo/ui`, once the package prefix is decided.

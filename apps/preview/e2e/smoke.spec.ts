@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 const ROUTES = [
   '/',
@@ -10,6 +10,7 @@ const ROUTES = [
   '/components/forms',
   '/components/surfaces',
   '/components/typography',
+  '/dashboard',
 ]
 
 test.describe('routes', () => {
@@ -279,5 +280,123 @@ test.describe('auth pages', () => {
     expect(await width('Password')).toBeGreaterThanOrEqual(250)
     expect(await width('Confirm password')).toBeGreaterThanOrEqual(250)
     expect(await width('First name')).toBe(await width('Last name'))
+  })
+})
+
+test.describe('dashboard', () => {
+  const TITLES = [
+    'Requests per minute',
+    'Capacity',
+    'Deployments per day',
+    'Node health',
+    'Top endpoints',
+    'Recent deployments',
+    'Rollouts',
+    'Event stream',
+    'Activity',
+  ]
+
+  // The outlined card whose title is `title`.
+  const card = (page: Page, title: string) =>
+    page
+      .locator('.card__root')
+      .filter({ has: page.getByRole('heading', { name: title, exact: true }) })
+
+  let pageErrors: string[] = []
+  test.beforeEach(({ page }) => {
+    pageErrors = []
+    page.on('pageerror', (error) => pageErrors.push(error.message))
+  })
+  test.afterEach(() => {
+    expect(pageErrors).toEqual([])
+  })
+
+  test('dashboard renders the shell and nine widget titles', async ({ page }) => {
+    const errors: string[] = []
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text())
+    })
+
+    const response = await page.goto('/dashboard')
+
+    expect(response?.status()).toBe(200)
+    await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
+    await expect(page.getByRole('banner')).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible()
+    await expect(page.getByRole('main')).toBeVisible()
+    await expect(page.getByRole('contentinfo')).toBeVisible()
+    for (const title of TITLES) {
+      await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible()
+    }
+    await expect(page.locator('.recharts-line').first()).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  test('chart table toggle', async ({ page }) => {
+    await page.goto('/dashboard')
+    const requests = card(page, 'Requests per minute')
+    const chart = requests.locator('.recharts-wrapper > svg')
+    await expect(chart).toBeVisible()
+
+    await requests.getByRole('button', { name: 'View as table' }).click()
+    await expect(requests.getByRole('table')).toBeVisible()
+    await expect(requests.getByRole('columnheader', { name: 'API', exact: true })).toBeVisible()
+    await expect(chart).toHaveCount(0)
+
+    await requests.getByRole('button', { name: 'View as chart' }).click()
+    await expect(chart).toBeVisible()
+    await expect(requests.getByRole('table')).toHaveCount(0)
+  })
+
+  test('dark theme flips series colors', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' })
+    await page.goto('/dashboard')
+    const line = page.locator('.recharts-line path').first()
+    const stroke = () => line.evaluate((el) => getComputedStyle(el).stroke)
+    await expect(line).toBeVisible()
+    const before = await stroke()
+    expect(before).toMatch(/^rgb/)
+
+    await page.getByTestId('preview-panel-trigger').click()
+    await page.getByTestId('theme-toggle').click()
+
+    await expect(page.locator('html')).toHaveClass(/dark/)
+    await expect.poll(stroke).not.toBe(before)
+  })
+
+  // `lg` is (min-width: 64em), so 1024px is already the full sidebar; 1023px is the widest rail.
+  test('sidebar becomes a rail below 1024px', async ({ page }) => {
+    await page.setViewportSize({ width: 1023, height: 800 })
+    await page.goto('/dashboard')
+    const nav = page.getByRole('navigation', { name: 'Primary' })
+
+    await expect(nav).toHaveAttribute('data-rail', 'true')
+    expect((await nav.boundingBox())?.width).toBeLessThanOrEqual(60)
+  })
+
+  test('dashboard stacks at 375px', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
+    await page.goto('/dashboard')
+    await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
+
+    // The primary navigation is hidden (the table's pager is a `navigation` landmark of its own).
+    const primary = page.getByRole('navigation', { name: 'Primary' })
+    await expect(primary).toHaveCount(0)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(375)
+
+    await page.getByRole('button', { name: 'Open navigation' }).click()
+    const drawer = page.getByRole('dialog', { name: 'Navigation' })
+    await expect(drawer).toBeVisible()
+    await expect(drawer.getByRole('navigation', { name: 'Primary' })).toBeVisible()
+    await expect(primary).toHaveCount(1)
+  })
+
+  test('live events append', async ({ page }) => {
+    await page.goto('/dashboard')
+    const events = card(page, 'Event stream').getByRole('listitem')
+    await expect(events.first()).toBeVisible()
+    const before = await events.count()
+
+    await expect.poll(() => events.count(), { timeout: 6_000 }).toBeGreaterThan(before)
   })
 })

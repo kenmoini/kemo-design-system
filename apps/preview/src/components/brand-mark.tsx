@@ -1,7 +1,7 @@
 import { css } from '../../styled-system/css'
 
-/** The preview's stand-in logo: a 24px neutral square with a white "A". */
-export function BrandMark() {
+/** The preview's stand-in logo: a 24px neutral square with a white letter ("A" by default). */
+export function BrandMark({ letter = 'A' }: Readonly<{ letter?: string }>) {
   return (
     <svg
       width="24"
@@ -19,7 +19,7 @@ export function BrandMark() {
         fontWeight="700"
         className={css({ fill: 'white' })}
       >
-        A
+        {letter}
       </text>
     </svg>
   )
