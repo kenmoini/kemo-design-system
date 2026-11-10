@@ -5,7 +5,7 @@ import { BrandMark } from '@/components/brand-mark'
 import { authLinks, brand, footer, mockProviders, useMockSubmit } from '@/lib/mock-auth'
 
 export function SignInDemo() {
-  const { error, isSubmitting, submit } = useMockSubmit()
+  const { error, isSubmitting, submit, onSubmitError } = useMockSubmit()
 
   return (
     <SignInPage
@@ -18,6 +18,7 @@ export function SignInDemo() {
       error={error}
       isSubmitting={isSubmitting}
       onSubmit={submit}
+      onSubmitError={onSubmitError}
     />
   )
 }

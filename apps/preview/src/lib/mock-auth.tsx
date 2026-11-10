@@ -39,12 +39,11 @@ export const footer = (
 )
 
 /**
- * `error` and `isSubmitting` state around `mockSubmit`, wired the way a host wires a real call: the
- * error clears when a submit starts and is set when it fails. A failure resolves by default (the
- * page shows `error`); `rejectOnError` re-throws it for a page that branches on the outcome, like
- * Forgot password, which shows its sent state only after `onSubmit` resolves.
+ * `error` and `isSubmitting` state around `mockSubmit`, wired the way a host wires a real call:
+ * `submit` (the page's `onSubmit`) clears the error and rejects when the call fails, and
+ * `onSubmitError` (the page's `onSubmitError`) turns that rejection into the `error` the page shows.
  */
-export function useMockSubmit({ rejectOnError = false }: { rejectOnError?: boolean } = {}) {
+export function useMockSubmit() {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -53,13 +52,14 @@ export function useMockSubmit({ rejectOnError = false }: { rejectOnError?: boole
     setIsSubmitting(true)
     try {
       await mockSubmit(values)
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
-      if (rejectOnError) throw cause
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  return { error, isSubmitting, submit }
+  function onSubmitError(cause: unknown) {
+    setError(cause instanceof Error ? cause.message : String(cause))
+  }
+
+  return { error, isSubmitting, submit, onSubmitError }
 }

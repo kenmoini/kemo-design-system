@@ -5,8 +5,7 @@ import { BrandMark } from '@/components/brand-mark'
 import { authLinks, brand, footer, useMockSubmit } from '@/lib/mock-auth'
 
 export function ForgotPasswordDemo() {
-  // The page shows "Check your email" once onSubmit resolves, so a failure has to reject.
-  const { error, isSubmitting, submit } = useMockSubmit({ rejectOnError: true })
+  const { error, isSubmitting, submit, onSubmitError } = useMockSubmit()
 
   return (
     <ForgotPasswordPage
@@ -18,6 +17,7 @@ export function ForgotPasswordDemo() {
       error={error}
       isSubmitting={isSubmitting}
       onSubmit={submit}
+      onSubmitError={onSubmitError}
     />
   )
 }

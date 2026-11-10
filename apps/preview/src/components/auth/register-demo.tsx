@@ -5,7 +5,7 @@ import { BrandMark } from '@/components/brand-mark'
 import { authLinks, brand, footer, mockProviders, useMockSubmit } from '@/lib/mock-auth'
 
 export function RegisterDemo() {
-  const { error, isSubmitting, submit } = useMockSubmit()
+  const { error, isSubmitting, submit, onSubmitError } = useMockSubmit()
 
   return (
     <RegisterPage
@@ -18,6 +18,7 @@ export function RegisterDemo() {
       error={error}
       isSubmitting={isSubmitting}
       onSubmit={submit}
+      onSubmitError={onSubmitError}
     />
   )
 }
