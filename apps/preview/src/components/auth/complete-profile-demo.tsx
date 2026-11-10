@@ -1,8 +1,10 @@
 'use client'
 import { CompleteProfilePage } from '@kemo/ui'
 import NextLink from 'next/link'
+import { MockFooter } from '@/components/auth/mock-footer'
 import { BrandMark } from '@/components/brand-mark'
-import { brand, footer, useMockSubmit } from '@/lib/mock-auth'
+import { brand } from '@/lib/mock-auth'
+import { useMockSubmit } from '@/lib/use-mock-submit'
 
 export function CompleteProfileDemo() {
   const { error, isSubmitting, submit, onSubmitError } = useMockSubmit()
@@ -11,7 +13,7 @@ export function CompleteProfileDemo() {
     <CompleteProfilePage
       logo={<BrandMark />}
       brand={brand}
-      footer={footer}
+      footer={<MockFooter />}
       linkComponent={NextLink}
       identity={{ provider: 'Keycloak', email: 'ken@acme.com' }}
       defaultValues={{ lastName: 'Moini' }}

@@ -203,8 +203,9 @@ shows its "Check your email" state once `onSubmit` resolves, so a host rejects t
   `href`, `className` and `children`.
 
 The preview wires each page to mock handlers: the route files in `apps/preview/src/app/(auth)`
-render client demos from `apps/preview/src/components/auth/*-demo.tsx`, which use
-`apps/preview/src/lib/mock-auth.tsx`. Submits resolve after 600 ms, an identifier or email that
+render client demos from `apps/preview/src/components/auth/*-demo.tsx`, which use the mock data in
+`apps/preview/src/lib/mock-auth.ts` and the `useMockSubmit` hook in
+`apps/preview/src/lib/use-mock-submit.ts`. Submits resolve after 600 ms, an identifier or email that
 starts with `fail` returns "Something went wrong. Try again.", and the two providers log to the
 console.
 

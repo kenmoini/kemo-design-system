@@ -1,8 +1,10 @@
 'use client'
 import { ForgotPasswordPage } from '@kemo/ui'
 import NextLink from 'next/link'
+import { MockFooter } from '@/components/auth/mock-footer'
 import { BrandMark } from '@/components/brand-mark'
-import { authLinks, brand, footer, useMockSubmit } from '@/lib/mock-auth'
+import { authLinks, brand } from '@/lib/mock-auth'
+import { useMockSubmit } from '@/lib/use-mock-submit'
 
 export function ForgotPasswordDemo() {
   const { error, isSubmitting, submit, onSubmitError } = useMockSubmit()
@@ -11,7 +13,7 @@ export function ForgotPasswordDemo() {
     <ForgotPasswordPage
       logo={<BrandMark />}
       brand={brand}
-      footer={footer}
+      footer={<MockFooter />}
       linkComponent={NextLink}
       links={authLinks}
       error={error}
