@@ -28,6 +28,7 @@ const Dot = styled('span', {
   base: { width: '1.5', height: '1.5', borderRadius: 'full', bg: 'gray.9', flexShrink: 0 },
 })
 
+/** Accepts `linkComponent` like the other pages for symmetry; it renders no links today. */
 export type CompleteProfilePageProps = AuthShellProps & {
   identity: { provider: string; email: string }
   defaultValues?: Partial<CompleteProfileValues>
@@ -48,7 +49,9 @@ export function CompleteProfilePage({
   isSubmitting,
   error,
   onSignOut,
-  ...shell
+  logo,
+  brand,
+  footer,
 }: CompleteProfilePageProps) {
   const {
     register,
@@ -64,7 +67,9 @@ export function CompleteProfilePage({
 
   return (
     <AuthLayout
-      {...shell}
+      logo={logo}
+      brand={brand}
+      footer={footer}
       title="Complete your profile"
       description="A few details are missing before you can continue."
       extras={

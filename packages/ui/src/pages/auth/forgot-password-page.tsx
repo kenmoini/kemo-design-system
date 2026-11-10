@@ -56,7 +56,7 @@ export function ForgotPasswordPage({
 
   if (showSent) {
     return (
-      <AuthLayout {...shell} linkComponent={linkComponent} title="Check your email" extras={extras}>
+      <AuthLayout {...shell} title="Check your email" extras={extras}>
         <Text>
           If an account exists for {sentEmail ?? 'that address'}, a reset link is on its way.
         </Text>
@@ -67,7 +67,6 @@ export function ForgotPasswordPage({
   return (
     <AuthLayout
       {...shell}
-      linkComponent={linkComponent}
       title="Reset your password"
       description="Enter your email and we'll send you a link to choose a new one."
       extras={extras}

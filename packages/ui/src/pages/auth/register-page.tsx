@@ -50,7 +50,6 @@ export function RegisterPage({
   return (
     <AuthLayout
       {...shell}
-      linkComponent={linkComponent}
       title="Create your account"
       extras={
         <Stack gap="4">

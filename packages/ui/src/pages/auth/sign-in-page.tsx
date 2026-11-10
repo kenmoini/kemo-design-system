@@ -47,7 +47,6 @@ export function SignInPage({
   return (
     <AuthLayout
       {...shell}
-      linkComponent={linkComponent}
       title="Welcome back"
       description="Sign in to continue."
       extras={

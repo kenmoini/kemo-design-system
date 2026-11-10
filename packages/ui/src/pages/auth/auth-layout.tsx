@@ -4,7 +4,7 @@ import { Box, HStack, Stack, styled } from '../../../styled-system/jsx'
 import { Drawer, Heading, Text } from '../../components/ui'
 import type { AuthShellProps } from './types'
 
-export type AuthLayoutProps = AuthShellProps & {
+export type AuthLayoutProps = Omit<AuthShellProps, 'linkComponent'> & {
   title: string
   description?: string
   children: ReactNode

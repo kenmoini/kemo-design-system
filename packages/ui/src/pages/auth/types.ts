@@ -11,7 +11,7 @@ export interface AuthProvider {
   onSelect: () => void
 }
 
-/** The layout slots every auth page passes through to `AuthLayout`. */
+/** Props every auth page shares: the layout slots for `AuthLayout` and a link component. */
 export interface AuthShellProps {
   logo?: ReactNode
   brand: string
