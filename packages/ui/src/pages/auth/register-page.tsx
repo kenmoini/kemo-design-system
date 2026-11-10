@@ -15,6 +15,8 @@ import type { AuthProvider, AuthShellProps } from './types'
 
 export type RegisterPageProps = AuthShellProps & {
   onSubmit: (values: RegisterValues) => void | Promise<void>
+  /** Called with whatever `onSubmit` rejects with; the form stays put and shows `error`. */
+  onSubmitError?: (error: unknown) => void
   isSubmitting?: boolean
   error?: string | null
   providers?: AuthProvider[]
@@ -24,6 +26,7 @@ export type RegisterPageProps = AuthShellProps & {
 /** Registration page: profile, credentials and terms acceptance, with optional single sign-on. */
 export function RegisterPage({
   onSubmit,
+  onSubmitError,
   isSubmitting,
   error,
   providers,
@@ -61,7 +64,17 @@ export function RegisterPage({
         </Stack>
       }
     >
-      <form noValidate onSubmit={handleSubmit(async (values) => onSubmit(values))}>
+      <form
+        noValidate
+        onSubmit={handleSubmit(async (values) => {
+          try {
+            await onSubmit(values)
+          } catch (cause) {
+            // The host reports failures through `error`; keep the form.
+            onSubmitError?.(cause)
+          }
+        })}
+      >
         <Stack gap="4">
           <FormAlert message={error} />
           <Grid columns={2} gap="4" alignItems="start">

@@ -63,6 +63,39 @@ describe('SignInPage', () => {
     await waitFor(() => expect(button).toBeEnabled())
   })
 
+  it('passes a rejected onSubmit to onSubmitError and keeps the form usable', async () => {
+    const user = userEvent.setup()
+    const failure = new Error('Wrong password.')
+    const onSubmit = vi.fn().mockRejectedValue(failure)
+    const onSubmitError = vi.fn()
+    render(
+      <SignInPage brand="Acme" links={links} onSubmit={onSubmit} onSubmitError={onSubmitError} />,
+    )
+    await user.type(screen.getByLabelText('Email or username'), 'ken')
+    await user.type(screen.getByLabelText('Password'), 'hunter2hunter2')
+    const button = screen.getByRole('button', { name: 'Sign in' })
+    await user.click(button)
+    await waitFor(() => expect(onSubmitError).toHaveBeenCalledWith(failure))
+    await waitFor(() => expect(button).toBeEnabled())
+    await user.click(button)
+    await waitFor(() => expect(onSubmitError).toHaveBeenCalledTimes(2))
+    expect(onSubmit).toHaveBeenCalledTimes(2)
+  })
+
+  // An escaped rejection would surface as an unhandled rejection, which fails the Vitest run.
+  it('settles a rejected onSubmit without onSubmitError', async () => {
+    const user = userEvent.setup()
+    const onSubmit = vi.fn().mockRejectedValue(new Error('Wrong password.'))
+    render(<SignInPage brand="Acme" links={links} onSubmit={onSubmit} error="Wrong password." />)
+    await user.type(screen.getByLabelText('Email or username'), 'ken')
+    await user.type(screen.getByLabelText('Password'), 'hunter2hunter2')
+    const button = screen.getByRole('button', { name: 'Sign in' })
+    await user.click(button)
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(button).toBeEnabled())
+    expect(screen.getByRole('alert')).toHaveTextContent('Wrong password.')
+  })
+
   it('re-validates a field on change after first submit', async () => {
     const user = userEvent.setup()
     render(<SignInPage brand="Acme" links={links} onSubmit={vi.fn()} />)

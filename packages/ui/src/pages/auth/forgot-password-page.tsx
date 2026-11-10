@@ -13,6 +13,8 @@ import type { AuthShellProps } from './types'
 
 export type ForgotPasswordPageProps = AuthShellProps & {
   onSubmit: (values: ForgotPasswordValues) => void | Promise<void>
+  /** Called with whatever `onSubmit` rejects with; the form stays put and shows `error`. */
+  onSubmitError?: (error: unknown) => void
   isSubmitting?: boolean
   error?: string | null
   /** Force the confirmation state on or off; by default it follows a successful submit. */
@@ -23,6 +25,7 @@ export type ForgotPasswordPageProps = AuthShellProps & {
 /** Forgot-password page: request a reset link, then confirm that it is on its way. */
 export function ForgotPasswordPage({
   onSubmit,
+  onSubmitError,
   isSubmitting,
   error,
   sent,
@@ -74,8 +77,9 @@ export function ForgotPasswordPage({
         onSubmit={handleSubmit(async (values) => {
           try {
             await onSubmit(values)
-          } catch {
-            // The host reports failures through the `error` prop; stay on the form.
+          } catch (cause) {
+            // The host reports failures through `error`; stay on the form.
+            onSubmitError?.(cause)
             return
           }
           setSentEmail(values.email)

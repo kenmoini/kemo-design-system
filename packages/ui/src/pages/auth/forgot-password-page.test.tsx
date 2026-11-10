@@ -59,6 +59,30 @@ describe('ForgotPasswordPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Try again.')
   })
 
+  it('passes a rejected onSubmit to onSubmitError and keeps the form usable', async () => {
+    const user = userEvent.setup()
+    const failure = new Error('nope')
+    const onSubmit = vi.fn().mockRejectedValue(failure)
+    const onSubmitError = vi.fn()
+    render(
+      <ForgotPasswordPage
+        brand="Acme"
+        links={links}
+        onSubmit={onSubmit}
+        onSubmitError={onSubmitError}
+      />,
+    )
+    await user.type(screen.getByLabelText('Email'), 'ken@example.com')
+    const button = screen.getByRole('button', { name: 'Send reset link' })
+    await user.click(button)
+    await waitFor(() => expect(onSubmitError).toHaveBeenCalledWith(failure))
+    await waitFor(() => expect(button).toBeEnabled())
+    expect(screen.getByRole('heading', { level: 1, name: 'Reset your password' })).toBeVisible()
+    await user.click(button)
+    await waitFor(() => expect(onSubmitError).toHaveBeenCalledTimes(2))
+    expect(onSubmit).toHaveBeenCalledTimes(2)
+  })
+
   it('renders the sent state when forced', () => {
     render(<ForgotPasswordPage brand="Acme" links={links} onSubmit={vi.fn()} sent />)
     expect(screen.getByRole('heading', { level: 1, name: 'Check your email' })).toBeVisible()

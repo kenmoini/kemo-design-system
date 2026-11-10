@@ -65,6 +65,30 @@ describe('RegisterPage', () => {
     })
   })
 
+  it('passes a rejected onSubmit to onSubmitError and keeps the form usable', async () => {
+    const user = userEvent.setup()
+    const failure = new Error('Username taken.')
+    const onSubmit = vi.fn().mockRejectedValue(failure)
+    const onSubmitError = vi.fn()
+    render(
+      <RegisterPage brand="Acme" links={links} onSubmit={onSubmit} onSubmitError={onSubmitError} />,
+    )
+    await user.type(screen.getByLabelText('First name'), 'Ken')
+    await user.type(screen.getByLabelText('Last name'), 'Moini')
+    await user.type(screen.getByLabelText('Username'), 'ken-m')
+    await user.type(screen.getByLabelText('Email'), 'ken@example.com')
+    await user.type(screen.getByLabelText('Password'), 'correct-horse-battery')
+    await user.type(screen.getByLabelText('Confirm password'), 'correct-horse-battery')
+    await user.click(screen.getByRole('checkbox'))
+    const button = screen.getByRole('button', { name: 'Create account' })
+    await user.click(button)
+    await waitFor(() => expect(onSubmitError).toHaveBeenCalledWith(failure))
+    await waitFor(() => expect(button).toBeEnabled())
+    await user.click(button)
+    await waitFor(() => expect(onSubmitError).toHaveBeenCalledTimes(2))
+    expect(onSubmit).toHaveBeenCalledTimes(2)
+  })
+
   it('toggles the checkbox by label text and keyboard, and not by clicking a link', async () => {
     const user = userEvent.setup()
     render(<RegisterPage brand="Acme" links={links} onSubmit={vi.fn()} />)

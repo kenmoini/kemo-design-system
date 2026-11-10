@@ -75,6 +75,32 @@ describe('CompleteProfilePage', () => {
     })
   })
 
+  it('passes a rejected onSubmit to onSubmitError and keeps the form usable', async () => {
+    const user = userEvent.setup()
+    const failure = new Error('Username taken.')
+    const onSubmit = vi.fn().mockRejectedValue(failure)
+    const onSubmitError = vi.fn()
+    render(
+      <CompleteProfilePage
+        brand="Acme"
+        identity={identity}
+        onSubmit={onSubmit}
+        onSubmitError={onSubmitError}
+        onSignOut={vi.fn()}
+      />,
+    )
+    await user.type(screen.getByLabelText('Username'), 'ken-m')
+    await user.type(screen.getByLabelText('First name'), 'Ken')
+    await user.type(screen.getByLabelText('Last name'), 'Moini')
+    const button = screen.getByRole('button', { name: 'Finish and continue' })
+    await user.click(button)
+    await waitFor(() => expect(onSubmitError).toHaveBeenCalledWith(failure))
+    await waitFor(() => expect(button).toBeEnabled())
+    await user.click(button)
+    await waitFor(() => expect(onSubmitError).toHaveBeenCalledTimes(2))
+    expect(onSubmit).toHaveBeenCalledTimes(2)
+  })
+
   it('calls onSignOut from the Sign out button', async () => {
     const user = userEvent.setup()
     const onSignOut = vi.fn()

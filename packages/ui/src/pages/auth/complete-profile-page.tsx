@@ -32,6 +32,8 @@ export type CompleteProfilePageProps = AuthShellProps & {
   identity: { provider: string; email: string }
   defaultValues?: Partial<CompleteProfileValues>
   onSubmit: (values: CompleteProfileValues) => void | Promise<void>
+  /** Called with whatever `onSubmit` rejects with; the form stays put and shows `error`. */
+  onSubmitError?: (error: unknown) => void
   isSubmitting?: boolean
   error?: string | null
   onSignOut: () => void
@@ -42,6 +44,7 @@ export function CompleteProfilePage({
   identity,
   defaultValues,
   onSubmit,
+  onSubmitError,
   isSubmitting,
   error,
   onSignOut,
@@ -73,7 +76,17 @@ export function CompleteProfilePage({
         </Text>
       }
     >
-      <form noValidate onSubmit={handleSubmit(async (values) => onSubmit(values))}>
+      <form
+        noValidate
+        onSubmit={handleSubmit(async (values) => {
+          try {
+            await onSubmit(values)
+          } catch (cause) {
+            // The host reports failures through `error`; keep the form.
+            onSubmitError?.(cause)
+          }
+        })}
+      >
         <Stack gap="4">
           <IdentityChip>
             <Dot />
