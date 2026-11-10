@@ -1,5 +1,6 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useId } from 'react'
 import { useForm } from 'react-hook-form'
 import { HStack, Stack } from '../../../styled-system/jsx'
 import { Button, Checkbox, Text } from '../../components/ui'
@@ -40,6 +41,7 @@ export function RegisterPage({
     reValidateMode: 'onChange',
     defaultValues: { acceptTerms: false },
   })
+  const termsErrorId = useId()
   const submitting = isSubmitting ?? formSubmitting
 
   return (
@@ -122,10 +124,13 @@ export function RegisterPage({
                 </AuthLink>
                 .
               </Checkbox.Label>
-              <Checkbox.HiddenInput {...register('acceptTerms')} />
+              <Checkbox.HiddenInput
+                aria-describedby={errors.acceptTerms ? termsErrorId : undefined}
+                {...register('acceptTerms')}
+              />
             </Checkbox.Root>
             {errors.acceptTerms && (
-              <Text textStyle="sm" color="error" role="alert">
+              <Text id={termsErrorId} textStyle="sm" color="error" role="alert">
                 {errors.acceptTerms.message}
               </Text>
             )}

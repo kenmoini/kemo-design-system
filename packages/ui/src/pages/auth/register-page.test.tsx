@@ -65,7 +65,7 @@ describe('RegisterPage', () => {
     })
   })
 
-  it('toggles the checkbox by keyboard and by label text, not by links', async () => {
+  it('toggles the checkbox by label text and keyboard, and not by clicking a link', async () => {
     const user = userEvent.setup()
     render(<RegisterPage brand="Acme" links={links} onSubmit={vi.fn()} />)
     const box = screen.getByRole('checkbox')
@@ -74,6 +74,23 @@ describe('RegisterPage', () => {
     await act(async () => box.focus())
     await user.keyboard(' ')
     await waitFor(() => expect(box).not.toBeChecked())
+    await user.click(screen.getByText(/I agree to the/))
+    await waitFor(() => expect(box).toBeChecked())
+    // Browsers never activate a label for a click on a link inside it; jsdom does unless the
+    // click is default-prevented, so prevent it (as a router link would) to avoid navigation.
+    const link = screen.getByRole('link', { name: 'Terms of Service' })
+    link.addEventListener('click', (event) => event.preventDefault())
+    await user.click(link)
+    expect(box).toBeChecked()
+  })
+
+  it('describes the checkbox with its error', async () => {
+    const user = userEvent.setup()
+    render(<RegisterPage brand="Acme" links={links} onSubmit={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: 'Create account' }))
+    const box = await screen.findByRole('checkbox')
+    await waitFor(() => expect(box).toHaveAttribute('aria-invalid', 'true'))
+    expect(box).toHaveAccessibleDescription('You need to agree to continue.')
   })
 
   it('renders links', () => {
