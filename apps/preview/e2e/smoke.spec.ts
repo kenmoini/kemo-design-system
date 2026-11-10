@@ -19,6 +19,7 @@ test.describe('routes', () => {
       page.on('console', (message) => {
         if (message.type() === 'error') errors.push(message.text())
       })
+      page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`))
 
       const response = await page.goto(route)
 
@@ -115,6 +116,16 @@ function parseColor(value: string) {
 }
 
 test.describe('auth pages', () => {
+  // Uncaught errors and unhandled rejections (a rejected onSubmit, say) fail every auth test.
+  let pageErrors: string[] = []
+  test.beforeEach(({ page }) => {
+    pageErrors = []
+    page.on('pageerror', (error) => pageErrors.push(error.message))
+  })
+  test.afterEach(() => {
+    expect(pageErrors).toEqual([])
+  })
+
   test('auth drawer stays dark in a light host theme', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'light' })
     await page.goto('/login')
@@ -196,7 +207,39 @@ test.describe('auth pages', () => {
     await page.getByLabel('Email').fill('ken@acme.com')
     await page.getByRole('button', { name: 'Send reset link' }).click()
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Check your email' })).toBeVisible()
+    const heading = page.getByRole('heading', { level: 1, name: 'Check your email' })
+    await expect(heading).toBeVisible()
+    // The form (and the focused button) unmounts, so focus moves to the new heading.
+    await expect(heading).toBeFocused()
+  })
+
+  test('a failed submit keeps the form and shows the mock error', async ({ page }) => {
+    const alert = page.getByRole('dialog').getByRole('alert')
+
+    await page.goto('/register')
+    await page.getByLabel('First name').fill('Ken')
+    await page.getByLabel('Last name').fill('Moini')
+    await page.getByLabel('Username').fill('ken-m')
+    await page.getByLabel('Email').fill('fail@acme.com')
+    await page.getByLabel('Password', { exact: true }).fill('correct-horse-battery')
+    await page.getByLabel('Confirm password', { exact: true }).fill('correct-horse-battery')
+    await page.getByText('I agree to the').click({ position: { x: 2, y: 2 } })
+    await page.getByRole('button', { name: 'Create account' }).click()
+    await expect(alert).toHaveText('Something went wrong. Try again.')
+    await expect(page.getByRole('button', { name: 'Create account' })).toBeEnabled()
+
+    await page.goto('/forgot-password')
+    await page.getByLabel('Email').fill('fail@acme.com')
+    await page.getByRole('button', { name: 'Send reset link' }).click()
+    await expect(alert).toHaveText('Something went wrong. Try again.')
+    await expect(page.getByRole('heading', { level: 1, name: 'Reset your password' })).toBeVisible()
+
+    await page.goto('/complete-profile')
+    await page.getByLabel('Username').fill('fail-ken')
+    await page.getByLabel('First name').fill('Ken')
+    await page.getByRole('button', { name: 'Finish and continue' }).click()
+    await expect(alert).toHaveText('Something went wrong. Try again.')
+    await expect(page.getByRole('button', { name: 'Finish and continue' })).toBeEnabled()
   })
 
   test('complete profile keeps the provider email read-only', async ({ page }) => {
@@ -229,5 +272,12 @@ test.describe('auth pages', () => {
 
     expect((await dialog.boundingBox())?.width).toBe(375)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(375)
+
+    // Paired rows stack below `sm`, so each field keeps a usable width.
+    const width = async (label: string) =>
+      (await page.getByLabel(label, { exact: true }).boundingBox())?.width ?? 0
+    expect(await width('Password')).toBeGreaterThanOrEqual(250)
+    expect(await width('Confirm password')).toBeGreaterThanOrEqual(250)
+    expect(await width('First name')).toBe(await width('Last name'))
   })
 })
