@@ -8,6 +8,7 @@ import { layerStyles } from '~/theme/layer-styles'
 import { radii } from '~/theme/radii'
 import { recipes, slotRecipes } from '~/theme/recipes'
 import { textStyles } from '~/theme/text-styles'
+import { chart } from '~/theme/tokens/chart'
 import { colors } from '~/theme/tokens/colors'
 import { durations } from '~/theme/tokens/durations'
 import { easings } from '~/theme/tokens/easings'
@@ -68,6 +69,7 @@ export default defineConfig({
         colors: {
           ...palettes,
           gray: palettes.neutral,
+          chart,
           fg: {
             default: { value: { _light: '{colors.gray.12}', _dark: '{colors.gray.12}' } },
             muted: { value: { _light: '{colors.gray.11}', _dark: '{colors.gray.11}' } },

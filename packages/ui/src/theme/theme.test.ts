@@ -38,4 +38,11 @@ describe('theme tokens', () => {
   it('defines the Nightfall auth gradient', () => {
     expect(token('gradients.auth')).toContain('linear-gradient(135deg, #4a0f26 0%')
   })
+  it('defines the dataviz chart series tokens', () => {
+    expect(token('colors.chart.1').startsWith('var(')).toBe(true)
+    expect(token.var('colors.chart.5')).toBe('var(--colors-chart-5)')
+  })
+  it('includes the amber palette', () => {
+    expect(token.var('colors.amber.9')).toBe('var(--colors-amber-9)')
+  })
 })

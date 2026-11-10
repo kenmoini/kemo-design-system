@@ -1,3 +1,14 @@
+import { segmentGroup } from './segment-group'
+import { switchRecipe } from './switch'
+import { select } from './select'
+import { kbd } from './kbd'
+import { pagination } from './pagination'
+import { tooltip } from './tooltip'
+import { menu } from './menu'
+import { progress } from './progress'
+import { avatar } from './avatar'
+import { tabs } from './tabs'
+import { table } from './table'
 import { drawer } from './drawer'
 import { skeleton } from './skeleton'
 import { badge } from './badge'
@@ -24,6 +35,7 @@ export const recipes = {
   heading,
   icon,
   input,
+  kbd,
   link,
   skeleton,
   spinner,
@@ -31,10 +43,20 @@ export const recipes = {
 }
 export const slotRecipes = {
   alert,
+  avatar,
   card,
   checkbox,
   drawer,
   field,
   fieldset,
   inputGroup,
+  menu,
+  pagination,
+  progress,
+  segmentGroup,
+  select,
+  switchRecipe,
+  table,
+  tabs,
+  tooltip,
 }
