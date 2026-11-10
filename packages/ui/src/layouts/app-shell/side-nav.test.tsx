@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HouseIcon, RocketIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
+import type { LinkComponent } from '../../pages/auth/types'
 import { setMediaMatches } from '../../test/media'
 import { AppShell } from './app-shell'
 import { SideNav } from './side-nav'
@@ -48,24 +48,19 @@ describe('SideNav', () => {
     expect(screen.getByRole('link', { name: 'Deployments 12' })).toHaveTextContent('12')
   })
 
-  it('renders items through the host link component', () => {
-    const HostLink = ({
-      href,
-      className,
-      children,
-    }: {
-      href: string
-      className?: string
-      children: ReactNode
-    }) => (
-      <a href={href} className={className} data-host="">
-        {children}
-      </a>
+  it('renders items through the host link component, forwarding rest props and ref', () => {
+    // A host link written to the LinkComponent contract: rest props and ref reach the anchor.
+    const HostLink: LinkComponent = ({ href, ref, ...rest }) => (
+      <a ref={ref} href={href} data-host="" {...rest} />
     )
     render(<SideNav groups={groups} linkComponent={HostLink} />)
-    const link = screen.getByRole('link', { name: /Deployments/ })
-    expect(link).toHaveAttribute('data-host')
-    expect(link).toHaveAttribute('href', '/deployments')
+    const active = screen.getByRole('link', { name: 'Overview' })
+    expect(active).toHaveAttribute('data-host')
+    expect(active).toHaveAttribute('aria-current', 'page')
+    const other = screen.getByRole('link', { name: 'Deployments 12' })
+    expect(other).toHaveAttribute('data-host')
+    expect(other).toHaveAttribute('href', '/deployments')
+    expect(other).not.toHaveAttribute('aria-current')
   })
 
   it('collapse sidebar toggles data-rail', async () => {

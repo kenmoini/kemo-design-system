@@ -74,7 +74,15 @@ function ShellFrame({
           {sideNav}
         </styled.nav>
         <Stack gap="10" minW="0" px={{ base: '4', md: '6' }} py="6">
-          <styled.main id="main" tabIndex={-1} flex="1" minW="0" outline="none">
+          {/* The skip link scrolls here; the margin keeps the target clear of the sticky top bar. */}
+          <styled.main
+            id="main"
+            tabIndex={-1}
+            flex="1"
+            minW="0"
+            outline="none"
+            scrollMarginTop="14"
+          >
             {children}
           </styled.main>
           {footer ? <footer>{footer}</footer> : null}

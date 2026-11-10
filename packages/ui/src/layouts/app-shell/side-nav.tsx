@@ -141,7 +141,9 @@ function NavGroupSection({ label, items, rail, linkComponent, onNavigate }: NavG
 
 /**
  * Grouped navigation for the shell's `nav`. Inside an `AppShell` it follows the shell: the icon rail
- * from `md` below `lg` or when collapsed, and a "Collapse sidebar" control from `lg`.
+ * from `md` below `lg` or when collapsed, and a "Collapse sidebar" control from `lg`. Rail mode is
+ * client state (media queries read after hydration), so the server render shows full labels until
+ * then, clipped by the shell's 56px column between `md` and `lg`.
  */
 export function SideNav({ groups, footer, linkComponent }: SideNavProps) {
   const shell = useAppShell()

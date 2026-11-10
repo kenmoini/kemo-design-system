@@ -22,7 +22,11 @@ export interface AppShellProviderProps {
   children: ReactNode
 }
 
-/** Owns the shell's responsive state; `AppShell` renders it, so apps rarely need it directly. */
+/**
+ * Owns the shell's responsive state (`collapsed`, `drawerOpen`, `isRail`, `isMobile`) and nothing
+ * else; `AppShell` renders it, so apps rarely need it directly. It renders no drawer: used without
+ * `AppShell`, `TopBar`'s "Open navigation" button sets `drawerOpen` and opens nothing.
+ */
 export function AppShellProvider({ defaultCollapsed = false, children }: AppShellProviderProps) {
   const md = useMediaQuery(MEDIA_MD)
   const lg = useMediaQuery(MEDIA_LG)

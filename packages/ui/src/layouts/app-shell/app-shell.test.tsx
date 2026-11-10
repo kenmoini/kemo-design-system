@@ -90,6 +90,16 @@ describe('AppShell', () => {
     expect(within(dialog).getByRole('link', { name: /Deployments/ })).toBeInTheDocument()
   })
 
+  it('closes the drawer on Escape', async () => {
+    setMediaMatches(MD, false)
+    const user = userEvent.setup()
+    renderShell()
+    await user.click(screen.getByRole('button', { name: 'Open navigation' }))
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
   it('closes the drawer when a nav link is chosen', async () => {
     setMediaMatches(MD, false)
     const user = userEvent.setup()
