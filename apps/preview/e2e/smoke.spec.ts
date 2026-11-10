@@ -397,6 +397,7 @@ test.describe('dashboard', () => {
     await expect(events.first()).toBeVisible()
     const before = await events.count()
 
-    await expect.poll(() => events.count(), { timeout: 6_000 }).toBeGreaterThan(before)
+    // The 4 s interval starts after hydration, so allow two ticks' worth.
+    await expect.poll(() => events.count(), { timeout: 9_000 }).toBeGreaterThan(before)
   })
 })

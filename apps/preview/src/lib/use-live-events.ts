@@ -10,21 +10,31 @@ const timeFormat: Intl.DateTimeFormatOptions = {
   hour12: false,
 }
 
+export interface LiveEventsOptions {
+  /** Time between ticks in ms (default 4000). */
+  intervalMs?: number
+  /** How many events to keep, newest first (default 20). */
+  max?: number
+  /** Stop ticking while true, so a reader can stop the stream changing (WCAG 2.2.2). */
+  paused?: boolean
+}
+
 /**
- * The event stream's mock live feed: starts from `initial` and, every `intervalMs`, prepends the
- * next event of a fixed rotation with a fresh id and the current time, keeping the newest `max`.
- * The time is read inside the interval, never during render, so the server render stays stable.
+ * The event stream's mock live feed: starts from `initial` and, every `intervalMs` unless `paused`,
+ * prepends the next event of a fixed rotation with a fresh id and the current time, keeping the
+ * newest `max`. The time is read inside the interval, never during render, so the server render
+ * stays stable.
  */
 export function useLiveEvents(
   initial: EventStreamEvent[],
-  intervalMs = 4000,
-  max = 20,
+  { intervalMs = 4000, max = 20, paused = false }: LiveEventsOptions = {},
 ): EventStreamEvent[] {
   const [events, setEvents] = useState(initial)
-  // Survives effect re-runs (Strict Mode, a new interval), so ids never repeat.
+  // Survives effect re-runs (Strict Mode, pausing, a new interval), so ids never repeat.
   const ticks = useRef(0)
 
   useEffect(() => {
+    if (paused) return
     const timer = setInterval(() => {
       const n = ticks.current++
       const next = liveEventRotation[n % liveEventRotation.length]
@@ -37,7 +47,7 @@ export function useLiveEvents(
       setEvents((current) => [event, ...current].slice(0, max))
     }, intervalMs)
     return () => clearInterval(timer)
-  }, [intervalMs, max])
+  }, [intervalMs, max, paused])
 
   return events
 }

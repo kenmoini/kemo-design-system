@@ -293,9 +293,13 @@ item.
 
 The preview's `/dashboard` is the full example: a 12-column grid with every widget, built only
 from these parts. The demo is in `apps/preview/src/components/dashboard/` and its mock data in
-`apps/preview/src/lib/mock-dashboard.ts`; `apps/preview/src/lib/use-live-events.ts` prepends a
-mock event to the stream every 4 seconds (keeping the newest 20). Its controls are inert: only the
-environment select, the table tabs and the pager hold state.
+`apps/preview/src/lib/mock-dashboard.ts`. `apps/preview/src/lib/use-live-events.ts` prepends a
+mock event to the stream every 4 seconds (keeping the newest 20) and takes a `paused` option; the
+demo pauses it while the pointer is over the Event stream card or focus is inside it, so its live
+announcements can be stopped. The controls are inert: the selects (environment, workspace, time
+range, service), the table tabs and the pager hold local state, and the buttons do nothing. The
+demo builds its selects from Park's `Select` with `createListCollection` and `Portal` from
+`@ark-ui/react`, which the preview lists as a dependency for that reason.
 
 ## Testing
 

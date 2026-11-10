@@ -64,7 +64,7 @@ export const environments = [
 /** The top bar's static props; the demo adds the logo, the environment state and the actions. */
 export const topBar = {
   brand: { name: 'Kemo Console' },
-  search: { placeholder: 'Search services, deployments…' },
+  search: { placeholder: 'Search services, deployments, users' },
   notifications: 3,
   account: {
     initials: 'KM',
@@ -73,7 +73,12 @@ export const topBar = {
   },
 } satisfies Pick<TopBarProps, 'brand' | 'search' | 'notifications' | 'account'>
 
-export const workspace = 'Core team'
+/** The side navigation's workspace switcher. */
+export const workspaces = [
+  { value: 'core', label: 'Core team' },
+  { value: 'platform', label: 'Platform team' },
+  { value: 'data', label: 'Data team' },
+]
 
 export const footer = {
   product: 'Kemo Console',
@@ -91,6 +96,22 @@ export const footerLinks: PageFooterProps['links'] = [
 // Header and incident
 
 export const pageContext = ['Tuesday, November 10', 'updated 12 seconds ago']
+
+export const timeRanges = [
+  { value: '1h', label: 'Last hour' },
+  { value: '24h', label: 'Last 24 hours' },
+  { value: '7d', label: 'Last 7 days' },
+  { value: '30d', label: 'Last 30 days' },
+]
+
+export const services = [
+  { value: 'all', label: 'All services' },
+  { value: 'checkout-api', label: 'checkout-api' },
+  { value: 'web-frontend', label: 'web-frontend' },
+  { value: 'search-indexer', label: 'search-indexer' },
+  { value: 'auth-service', label: 'auth-service' },
+  { value: 'billing-worker', label: 'billing-worker' },
+]
 
 export const incident = {
   title: 'Incident INC-418',
@@ -139,7 +160,7 @@ const webRpm = [
   2150, 1980, 1860, 1790, 1760, 1820, 2010, 2380, 2760, 3020, 3180, 3260, 3310, 3350, 3390, 3360,
   3420, 3480, 3530, 3570, 3610, 3590, 3600, 3620,
 ]
-const workersRpm = [
+const jobsRpm = [
   1620, 1580, 1540, 1510, 1490, 1500, 1460, 1420, 1380, 1350, 1340, 1330, 1320, 1330, 1350, 1360,
   1370, 1380, 1390, 1400, 1410, 1400, 1405, 1410,
 ]
@@ -149,12 +170,12 @@ const hourly = (values: number[]) => values.map((y, i) => ({ x: hours[i] ?? Stri
 export const requestSeries: Series[] = [
   { id: 'api', label: 'API', data: hourly(apiRpm) },
   { id: 'web', label: 'Web', data: hourly(webRpm) },
-  { id: 'workers', label: 'Workers', data: hourly(workersRpm) },
+  { id: 'jobs', label: 'Jobs', data: hourly(jobsRpm) },
 ]
 
 export const requestTable: TableData = {
-  columns: ['Hour', 'API', 'Web', 'Workers'],
-  rows: hours.map((hour, i) => [hour, apiRpm[i] ?? 0, webRpm[i] ?? 0, workersRpm[i] ?? 0]),
+  columns: ['Hour', 'API', 'Web', 'Jobs'],
+  rows: hours.map((hour, i) => [hour, apiRpm[i] ?? 0, webRpm[i] ?? 0, jobsRpm[i] ?? 0]),
 }
 
 // Capacity: CPU as a donut, storage as parts of a whole (TB)
@@ -187,22 +208,22 @@ export const capacityTable: TableData = {
   ],
 }
 
-// Deployments per day, last 7 days, stacked
+// Deployments per day, last 7 days, grouped
 
 export const deploymentDays = ['Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue']
 const succeeded = [18, 23, 16, 5, 3, 21, 19]
-const failed = [1, 2, 1, 0, 0, 3, 1]
+const rolledBack = [1, 2, 1, 0, 0, 3, 1]
 
 const daily = (values: number[]) => values.map((y, i) => ({ x: deploymentDays[i] ?? String(i), y }))
 
 export const deploymentsByDay: Series[] = [
   { id: 'succeeded', label: 'Succeeded', data: daily(succeeded) },
-  { id: 'failed', label: 'Failed', data: daily(failed) },
+  { id: 'rolled-back', label: 'Rolled back', data: daily(rolledBack) },
 ]
 
 export const deploymentsTable: TableData = {
-  columns: ['Day', 'Succeeded', 'Failed'],
-  rows: deploymentDays.map((day, i) => [day, succeeded[i] ?? 0, failed[i] ?? 0]),
+  columns: ['Day', 'Succeeded', 'Rolled back'],
+  rows: deploymentDays.map((day, i) => [day, succeeded[i] ?? 0, rolledBack[i] ?? 0]),
 }
 
 // Node health: 48 nodes, 44 ready, 1 under pressure, 1 not ready, 2 cordoned

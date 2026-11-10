@@ -1,9 +1,10 @@
 'use client'
+import { Portal } from '@ark-ui/react/portal'
+import { createListCollection } from '@ark-ui/react/select'
 import {
   ActivityFeed,
   AlertBanner,
   AppShell,
-  Avatar,
   Badge,
   BarChart,
   Button,
@@ -23,6 +24,7 @@ import {
   ProgressList,
   RankedBars,
   SegmentedBar,
+  Select,
   SideNav,
   SmallMultiples,
   Sparkline,
@@ -31,9 +33,9 @@ import {
   Text,
   TopBar,
 } from '@kemo/ui'
-import { ChevronDownIcon, PlusIcon, RefreshCwIcon, Share2Icon } from 'lucide-react'
+import { PlusIcon } from 'lucide-react'
 import NextLink from 'next/link'
-import { type ReactNode, useState } from 'react'
+import { type ComponentProps, type FocusEvent, type ReactNode, useMemo, useState } from 'react'
 import { Box, Grid, HStack, Stack, styled } from '../../../styled-system/jsx'
 import { BrandMark } from '@/components/brand-mark'
 import {
@@ -61,16 +63,18 @@ import {
   requestSeries,
   requestTable,
   rollouts,
+  services,
   stats,
+  timeRanges,
   topBar,
   topEndpoints,
   topEndpointsTable,
-  workspace,
+  workspaces,
 } from '@/lib/mock-dashboard'
 import { useLiveEvents } from '@/lib/use-live-events'
 
-// Every control on this page is inert: buttons call no-ops, and only the environment select, the
-// table tabs and the pager hold local state so they respond.
+// Every control on this page is inert: buttons call no-ops, and the selects (environment, time
+// range, service, workspace), the table tabs and the pager hold local state so they respond.
 const noop = () => {}
 
 const navGroups: NavGroup[] = mockNavGroups.map((group) => ({
@@ -100,13 +104,14 @@ function Panel({
   title,
   caption,
   children,
-}: {
+  ...rootProps
+}: Omit<ComponentProps<typeof Card.Root>, 'title'> & {
   title: string
   caption?: string
   children: ReactNode
 }) {
   return (
-    <Card.Root variant="outline">
+    <Card.Root variant="outline" {...rootProps}>
       <Card.Header>
         <Card.Title>{title}</Card.Title>
         {caption ? (
@@ -117,6 +122,64 @@ function Panel({
       </Card.Header>
       <Card.Body gap="6">{children}</Card.Body>
     </Card.Root>
+  )
+}
+
+interface DemoSelectProps {
+  /** Visually hidden; names the combobox. */
+  label: string
+  options: { value: string; label: string }[]
+  value: string
+  onChange: (value: string) => void
+  placement?: 'bottom-start' | 'bottom-end' | 'top-start'
+  /**
+   * Lift the list above modal layers. The select recipe stacks its content at `dropdown`, below the
+   * navigation drawer, so the side navigation's copy (also rendered in the drawer) needs this.
+   */
+  raised?: boolean
+}
+
+/** A small Park `Select` holding a local value, built the way `TopBar`'s environment select is. */
+function DemoSelect({
+  label,
+  options,
+  value,
+  onChange,
+  placement = 'bottom-end',
+  raised = false,
+}: DemoSelectProps) {
+  const collection = useMemo(() => createListCollection({ items: options }), [options])
+  return (
+    <Select.Root
+      collection={collection}
+      value={[value]}
+      onValueChange={(details) => {
+        const next = details.value[0]
+        if (next !== undefined) onChange(next)
+      }}
+      size="sm"
+      positioning={{ placement }}
+    >
+      <Select.Label srOnly>{label}</Select.Label>
+      <Select.Control>
+        <Select.Trigger>
+          <Select.ValueText />
+          <Select.Indicator />
+        </Select.Trigger>
+      </Select.Control>
+      <Portal>
+        <Select.Positioner>
+          <Select.Content zIndex={raised ? 'popover' : undefined}>
+            {collection.items.map((item) => (
+              <Select.Item key={item.value} item={item}>
+                <Select.ItemText>{item.label}</Select.ItemText>
+                <Select.ItemIndicator />
+              </Select.Item>
+            ))}
+          </Select.Content>
+        </Select.Positioner>
+      </Portal>
+    </Select.Root>
   )
 }
 
@@ -210,45 +273,50 @@ function RecentDeployments() {
   )
 }
 
-function LiveEventStream() {
-  const live = useLiveEvents(events)
-  return (
-    // The stream keeps the newest 20; the list scrolls inside the card rather than growing the row.
-    <Box
-      role="group"
-      aria-label="Events, newest first"
-      tabIndex={0}
-      maxH="72"
-      overflowY="auto"
-      outline="none"
-      focusVisibleRing="outside"
-    >
-      <EventStream events={live} live />
-    </Box>
-  )
-}
+/**
+ * The live Event stream. It stops ticking while the pointer is over the card or focus is inside it,
+ * so the polite announcements and the moving list can be stopped (WCAG 2.2.2).
+ */
+function EventStreamCard() {
+  const [hovered, setHovered] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const paused = hovered || focused
+  const live = useLiveEvents(events, { paused })
 
-function UserBlock() {
   return (
-    <HStack gap="2.5" px="2.5" py="2">
-      {/* The name follows in text, so the initials are decorative. */}
-      <Avatar.Root size="xs" aria-hidden="true">
-        <Avatar.Fallback>{topBar.account.initials}</Avatar.Fallback>
-      </Avatar.Root>
-      <Stack gap="0" minW="0">
-        <Text textStyle="sm" fontWeight="medium" truncate>
-          {topBar.account.name}
-        </Text>
-        <Text textStyle="xs" color="fg.muted" truncate>
-          {workspace}
-        </Text>
-      </Stack>
-    </HStack>
+    <Panel
+      title="Event stream"
+      caption={paused ? 'Paused' : 'Live'}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={(event: FocusEvent<HTMLDivElement>) => {
+        // Focus within: only a move out of the card resumes the stream.
+        const next = event.relatedTarget
+        if (!(next instanceof Node && event.currentTarget.contains(next))) setFocused(false)
+      }}
+    >
+      {/* The stream keeps the newest 20; the list scrolls inside the card rather than growing the row. */}
+      <Box
+        role="group"
+        aria-label="Events, newest first"
+        tabIndex={0}
+        maxH="72"
+        overflowY="auto"
+        outline="none"
+        focusVisibleRing="outside"
+      >
+        <EventStream events={live} live />
+      </Box>
+    </Panel>
   )
 }
 
 export function DashboardDemo() {
   const [environment, setEnvironment] = useState('prod-us-east')
+  const [workspace, setWorkspace] = useState('core')
+  const [timeRange, setTimeRange] = useState('24h')
+  const [service, setService] = useState('all')
 
   return (
     <AppShell
@@ -257,17 +325,24 @@ export function DashboardDemo() {
           {...topBar}
           brand={{ ...topBar.brand, logo: <BrandMark letter="K" /> }}
           environment={{ options: environments, value: environment, onChange: setEnvironment }}
-          actions={
-            // The page header repeats it as the primary action, so this one stays quiet and
-            // gives the search field its room below `lg`.
-            <Button variant="outline" size="sm" hideBelow="lg" onClick={noop}>
-              <PlusIcon />
-              New deployment
-            </Button>
+        />
+      }
+      sideNav={
+        <SideNav
+          groups={navGroups}
+          linkComponent={NextLink}
+          footer={
+            <DemoSelect
+              label="Workspace"
+              options={workspaces}
+              value={workspace}
+              onChange={setWorkspace}
+              placement="top-start"
+              raised
+            />
           }
         />
       }
-      sideNav={<SideNav groups={navGroups} linkComponent={NextLink} footer={<UserBlock />} />}
       footer={<PageFooter {...footer} links={footerLinks} />}
     >
       <Stack gap="6">
@@ -278,21 +353,28 @@ export function DashboardDemo() {
           ))}
           actions={
             <>
+              <Box w="40">
+                <DemoSelect
+                  label="Time range"
+                  options={timeRanges}
+                  value={timeRange}
+                  onChange={setTimeRange}
+                />
+              </Box>
+              <Box w="40">
+                <DemoSelect
+                  label="Service"
+                  options={services}
+                  value={service}
+                  onChange={setService}
+                />
+              </Box>
               <Button variant="outline" size="sm" onClick={noop}>
-                Last 24 h
-                <ChevronDownIcon />
-              </Button>
-              <Button variant="outline" size="sm" onClick={noop}>
-                <RefreshCwIcon />
-                Refresh
-              </Button>
-              <Button variant="outline" size="sm" onClick={noop}>
-                <Share2Icon />
-                Share
+                Export
               </Button>
               <Button size="sm" onClick={noop}>
                 <PlusIcon />
-                New deployment
+                Add widget
               </Button>
             </>
           }
@@ -345,7 +427,7 @@ export function DashboardDemo() {
 
           <Slot span="third">
             <ChartCard title="Deployments per day" caption="Last 7 days" table={deploymentsTable}>
-              <BarChart categories={deploymentDays} series={deploymentsByDay} stacked />
+              <BarChart categories={deploymentDays} series={deploymentsByDay} />
             </ChartCard>
           </Slot>
           <Slot span="third">
@@ -376,9 +458,7 @@ export function DashboardDemo() {
           </Slot>
 
           <Slot span="third">
-            <Panel title="Event stream" caption="Live">
-              <LiveEventStream />
-            </Panel>
+            <EventStreamCard />
           </Slot>
           <Slot span="third">
             <Panel title="Activity" caption="Team">
