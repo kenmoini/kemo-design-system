@@ -77,7 +77,7 @@ export function RegisterPage({
       >
         <Stack gap="4">
           <FormAlert message={error} />
-          <Grid columns={2} gap="4" alignItems="start">
+          <Grid columns={{ base: 1, sm: 2 }} gap="4" alignItems="start">
             <TextField
               label="First name"
               autoComplete="given-name"
@@ -105,7 +105,7 @@ export function RegisterPage({
             error={errors.email?.message}
             {...register('email')}
           />
-          <Grid columns={2} gap="4" alignItems="start">
+          <Grid columns={{ base: 1, sm: 2 }} gap="4" alignItems="start">
             <PasswordField
               label="Password"
               autoComplete="new-password"

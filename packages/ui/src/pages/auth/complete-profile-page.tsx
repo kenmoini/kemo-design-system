@@ -108,7 +108,7 @@ export function CompleteProfilePage({
             {...{ 'data-autofocus': '' }}
             {...register('username')}
           />
-          <Grid columns={2} gap="4" alignItems="start">
+          <Grid columns={{ base: 1, sm: 2 }} gap="4" alignItems="start">
             <TextField
               label="First name"
               autoComplete="given-name"
