@@ -1,7 +1,7 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { HStack, Stack, styled } from '../../../styled-system/jsx'
+import { Grid, Stack, styled } from '../../../styled-system/jsx'
 import { Button, Text } from '../../components/ui'
 import { AuthLayout } from './auth-layout'
 import { FormAlert } from './form-alert'
@@ -95,7 +95,7 @@ export function CompleteProfilePage({
             {...{ 'data-autofocus': '' }}
             {...register('username')}
           />
-          <HStack gap="4" alignItems="flex-start">
+          <Grid columns={2} gap="4" alignItems="start">
             <TextField
               label="First name"
               autoComplete="given-name"
@@ -108,7 +108,7 @@ export function CompleteProfilePage({
               error={errors.lastName?.message}
               {...register('lastName')}
             />
-          </HStack>
+          </Grid>
           <Button type="submit" width="full" loading={submitting}>
             Finish and continue
           </Button>

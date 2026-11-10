@@ -2,7 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useId } from 'react'
 import { useForm } from 'react-hook-form'
-import { HStack, Stack } from '../../../styled-system/jsx'
+import { Grid, Stack } from '../../../styled-system/jsx'
 import { Button, Checkbox, Text } from '../../components/ui'
 import { AuthLayout } from './auth-layout'
 import { AuthLink } from './auth-link'
@@ -64,7 +64,7 @@ export function RegisterPage({
       <form noValidate onSubmit={handleSubmit(async (values) => onSubmit(values))}>
         <Stack gap="4">
           <FormAlert message={error} />
-          <HStack gap="4" alignItems="flex-start">
+          <Grid columns={2} gap="4" alignItems="start">
             <TextField
               label="First name"
               autoComplete="given-name"
@@ -78,7 +78,7 @@ export function RegisterPage({
               error={errors.lastName?.message}
               {...register('lastName')}
             />
-          </HStack>
+          </Grid>
           <TextField
             label="Username"
             autoComplete="username"
@@ -92,7 +92,7 @@ export function RegisterPage({
             error={errors.email?.message}
             {...register('email')}
           />
-          <HStack gap="4" alignItems="flex-start">
+          <Grid columns={2} gap="4" alignItems="start">
             <PasswordField
               label="Password"
               autoComplete="new-password"
@@ -106,7 +106,7 @@ export function RegisterPage({
               error={errors.confirmPassword?.message}
               {...register('confirmPassword')}
             />
-          </HStack>
+          </Grid>
           <Stack gap="1.5">
             {/* value="" makes react-hook-form read this single checkbox as a boolean, not "on" */}
             <Checkbox.Root invalid={!!errors.acceptTerms} value="">

@@ -1,15 +1,8 @@
 import type { Metadata } from 'next'
-import { Heading, Text } from '@kemo/ui'
+import { CompleteProfileDemo } from '@/components/auth/complete-profile-demo'
 
 export const metadata: Metadata = { title: 'Complete your profile' }
 
 export default function CompleteProfilePage() {
-  return (
-    <>
-      <Heading as="h1" textStyle="3xl">
-        Complete your profile
-      </Heading>
-      <Text color="fg.muted">Design pending. See docs/superpowers/specs.</Text>
-    </>
-  )
+  return <CompleteProfileDemo />
 }

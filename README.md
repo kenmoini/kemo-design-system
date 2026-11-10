@@ -2,13 +2,13 @@
 
 A React design system and the live preview app used to design with it. `@kemo/ui` is a Park UI
 component library (Ark UI headless components styled with Panda CSS recipes) with a fixed theme.
-`@kemo/preview` is a Next.js app that renders the components on standalone pages and stub routes
-for the first page set to build: Login, Forgot Password, Register and Complete Profile (for OIDC
-logins whose scopes or mappers leave the profile incomplete). Other Kemo apps are meant to consume
+`@kemo/preview` is a Next.js app that renders the components on standalone pages and the first
+page set, the auth pages: Login, Forgot Password, Register and Complete Profile (for OIDC logins
+whose scopes or mappers leave the profile incomplete). Other Kemo apps are meant to consume
 `@kemo/ui` so a token or component change lands everywhere.
 
-This repository is the scaffold: tooling, theme, components, preview and CI. The visual design of
-the auth pages comes later (see [Roadmap](#roadmap)).
+This repository holds the tooling, theme, components, auth pages, preview and CI (see
+[Auth pages](#auth-pages) and [Roadmap](#roadmap)).
 
 ## Stack and design language
 
@@ -29,10 +29,10 @@ container use; the repo requires Node >= 24 and works on newer releases.
 ## Repo layout
 
 ```
-apps/preview/        @kemo/preview: Next.js component pages, auth route stubs, Playwright e2e suite
+apps/preview/        @kemo/preview: Next.js component pages, auth page demos, Playwright e2e suite
 packages/ui/         @kemo/ui: theme, Park UI components, Panda config (`panda lib` output in dist/)
 scripts/park-ui/     Park UI registry sync and the Panda v2 port transform (with tests)
-docs/superpowers/    Design spec for the scaffold
+docs/superpowers/    Design specs and plans (scaffold, auth pages)
 Makefile             Front door for every task below
 ```
 
@@ -43,7 +43,7 @@ make install && make dev
 ```
 
 Open http://localhost:3000. Every preview page renders on its own, without a header. The round
-button in the bottom-right corner opens the preview panel, a drawer with links to the auth stubs
+button in the bottom-right corner opens the preview panel, a drawer with links to the auth pages
 (`/login`, `/register`, `/forgot-password`, `/complete-profile`), the component pages
 (`/components/buttons`, `/components/forms`, `/components/surfaces`, `/components/typography`)
 and the theme toggle. `make help` lists every target. Every target is a thin wrapper over a
@@ -183,6 +183,31 @@ Panda's `jsx` tracking covers the Park components by name. Add `staticCss: { rec
 the app config only if you need every recipe variant pre-generated; the preview does, for its
 component pages.
 
+### Auth pages
+
+`@kemo/ui` exports `SignInPage`, `RegisterPage`, `ForgotPasswordPage` and `CompleteProfilePage`
+(client components), the `AuthLayout` shell they share, and their zod schemas. Each page is a
+full-viewport gradient with an always-open drawer on the start side that stays in dark mode whatever
+the host theme; it has no close button and Escape does not dismiss it.
+
+The pages are presentational: they validate their form and call `onSubmit(values)`, and the host
+does the rest, passing back `error` and `isSubmitting` and supplying `brand`, `logo`, `footer`,
+`links` (hrefs) and single sign-on `providers` (`{ id, label, icon?, onSelect }`). Page-specific
+props are typed in `packages/ui/src/pages/auth/*-page.tsx`; for example `ForgotPasswordPage`
+shows its "Check your email" state once `onSubmit` resolves, so a host rejects to stay on the form.
+
+- The pages use the `fonts.body` token, so they need DM Sans as described in step 6 above
+  (`--font-dm-sans`).
+- Links render as Park's `Link` with a plain `href`. Pass the router's link as `linkComponent` for
+  client-side navigation; in Next.js that is `linkComponent={NextLink}` (`next/link`). It receives
+  `href`, `className` and `children`.
+
+The preview wires each page to mock handlers: the route files in `apps/preview/src/app/(auth)`
+render client demos from `apps/preview/src/components/auth/*-demo.tsx`, which use
+`apps/preview/src/lib/mock-auth.tsx`. Submits resolve after 600 ms, an identifier or email that
+starts with `fail` returns "Something went wrong. Try again.", and the two providers log to the
+console.
+
 ## Testing
 
 | Command                      | What it runs                                                       |
@@ -193,10 +218,13 @@ component pages.
 | `make e2e` (`pnpm test:e2e`) | Builds, then runs the Playwright smoke suite in `apps/preview/e2e` |
 | `make check`                 | Lint, format check, typecheck and unit tests                       |
 
-The e2e suite loads every route (landing page, auth stubs, component pages) and fails on any
+The e2e suite loads every route (landing page, auth pages, component pages) and fails on any
 console error. It also checks the theme (font, radii), dark mode through the preview panel's theme
-toggle, and that the panel navigates, closes and marks the current page. It runs against a built
-preview, so build first (`make e2e` does).
+toggle, and that the panel navigates, closes and marks the current page. On the auth pages it
+checks validation and the mock error, the sent and read-only states, that a click on the terms
+link leaves the checkbox alone, and that the drawer stays dark in a light host, ignores Escape,
+fills a 375px viewport and leaves the preview panel usable. It runs against a built preview, so
+build first (`make e2e` does).
 
 ## CI
 
@@ -218,7 +246,8 @@ access because `next build` fetches DM Sans from Google Fonts.
 
 ## Roadmap
 
-1. Design phase for the four auth pages (Login, Forgot Password, Register, Complete Profile),
-   worked out against the live component pages in `apps/preview`.
-2. Page templates under `packages/ui/src/pages`, exported from `@kemo/ui`.
+1. Done: design phase for the four auth pages (Login, Forgot Password, Register, Complete
+   Profile); spec in `docs/superpowers/specs/2026-11-09-auth-pages-design.md`.
+2. Done: page templates under `packages/ui/src/pages/auth`, exported from `@kemo/ui` (see
+   [Auth pages](#auth-pages)).
 3. Publishing `@kemo/ui`, once the package prefix is decided.

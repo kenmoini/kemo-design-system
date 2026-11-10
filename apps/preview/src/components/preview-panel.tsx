@@ -56,7 +56,8 @@ export function PreviewPanel() {
           position="fixed"
           bottom="4"
           insetInlineEnd="4"
-          zIndex="docked"
+          // Above the auth pages' drawer (zIndex modal), which covers narrow viewports.
+          zIndex="toast"
           boxShadow="lg"
           aria-label="Open preview panel"
           data-testid="preview-panel-trigger"

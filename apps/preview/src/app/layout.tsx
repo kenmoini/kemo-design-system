@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: '%s · kemo-design-system preview',
     default: 'kemo-design-system preview',
   },
-  description: 'Live preview of @kemo/ui: component pages and auth route stubs.',
+  description: 'Live preview of @kemo/ui: component pages and auth pages.',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

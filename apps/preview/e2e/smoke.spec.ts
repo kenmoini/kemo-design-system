@@ -101,3 +101,133 @@ test('panel closes on history navigation and Escape', async ({ page }) => {
   await page.keyboard.press('Escape')
   await expect(dialog).not.toBeVisible()
 })
+
+// WCAG relative luminance of a computed `rgb()`/`rgba()` color, plus its alpha.
+function parseColor(value: string) {
+  const match = value.match(/rgba?\(([^)]+)\)/)
+  if (!match?.[1]) throw new Error(`Unexpected color: ${value}`)
+  const [r = 0, g = 0, b = 0, alpha = 1] = match[1].split(/[\s,/]+/).map(Number)
+  const linear = (channel: number) => {
+    const c = channel / 255
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  }
+  return { luminance: 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b), alpha }
+}
+
+test.describe('auth pages', () => {
+  test('auth drawer stays dark in a light host theme', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' })
+    await page.goto('/login')
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await expect(page.locator('html')).not.toHaveClass(/dark/)
+
+    const color = await page
+      .getByRole('heading', { level: 1 })
+      .evaluate((el) => getComputedStyle(el).color)
+    expect(parseColor(color).luminance).toBeGreaterThan(0.7)
+
+    const background = parseColor(
+      await dialog.evaluate((el) => getComputedStyle(el).backgroundColor),
+    )
+    expect(background.alpha < 1 || background.luminance < 0.2).toBe(true)
+
+    // Palette-driven recipes follow too: the primary button is white on the dark glass.
+    const primary = await page
+      .getByRole('button', { name: 'Sign in', exact: true })
+      .evaluate((el) => getComputedStyle(el).backgroundColor)
+    expect(parseColor(primary).luminance).toBeGreaterThan(0.7)
+  })
+
+  test('escape does not dismiss the auth drawer', async ({ page }) => {
+    await page.goto('/login')
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+
+    await page.keyboard.press('Escape')
+
+    await expect(dialog).toHaveAttribute('data-state', 'open')
+    await expect(dialog).toBeVisible()
+  })
+
+  test('sign in validates and shows the mock error', async ({ page }) => {
+    await page.goto('/login')
+    const submit = page.getByRole('button', { name: 'Sign in', exact: true })
+
+    await submit.click()
+    await expect(page.getByText('Enter your email or username.')).toBeVisible()
+    await expect(page.getByText('Enter your password.')).toBeVisible()
+
+    await page.getByLabel('Email or username').fill('fail@x')
+    await page.getByLabel('Password', { exact: true }).fill('hunter2hunter2')
+    await submit.click()
+    // Scoped to the drawer: Next's route announcer is a role="alert" too.
+    await expect(page.getByRole('dialog').getByRole('alert')).toHaveText(
+      'Something went wrong. Try again.',
+    )
+  })
+
+  test('register flags a password mismatch', async ({ page }) => {
+    await page.goto('/register')
+
+    await page.getByLabel('Password', { exact: true }).fill('correct-horse-battery')
+    await page.getByLabel('Confirm password', { exact: true }).fill('correct-horse-battery-staple')
+    await page.getByRole('button', { name: 'Create account' }).click()
+
+    await expect(page.getByText("Passwords don't match.")).toBeVisible()
+  })
+
+  test('register: clicking the terms link does not toggle the checkbox', async ({ page }) => {
+    await page.goto('/register')
+    const checkbox = page.getByRole('checkbox', { name: /I agree to the/ })
+
+    // Click the start of the label text ("I agree…"), clear of the links inside it.
+    await page.getByText('I agree to the').click({ position: { x: 2, y: 2 } })
+    await expect(checkbox).toBeChecked()
+
+    await page.getByRole('link', { name: 'Terms of Service' }).click()
+    await expect(page).toHaveURL(/\/register#terms$/)
+    await expect(checkbox).toBeChecked()
+  })
+
+  test('forgot password shows the sent state', async ({ page }) => {
+    await page.goto('/forgot-password')
+
+    await page.getByLabel('Email').fill('ken@acme.com')
+    await page.getByRole('button', { name: 'Send reset link' }).click()
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Check your email' })).toBeVisible()
+  })
+
+  test('complete profile keeps the provider email read-only', async ({ page }) => {
+    await page.goto('/complete-profile')
+    const email = page.getByRole('textbox', { name: 'Email', exact: true })
+
+    await expect(email).toHaveAttribute('readonly', '')
+    await expect(email).toHaveValue('ken@acme.com')
+  })
+
+  test('preview panel opens from an auth route', async ({ page }) => {
+    await page.goto('/login')
+    const authDrawer = page.getByRole('dialog', { name: 'Welcome back' })
+    const panel = page.getByRole('dialog', { name: 'Preview', exact: true })
+    await expect(authDrawer).toBeVisible()
+
+    await page.getByTestId('preview-panel-trigger').click()
+    await expect(panel).toBeVisible()
+
+    await page.keyboard.press('Escape')
+    await expect(panel).not.toBeVisible()
+    await expect(authDrawer).toBeVisible()
+  })
+
+  test('auth drawer fills a narrow viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
+    await page.goto('/register')
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+
+    expect((await dialog.boundingBox())?.width).toBe(375)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(375)
+  })
+})
