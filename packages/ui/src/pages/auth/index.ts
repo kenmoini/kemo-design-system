@@ -13,3 +13,5 @@ export {
   newPasswordSchema,
   type RegisterValues,
 } from './schemas'
+export { ForgotPasswordPage, type ForgotPasswordPageProps } from './forgot-password-page'
+export { forgotPasswordSchema, type ForgotPasswordValues } from './schemas'
