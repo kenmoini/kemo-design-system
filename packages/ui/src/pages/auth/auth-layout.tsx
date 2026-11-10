@@ -1,5 +1,5 @@
 'use client'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { Box, HStack, Stack, styled } from '../../../styled-system/jsx'
 import { Drawer, Heading, Text } from '../../components/ui'
 import type { AuthShellProps } from './types'
@@ -29,6 +29,17 @@ export function AuthLayout({
   extras,
   footer,
 }: AuthLayoutProps) {
+  // A new title means the page changed state (Forgot password's sent state, say) and its form,
+  // possibly holding focus, is gone: move focus to the heading so it lands, and is announced,
+  // somewhere sensible. Skip the first render; the drawer's initial focus owns that.
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const previousTitle = useRef(title)
+  useEffect(() => {
+    if (previousTitle.current === title) return
+    previousTitle.current = title
+    headingRef.current?.focus({ preventScroll: true })
+  }, [title])
+
   return (
     <>
       <GradientBackdrop />
@@ -73,7 +84,14 @@ export function AuthLayout({
               </HStack>
               <Stack gap="2" mt="12" mb="8">
                 <Drawer.Title asChild>
-                  <Heading as="h1" textStyle="xl" fontWeight="semibold" letterSpacing="tight">
+                  <Heading
+                    ref={headingRef}
+                    as="h1"
+                    tabIndex={-1}
+                    textStyle="xl"
+                    fontWeight="semibold"
+                    letterSpacing="tight"
+                  >
                     {title}
                   </Heading>
                 </Drawer.Title>

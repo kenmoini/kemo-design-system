@@ -34,7 +34,9 @@ describe('ForgotPasswordPage', () => {
     render(<ForgotPasswordPage brand="Acme" links={links} onSubmit={onSubmit} />)
     await user.type(screen.getByLabelText('Email'), 'ken@example.com')
     await user.click(screen.getByRole('button', { name: 'Send reset link' }))
-    expect(await screen.findByRole('heading', { level: 1, name: 'Check your email' })).toBeVisible()
+    const heading = await screen.findByRole('heading', { level: 1, name: 'Check your email' })
+    expect(heading).toBeVisible()
+    expect(heading).toHaveFocus()
     expect(onSubmit).toHaveBeenCalledWith({ email: 'ken@example.com' })
     expect(
       screen.getByText('If an account exists for ken@example.com, a reset link is on its way.'),

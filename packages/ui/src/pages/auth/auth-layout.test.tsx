@@ -40,4 +40,19 @@ describe('AuthLayout', () => {
     expect(dialog).not.toHaveAttribute('aria-modal', 'true')
     expect(screen.queryByRole('button', { name: /close/i })).toBeNull()
   })
+
+  it('focuses the heading when the title changes, not on first render', () => {
+    const { rerender } = render(
+      <AuthLayout brand="Acme" title="Reset your password">
+        <input aria-label="form" />
+      </AuthLayout>,
+    )
+    expect(screen.getByRole('heading', { level: 1 })).not.toHaveFocus()
+    rerender(
+      <AuthLayout brand="Acme" title="Check your email">
+        <p>Sent.</p>
+      </AuthLayout>,
+    )
+    expect(screen.getByRole('heading', { level: 1, name: 'Check your email' })).toHaveFocus()
+  })
 })
