@@ -76,4 +76,17 @@ describe('BarChart', () => {
     expect(screen.getByText('No data')).toBeInTheDocument()
     expect(container.querySelector('.recharts-wrapper')).toBeNull()
   })
+
+  it('shows No data when every series is empty', () => {
+    const { container } = render(
+      <BarChart
+        categories={days}
+        series={[{ id: 'ok', label: 'Succeeded', data: [] }]}
+        width={400}
+        height={200}
+      />,
+    )
+    expect(screen.getByText('No data')).toBeInTheDocument()
+    expect(container.querySelector('.recharts-wrapper')).toBeNull()
+  })
 })

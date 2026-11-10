@@ -37,7 +37,9 @@ export function ChartCard({ title, caption, table, children }: ChartCardProps) {
           </IconButton>
         </Flex>
       </Card.Header>
-      <Card.Body minH="64">
+      {/* A floor for a chart's empty state, low enough that short content (a status grid) does not
+          leave a gap when cards stack in one column. */}
+      <Card.Body minH="40">
         {showTable ? (
           <Table.Root>
             <Table.Head>

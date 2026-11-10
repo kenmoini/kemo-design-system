@@ -31,3 +31,25 @@ describe('ArcGauge', () => {
     expect(dash(value) / circumference).toBeCloseTo(0.75 * 0.7)
   })
 })
+
+describe.each([
+  ['DonutGauge', DonutGauge],
+  ['ArcGauge', ArcGauge],
+] as const)('%s bounds', (_, Gauge) => {
+  it('draws no value arc when the percentage rounds to 0', () => {
+    for (const value of [0, 0.4]) {
+      const { container, unmount } = render(<Gauge value={value} max={100} label="CPU" />)
+      expect(container.querySelectorAll('circle')).toHaveLength(1)
+      expect(screen.getByText('0%')).toBeInTheDocument()
+      unmount()
+    }
+  })
+
+  it('clamps the percentage to 0–100', () => {
+    const { rerender } = render(<Gauge value={150} max={100} label="CPU" />)
+    expect(screen.getByText('100%')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'CPU: 150 of 100' })).toBeInTheDocument()
+    rerender(<Gauge value={-20} max={100} label="CPU" />)
+    expect(screen.getByText('0%')).toBeInTheDocument()
+  })
+})

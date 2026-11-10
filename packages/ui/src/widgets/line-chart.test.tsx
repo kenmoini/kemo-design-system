@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { foldSeries, plotSeries } from './chart-colors'
 import { LineChart } from './line-chart'
 import type { Series } from './types'
 
@@ -72,5 +73,63 @@ describe('LineChart', () => {
     const { container } = render(<LineChart series={[]} width={400} height={200} />)
     expect(screen.getByText('No data')).toBeInTheDocument()
     expect(container.querySelector('.recharts-wrapper')).toBeNull()
+  })
+
+  it('shows No data when every series is empty', () => {
+    const { container } = render(
+      <LineChart
+        series={[
+          { id: 'a', label: 'A', data: [] },
+          { id: 'b', label: 'B', data: [] },
+        ]}
+        width={400}
+        height={200}
+      />,
+    )
+    expect(screen.getByText('No data')).toBeInTheDocument()
+    expect(container.querySelector('.recharts-wrapper')).toBeNull()
+  })
+})
+
+describe('foldSeries and plotSeries', () => {
+  const pts = (xs: number[], y = 1) => xs.map((x) => ({ x, y }))
+
+  it('orders x as the union of every series, so a series that starts later keeps the axis in order', () => {
+    const late: Series = { id: 'late', label: 'Late', data: pts([3, 4, 5], 2) }
+    const full: Series = { id: 'full', label: 'Full', data: pts([1, 2, 3, 4, 5]) }
+    const { rows } = plotSeries([late, full])
+    expect(rows.map((r) => r.x)).toEqual([1, 2, 3, 4, 5])
+    expect(rows[0]).toEqual({ x: 1, s1: 1 })
+    expect(rows[2]).toEqual({ x: 3, s0: 2, s1: 1 })
+  })
+
+  it('sums folded series over the union of their x, a missing x counting as 0', () => {
+    const keep: Series = { id: 'keep', label: 'Keep', data: pts([1, 2, 3]) }
+    const late: Series = { id: 'late', label: 'Late', data: pts([2, 3], 10) }
+    const full: Series = { id: 'full', label: 'Full', data: pts([1, 2, 3], 100) }
+    const folded = foldSeries([keep, late, full], 2)
+    expect(folded.map((s) => s.id)).toEqual(['keep', 'other'])
+    expect(folded[1]!.data).toEqual([
+      { x: 1, y: 100 },
+      { x: 2, y: 110 },
+      { x: 3, y: 110 },
+    ])
+  })
+
+  it('keeps at least one series when max is below 1', () => {
+    const a: Series = { id: 'a', label: 'A', data: pts([1, 2]) }
+    const b: Series = { id: 'b', label: 'B', data: pts([1, 2], 2) }
+    for (const max of [0, -3]) {
+      const folded = foldSeries([a, b], max)
+      expect(folded).toHaveLength(1)
+      expect(folded[0]).toEqual({
+        id: 'other',
+        label: 'Other',
+        data: [
+          { x: 1, y: 3 },
+          { x: 2, y: 3 },
+        ],
+      })
+    }
   })
 })

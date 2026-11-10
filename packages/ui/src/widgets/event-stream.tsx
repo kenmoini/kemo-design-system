@@ -49,7 +49,14 @@ function Dot({ tone }: { tone: EventStreamEvent['tone'] }) {
 export function EventStream({ events, live = false }: EventStreamProps) {
   return (
     <Box {...(live ? { role: 'status', 'aria-live': 'polite', 'aria-atomic': false } : {})}>
-      <styled.ol listStyle="none" ms="1" borderInlineStartWidth="1px" borderColor="border">
+      {/* `listStyle: none` drops the implicit list role in Safari/VoiceOver; set it back. */}
+      <styled.ol
+        role="list"
+        listStyle="none"
+        ms="1"
+        borderInlineStartWidth="1px"
+        borderColor="border"
+      >
         {events.map((event) => (
           <styled.li key={event.id} position="relative" ps="4" pb="3" _last={{ pb: '0' }}>
             <Dot tone={event.tone} />

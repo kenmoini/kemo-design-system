@@ -1,6 +1,4 @@
 'use client'
-import { Portal } from '@ark-ui/react/portal'
-import { createListCollection } from '@ark-ui/react/select'
 import {
   ActivityFeed,
   AlertBanner,
@@ -12,6 +10,7 @@ import {
   Card,
   ChartCard,
   type Column,
+  createListCollection,
   DataTableCard,
   DonutGauge,
   EmptyState,
@@ -21,6 +20,7 @@ import {
   type NavGroup,
   PageFooter,
   PageHeader,
+  Portal,
   ProgressList,
   RankedBars,
   SegmentedBar,
@@ -90,9 +90,7 @@ const Slot = styled('div', {
   variants: {
     span: {
       full: { gridColumn: { md: 'span 12' } },
-      // StatCard renders only Card.Body, which has no top padding; restore the card's inset here
-      // until the library pads it.
-      stat: { gridColumn: { md: 'span 6', lg: 'span 3' }, '& .card__body': { pt: '6' } },
+      stat: { gridColumn: { md: 'span 6', lg: 'span 3' } },
       third: { gridColumn: { md: 'span 6', lg: 'span 4' } },
       wide: { gridColumn: { md: 'span 12', lg: 'span 8' } },
     },

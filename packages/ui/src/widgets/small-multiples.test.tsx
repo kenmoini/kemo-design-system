@@ -13,4 +13,26 @@ describe('SmallMultiples', () => {
       expect(screen.getByText(l)).toBeInTheDocument()
     }
   })
+
+  it('scales every sparkline to one shared y-domain', () => {
+    render(
+      <SmallMultiples
+        items={[
+          { label: 'low', data: [10, 20, 10, 20] },
+          { label: 'high', data: [80, 90, 80, 90] },
+        ]}
+      />,
+    )
+    const meanY = (name: string) => {
+      const points = screen.getByRole('img', { name }).querySelector('polyline')!
+      const ys = points
+        .getAttribute('points')!
+        .trim()
+        .split(/\s+/)
+        .map((p) => Number(p.split(',')[1]))
+      return ys.reduce((a, b) => a + b, 0) / ys.length
+    }
+    // y grows downwards, so the smaller values sit lower (a larger y).
+    expect(meanY('low')).toBeGreaterThan(meanY('high') + 10)
+  })
 })

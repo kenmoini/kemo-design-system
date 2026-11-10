@@ -132,5 +132,8 @@ describe('DataTableCard', () => {
     )
     const cell = screen.getByRole('cell', { name: 'No rows' })
     expect(cell).toHaveAttribute('colspan', '4')
+    expect(screen.getByText('Showing 0 of 0')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Previous page' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled()
   })
 })

@@ -15,12 +15,12 @@ import { token } from '../../styled-system/tokens'
 import { plotSeries } from './chart-colors'
 import {
   ChartFrame,
-  axisLine,
   axisTick,
   chartMargin,
   compactTick,
   gridStroke,
   legendProps,
+  xAxisProps,
 } from './chart-frame'
 import { ChartTooltip } from './chart-tooltip'
 import type { Series } from './types'
@@ -81,11 +81,11 @@ export function LineChart({ series, area = false, height, width, valueFormatter 
   const Root = area ? RechartsAreaChart : RechartsLineChart
 
   return (
-    <ChartFrame empty={series.length === 0} width={width} height={height}>
+    <ChartFrame empty={series.every((s) => s.data.length === 0)} width={width} height={height}>
       {(size) => (
         <Root data={rows} {...size} margin={chartMargin} accessibilityLayer={false}>
           <CartesianGrid vertical={false} stroke={gridStroke} />
-          <XAxis dataKey="x" tick={axisTick} axisLine={axisLine} tickLine={false} />
+          <XAxis {...xAxisProps} />
           <YAxis
             width={36}
             tick={axisTick}

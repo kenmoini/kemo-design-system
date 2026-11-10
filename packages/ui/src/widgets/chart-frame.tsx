@@ -12,8 +12,21 @@ export const chartMargin = { top: 8, right: 24, bottom: 0, left: 0 }
 export const gridStroke = token.var('colors.border')
 export const axisTick = { fill: token.var('colors.fg.subtle'), fontSize: 11 }
 export const axisLine = { stroke: token.var('colors.gray.7') }
+/**
+ * The x-axis: at least 16px between tick labels, and when they do not all fit, every Nth one (the last
+ * always kept), so the thinned ticks stay evenly spaced.
+ */
+export const xAxisProps = {
+  dataKey: 'x',
+  tick: axisTick,
+  axisLine,
+  tickLine: false,
+  minTickGap: 16,
+  interval: 'equidistantPreserveEnd',
+} as const
 // Series order (keys are positional, s0…s4), not Recharts' default alphabetical sort. Legend text wears an
-// ink token, never the series colour (Recharts' default); the line key beside it carries identity.
+// ink token, never the series colour (Recharts' default); the key beside it carries identity: a line for
+// line charts, a square for bars (BarChart overrides `iconType`).
 export const legendProps = {
   iconType: 'plainline',
   align: 'left',

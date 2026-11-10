@@ -9,7 +9,11 @@ export interface SegmentedBarSegment {
 }
 
 export interface SegmentedBarProps {
-  /** The parts, in bar order. A part at zero draws nothing but stays in the legend. */
+  /**
+   * The parts, in bar order. A part at zero draws nothing but stays in the legend. Keep to five: the
+   * series palette has five hues, and parts past the fifth without their own `color` all share the
+   * neutral "Other" gray, so they cannot be told apart. Sum the small parts into one instead.
+   */
   segments: SegmentedBarSegment[]
   /** The whole the parts are a share of; what the parts leave unused shows as the track. */
   total: number

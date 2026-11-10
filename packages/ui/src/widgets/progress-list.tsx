@@ -8,26 +8,38 @@ export interface ProgressListProps {
   items: { label: string; value: number; tone?: StatusTone; note?: string }[]
 }
 
-const critical = css({ bg: 'red.9' })
-const warning = css({ bg: 'amber.9' })
+/** The fill: the first series hue, or the reserved status palette for a tone (`off` stays neutral). */
+function rangeClass(tone?: StatusTone) {
+  switch (tone) {
+    case 'good':
+      return css({ bg: 'green.9' })
+    case 'warning':
+      return css({ bg: 'amber.9' })
+    case 'critical':
+      return css({ bg: 'red.9' })
+    case 'off':
+      return css({ bg: 'gray.6' })
+    default:
+      return css({ bg: 'chart.1' })
+  }
+}
 
-const rangeClass = (tone?: StatusTone) =>
-  tone === 'critical' ? critical : tone === 'warning' ? warning : undefined
+const clampPercent = (n: number) => Math.min(100, Math.max(0, n))
 
-/** Labelled progress bars with right-aligned percent; critical and warning tint the fill. */
+/** Labelled progress bars with right-aligned percent; the fill takes the item's status tone. */
 export function ProgressList({ items }: ProgressListProps) {
   return (
     <Stack gap="4">
       {items.map((item) => (
         <Stack key={item.label} gap="1">
-          <Progress.Root value={item.value} min={0} max={100} size="sm">
+          <Progress.Root value={clampPercent(item.value)} min={0} max={100} size="sm">
             <Stack gap="1.5" w="full">
-              <Flex justify="space-between" gap="2">
+              <Flex justify="space-between" align="baseline" gap="2">
                 <Progress.Label>{item.label}</Progress.Label>
                 <Progress.ValueText
                   className={css({ textAlign: 'end', fontVariantNumeric: 'tabular-nums' })}
                 >
-                  {`${item.value}%`}
+                  {`${clampPercent(item.value)}%`}
                 </Progress.ValueText>
               </Flex>
               <Progress.Track>

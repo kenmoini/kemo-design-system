@@ -4,6 +4,7 @@ import {
   circumference,
   gauge,
   len,
+  percent,
   ratio,
   trackClass,
   valueClass,
@@ -34,7 +35,7 @@ export function ArcGauge({ value, max, label, caption, tone }: ArcGaugeProps) {
         {...common}
         strokeDasharray={`${len(arc)} ${len(circumference)}`}
       />
-      {filled > 0 ? (
+      {percent(value, max) > 0 ? (
         <circle
           className={valueClass(tone)}
           {...common}

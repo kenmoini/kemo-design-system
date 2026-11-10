@@ -28,6 +28,8 @@ const events: EventStreamEvent[] = [
 describe('EventStream', () => {
   it('renders the events in the given order', () => {
     render(<EventStream events={events} />)
+    // listStyle none drops the implicit list role in Safari/VoiceOver, so it is set explicitly.
+    expect(screen.getByRole('list')).toHaveAttribute('role', 'list')
     const items = screen.getAllByRole('listitem')
     expect(items).toHaveLength(5)
     items.forEach((item, i) => {

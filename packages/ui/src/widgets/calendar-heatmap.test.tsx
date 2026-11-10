@@ -16,8 +16,19 @@ describe('CalendarHeatmap', () => {
     expect(screen.getByText('More')).toBeInTheDocument()
   })
 
-  it('fills missing days with zero', () => {
-    render(<CalendarHeatmap values={[]} weeks={2} />)
-    expect(screen.getAllByRole('img', { name: 'No date: 0' })).toHaveLength(14)
+  it('fills the grid past the values with hidden, empty cells', () => {
+    const { container } = render(<CalendarHeatmap values={values.slice(0, 3)} weeks={4} />)
+    expect(screen.getAllByRole('img')).toHaveLength(3)
+    expect(container.querySelectorAll('[aria-hidden="true"]')).toHaveLength(25)
+    expect(screen.queryByRole('img', { name: /No date/ })).not.toBeInTheDocument()
+  })
+
+  it('falls back to the five-step ramp for an unsupported step count', () => {
+    const { container } = render(
+      <CalendarHeatmap values={values} weeks={4} steps={3 as unknown as 5} />,
+    )
+    expect(screen.getAllByRole('img')).toHaveLength(28)
+    expect(screen.getByText('Less').parentElement!.children).toHaveLength(7)
+    expect(container.innerHTML).not.toContain('NaN')
   })
 })

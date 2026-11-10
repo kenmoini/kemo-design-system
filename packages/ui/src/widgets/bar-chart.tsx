@@ -12,12 +12,12 @@ import { token } from '../../styled-system/tokens'
 import { plotSeries } from './chart-colors'
 import {
   ChartFrame,
-  axisLine,
   axisTick,
   chartMargin,
   compactTick,
   gridStroke,
   legendProps,
+  xAxisProps,
 } from './chart-frame'
 import { ChartTooltip } from './chart-tooltip'
 import type { Series } from './types'
@@ -56,7 +56,7 @@ export function BarChart({
 
   return (
     <ChartFrame
-      empty={series.length === 0 || categories.length === 0}
+      empty={categories.length === 0 || series.every((s) => s.data.length === 0)}
       width={width}
       height={height}
     >
@@ -69,7 +69,7 @@ export function BarChart({
           accessibilityLayer={false}
         >
           <CartesianGrid vertical={false} stroke={gridStroke} />
-          <XAxis dataKey="x" tick={axisTick} axisLine={axisLine} tickLine={false} />
+          <XAxis {...xAxisProps} />
           <YAxis
             width={36}
             tick={axisTick}
@@ -83,7 +83,7 @@ export function BarChart({
             cursor={false}
             isAnimationActive={false}
           />
-          {plotted.length > 1 ? <Legend {...legendProps} /> : null}
+          {plotted.length > 1 ? <Legend {...legendProps} iconType="square" /> : null}
           {plotted.map((s, i) => (
             <Bar
               key={s.key}

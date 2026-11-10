@@ -19,7 +19,8 @@ export interface ActivityFeedProps {
 /** Who did what, when: an avatar, the actor in bold, the action and a relative time per row. */
 export function ActivityFeed({ items }: ActivityFeedProps) {
   return (
-    <styled.ul listStyle="none">
+    // `listStyle: none` drops the implicit list role in Safari/VoiceOver; set it back.
+    <styled.ul role="list" listStyle="none">
       {items.map((item) => (
         <styled.li
           key={item.id}

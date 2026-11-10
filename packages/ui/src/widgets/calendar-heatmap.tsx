@@ -13,8 +13,23 @@ const OPACITY: Record<4 | 5, number[]> = {
   5: [0.08, 0.3, 0.5, 0.75, 1],
 }
 
-function Cell({ step, opacity, name }: { step: number; opacity: number; name?: string }) {
-  const a11y = name ? ({ role: 'img', 'aria-label': name } as const) : {}
+/** A day: an image named `name`; without one it is a legend swatch, or (`hidden`) padding past the data. */
+function Cell({
+  step,
+  opacity,
+  name,
+  hidden = false,
+}: {
+  step: number
+  opacity: number
+  name?: string
+  hidden?: boolean
+}) {
+  const a11y = hidden
+    ? ({ 'aria-hidden': true } as const)
+    : name
+      ? ({ role: 'img', 'aria-label': name } as const)
+      : {}
   return step === 0 ? (
     <Box {...a11y} bg="gray.3" borderRadius="l1" aspectRatio="1" />
   ) : (
@@ -22,10 +37,15 @@ function Cell({ step, opacity, name }: { step: number; opacity: number; name?: s
   )
 }
 
-/** A weeks x 7 activity grid with intensity from a fixed opacity ramp on the series colour. */
+/**
+ * A weeks x 7 activity grid with intensity from a fixed opacity ramp on the series colour. Cells past the
+ * last value pad the grid and are hidden from assistive tech.
+ */
 export function CalendarHeatmap({ values, weeks = 12, steps = 5 }: CalendarHeatmapProps) {
   const total = weeks * 7
-  const ramp = OPACITY[steps]
+  // `steps` is typed 4 | 5; an untyped caller's other number falls back to the five-step ramp.
+  const ramp = OPACITY[steps] ?? OPACITY[5]
+  const levels = ramp.length
   const counts = Array.from({ length: total }, (_, i) => values[i]?.count ?? 0)
   const maxCount = Math.max(0, ...counts)
 
@@ -41,14 +61,12 @@ export function CalendarHeatmap({ values, weeks = 12, steps = 5 }: CalendarHeatm
       >
         {counts.map((count, i) => {
           const step =
-            count === 0 ? 0 : Math.min(steps - 1, Math.ceil((count / maxCount) * (steps - 1)))
-          return (
-            <Cell
-              key={i}
-              step={step}
-              opacity={ramp[step] ?? 1}
-              name={`${values[i]?.date ?? 'No date'}: ${count}`}
-            />
+            count === 0 ? 0 : Math.min(levels - 1, Math.ceil((count / maxCount) * (levels - 1)))
+          const day = values[i]
+          return day ? (
+            <Cell key={i} step={step} opacity={ramp[step] ?? 1} name={`${day.date}: ${count}`} />
+          ) : (
+            <Cell key={i} step={0} opacity={ramp[0] ?? 1} hidden />
           )
         })}
       </Grid>

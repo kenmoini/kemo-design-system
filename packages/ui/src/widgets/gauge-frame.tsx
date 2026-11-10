@@ -30,6 +30,12 @@ export function ratio(value: number, max: number) {
   return max > 0 ? Math.min(1, Math.max(0, value / max)) : 0
 }
 
+/**
+ * The whole percentage shown in the middle, 0–100. The value arc is drawn only when this is above 0: a
+ * sliver under half a percent would draw as a round-cap dot.
+ */
+export const percent = (value: number, max: number) => Math.round(ratio(value, max) * 100)
+
 /** Rounds an SVG length so attributes stay short and stable. */
 export const len = (n: number) => +n.toFixed(2)
 
@@ -55,7 +61,6 @@ export function GaugeFrame({
   caption,
   children,
 }: Omit<GaugeProps, 'tone'> & { children: ReactNode }) {
-  const percent = max > 0 ? Math.round((value / max) * 100) : 0
   return (
     <Stack align="center" gap="2">
       <Box position="relative" w="32" h="32" role="img" aria-label={`${label}: ${value} of ${max}`}>
@@ -64,7 +69,7 @@ export function GaugeFrame({
         </svg>
         <Stack position="absolute" inset="0" align="center" justify="center" gap="0">
           <Box textStyle="2xl" fontWeight="semibold" fontVariantNumeric="tabular-nums">
-            {percent}%
+            {percent(value, max)}%
           </Box>
           <Box textStyle="xs" color="fg.muted" textAlign="center" maxW="20">
             {label}

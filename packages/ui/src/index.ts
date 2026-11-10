@@ -4,3 +4,7 @@ export * from './layouts/app-shell'
 export { fonts } from './theme/tokens/fonts'
 export { radii } from './theme/radii'
 export * from './widgets'
+// Ark's Select collection builder and Portal, so consumers can build a Park `Select` (and portal its
+// content) without depending on `@ark-ui/react` themselves.
+export { Portal } from '@ark-ui/react/portal'
+export { createListCollection } from '@ark-ui/react/select'

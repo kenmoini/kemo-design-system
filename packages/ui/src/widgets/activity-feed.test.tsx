@@ -29,6 +29,8 @@ const items: ActivityItem[] = [
 describe('ActivityFeed', () => {
   it('renders each actor with initials, action and time', () => {
     render(<ActivityFeed items={items} />)
+    // listStyle none drops the implicit list role in Safari/VoiceOver, so it is set explicitly.
+    expect(screen.getByRole('list')).toHaveAttribute('role', 'list')
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
     for (const item of items) {
       expect(screen.getByText(item.actor)).toBeInTheDocument()

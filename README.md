@@ -298,8 +298,8 @@ mock event to the stream every 4 seconds (keeping the newest 20) and takes a `pa
 demo pauses it while the pointer is over the Event stream card or focus is inside it, so its live
 announcements can be stopped. The controls are inert: the selects (environment, workspace, time
 range, service), the table tabs and the pager hold local state, and the buttons do nothing. The
-demo builds its selects from Park's `Select` with `createListCollection` and `Portal` from
-`@ark-ui/react`, which the preview lists as a dependency for that reason.
+demo builds its selects from Park's `Select` with `createListCollection` and `Portal`, which
+`@kemo/ui` re-exports from Ark so a consumer needs no direct `@ark-ui/react` dependency.
 
 ## Testing
 

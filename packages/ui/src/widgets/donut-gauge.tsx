@@ -4,6 +4,7 @@ import {
   circumference,
   gauge,
   len,
+  percent,
   ratio,
   trackClass,
   valueClass,
@@ -18,7 +19,7 @@ export function DonutGauge({ value, max, label, caption, tone }: DonutGaugeProps
   return (
     <GaugeFrame value={value} max={max} label={label} caption={caption}>
       <circle className={trackClass} cx={center} cy={center} r={radius} strokeWidth={stroke} />
-      {filled > 0 ? (
+      {percent(value, max) > 0 ? (
         <circle
           className={valueClass(tone)}
           cx={center}
