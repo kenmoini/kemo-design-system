@@ -4,3 +4,12 @@ export { AuthLink, type AuthLinkProps } from './auth-link'
 export { ProviderButtons, type ProviderButtonsProps } from './provider-buttons'
 export { SignInPage, type SignInPageProps } from './sign-in-page'
 export { signInSchema, type SignInValues } from './schemas'
+export { RegisterPage, type RegisterPageProps } from './register-page'
+export {
+  registerSchema,
+  nameSchema,
+  usernameSchema,
+  emailSchema,
+  newPasswordSchema,
+  type RegisterValues,
+} from './schemas'
