@@ -12,6 +12,7 @@ import { colors } from '~/theme/tokens/colors'
 import { durations } from '~/theme/tokens/durations'
 import { easings } from '~/theme/tokens/easings'
 import { fonts } from '~/theme/tokens/fonts'
+import { gradients } from '~/theme/tokens/gradients'
 import { shadows } from '~/theme/tokens/shadows'
 import { zIndex } from '~/theme/tokens/z-index'
 
@@ -58,7 +59,7 @@ export default defineConfig({
       keyframes,
       layerStyles,
       textStyles,
-      tokens: { colors, durations, easings, zIndex, fonts },
+      tokens: { colors, durations, easings, gradients, zIndex, fonts },
       semanticTokens: {
         colors: {
           ...palettes,

@@ -35,4 +35,7 @@ describe('theme tokens', () => {
   it('includes the blue palette fetched at init', () => {
     expect(token('colors.blue.9')).toBeDefined()
   })
+  it('defines the Nightfall auth gradient', () => {
+    expect(token('gradients.auth')).toContain('linear-gradient(135deg, #4a0f26 0%')
+  })
 })
