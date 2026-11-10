@@ -63,6 +63,20 @@ describe('PasswordField', () => {
     expect(ref).toHaveBeenCalledWith(input)
     expect(input).toHaveAttribute('name', 'password')
   })
+
+  it('delivers register()-style onChange and onBlur to the input', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const onBlur = vi.fn()
+    render(<PasswordField label="Password" name="password" onChange={onChange} onBlur={onBlur} />)
+    const input = screen.getByLabelText('Password')
+    await user.type(input, 'a')
+    expect(onChange.mock.calls[0]?.[0].target).toBe(input)
+    await user.tab()
+    await user.tab()
+    expect(onBlur).toHaveBeenCalledTimes(1)
+    expect(onBlur.mock.calls[0]?.[0].target).toBe(input)
+  })
 })
 
 describe('ProviderButtons', () => {
