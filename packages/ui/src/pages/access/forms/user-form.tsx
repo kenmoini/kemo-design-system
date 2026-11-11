@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { Grid, Stack } from '../../../../styled-system/jsx'
 import type { Option } from '../../../widgets'
+import { sourceOptions } from '../cells'
 import { type UserValues, userDefaults, userSchema } from '../schemas'
 import {
   FormError,
@@ -13,11 +14,6 @@ import {
   TextField,
   useFormSubmit,
 } from './form-fields'
-
-const SOURCE_OPTIONS: Option[] = [
-  { value: 'internal', label: 'Internal' },
-  { value: 'oidc', label: 'OIDC' },
-]
 
 export interface UserFormProps {
   /** Starting values (Edit, Clone); missing ones come from `userDefaults`. */
@@ -58,12 +54,14 @@ export function UserForm({
         <Grid columns={{ base: 1, md: 2 }} gap="4" alignItems="start">
           <TextField
             label="Full name"
+            required
             autoComplete="off"
             error={errors.name?.message}
             {...register('name')}
           />
           <TextField
             label="Email"
+            required
             type="email"
             autoComplete="off"
             error={errors.email?.message}
@@ -78,6 +76,7 @@ export function UserForm({
               <SelectField
                 ref={field.ref}
                 label="Role"
+                required
                 options={roles}
                 placeholder="Choose a role"
                 value={field.value}
@@ -94,7 +93,7 @@ export function UserForm({
               <SelectField
                 ref={field.ref}
                 label="Source"
-                options={SOURCE_OPTIONS}
+                options={sourceOptions}
                 value={field.value}
                 onChange={field.onChange}
                 onBlur={field.onBlur}

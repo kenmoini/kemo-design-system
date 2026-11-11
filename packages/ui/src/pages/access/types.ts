@@ -1,5 +1,3 @@
-import type { LinkComponent } from '../auth/types'
-
 export type { Option } from '../../widgets'
 
 export type EntityStatus = 'active' | 'disabled'
@@ -145,5 +143,4 @@ export interface EntityTabProps<T, V> {
   /** Given, the tab offers Enable/Disable. */
   onSetStatus?: (ids: string[], status: EntityStatus) => void
   onDelete: (ids: string[]) => void
-  linkComponent?: LinkComponent
 }

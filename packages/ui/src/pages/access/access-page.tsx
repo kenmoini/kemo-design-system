@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
-import { Box, Stack } from '../../../styled-system/jsx'
+import { Stack } from '../../../styled-system/jsx'
 import { Tabs } from '../../components/ui'
 import { PageHeader } from '../../layouts/app-shell'
 import type { LinkComponent } from '../auth/types'
 import { accessTabs } from './access-tabs'
+import { TabStripScroller } from './tab-strip-scroller'
 import type { AccessTabId } from './types'
 
 export interface AccessPageProps {
@@ -37,7 +38,7 @@ export function AccessPage({
       {/* Arrow keys move focus along the strip; Enter or a click follows the link. */}
       <Tabs.Root value={activeTab} activationMode="manual" gap="6">
         {/* The scroller wraps the list so the list's border and indicator are never clipped. */}
-        <Box overflowX="auto" scrollbarWidth="none">
+        <TabStripScroller activeTab={activeTab}>
           <Tabs.List w="max-content" minW="full">
             {accessTabs.map((tab) => (
               <Tabs.Trigger key={tab.id} value={tab.id} asChild whiteSpace="nowrap">
@@ -50,7 +51,7 @@ export function AccessPage({
             ))}
             <Tabs.Indicator />
           </Tabs.List>
-        </Box>
+        </TabStripScroller>
         <Tabs.Content value={activeTab}>{children}</Tabs.Content>
       </Tabs.Root>
     </Stack>

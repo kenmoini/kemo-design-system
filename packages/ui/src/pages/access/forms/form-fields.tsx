@@ -4,6 +4,7 @@ import { createListCollection } from '@ark-ui/react/select'
 import { forwardRef, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { HStack } from '../../../../styled-system/jsx'
 import {
+  Badge,
   Button,
   Field,
   Input,
@@ -127,12 +128,43 @@ const SelectFieldInner = forwardRef<HTMLButtonElement, SelectFieldInnerProps>(
           <Select.Control>
             {/* The trigger is the control, so it carries the field's helper and error text. */}
             <Field.Context>
-              {(field) => (
-                <Select.Trigger ref={ref} aria-describedby={field.ariaDescribedby} onBlur={onBlur}>
-                  <Select.ValueText placeholder={placeholder} />
-                  <Select.Indicator />
-                </Select.Trigger>
-              )}
+              {(field) =>
+                multiple ? (
+                  // Several values: the chosen labels as wrapping chips; the trigger grows to fit.
+                  <Select.Trigger
+                    ref={ref}
+                    aria-describedby={field.ariaDescribedby}
+                    onBlur={onBlur}
+                    h="auto"
+                    minH="10"
+                    py="1.5"
+                  >
+                    <Select.Context>
+                      {(select) =>
+                        select.selectedItems.length > 0 ? (
+                          <HStack gap="1" flexWrap="wrap" flex="1" minW="0">
+                            {(select.selectedItems as Option[]).map((item) => (
+                              <Badge key={item.value}>{item.label}</Badge>
+                            ))}
+                          </HStack>
+                        ) : (
+                          <Select.ValueText placeholder={placeholder} />
+                        )
+                      }
+                    </Select.Context>
+                    <Select.Indicator />
+                  </Select.Trigger>
+                ) : (
+                  <Select.Trigger
+                    ref={ref}
+                    aria-describedby={field.ariaDescribedby}
+                    onBlur={onBlur}
+                  >
+                    <Select.ValueText placeholder={placeholder} />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                )
+              }
             </Field.Context>
           </Select.Control>
           <Portal>
@@ -184,7 +216,7 @@ export type MultiSelectFieldProps = SelectBaseProps & {
   onChange: (value: string[]) => void
 }
 
-/** `SelectField` for several values: the trigger lists the chosen labels. */
+/** `SelectField` for several values: the trigger shows each chosen label as a chip. */
 export const MultiSelectField = forwardRef<HTMLButtonElement, MultiSelectFieldProps>(
   function MultiSelectField(props, ref) {
     return <SelectFieldInner ref={ref} {...props} multiple />

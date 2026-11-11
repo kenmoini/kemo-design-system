@@ -75,7 +75,8 @@ export interface EntityCtx<T extends EntityRow, V, P> {
   openAdd: () => void
   /** "Edit {name}", the form pre-filled with `toValues(row)`; submits through `onUpdate`. */
   openEdit: (row: T) => void
-  /** Calls the host's `onClone` when given; otherwise opens Add pre-filled, named "{name} (copy)". */
+  /** Calls the host's `onClone` when given; otherwise opens Add pre-filled from `toValues(row)` and
+   * `cloneDefaults`, named "{name} (copy)". */
   openClone: (row: T) => void
   /** Asks first; on confirm calls `onDelete(ids)` and drops the ids from the selection. */
   confirmDelete: (ids: string[], copy?: DeleteCopy) => void
@@ -102,6 +103,8 @@ export interface EntityTabConfig<T extends EntityRow, V extends { name: string }
   toValues: (row: T) => V
   /** Clone's name; defaults to "{name} (copy)". */
   cloneName?: (row: T) => string
+  /** Form values a clone starts from instead of the row's (form-only fields such as `sendInvite`). */
+  cloneDefaults?: Partial<V>
   rowActions: (ctx: EntityCtx<T, V, P>, row: T) => ActionItem[]
   /** Omitted, the table has no checkboxes. */
   bulkActions?: (ctx: EntityCtx<T, V, P>, selected: T[]) => ActionItem[]
@@ -187,7 +190,7 @@ export function createEntityTab<
           return
         }
         const name = config.cloneName?.(row) ?? `${row.name} (copy)`
-        show({ kind: 'add', values: { ...config.toValues(row), name } })
+        show({ kind: 'add', values: { ...config.toValues(row), ...config.cloneDefaults, name } })
       },
       confirmDelete: (ids, copy) => {
         const only = ids.length === 1 ? props.rows.find((row) => row.id === ids[0]) : undefined
@@ -284,6 +287,8 @@ export function createEntityTab<
       <>
         <Box
           ref={regionRef}
+          role="region"
+          aria-label={`${entity.plural} table`}
           tabIndex={-1}
           outline="none"
           onFocus={(event) => {

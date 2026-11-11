@@ -20,7 +20,7 @@ import {
   statusActions,
 } from '../entity-tab'
 import { UserForm } from '../forms/user-form'
-import type { UserValues } from '../schemas'
+import { type UserValues, userDefaults } from '../schemas'
 import type { AccessUser, EntityTabProps, Option } from '../types'
 
 export interface AccessUsersTabOwnProps {
@@ -107,6 +107,8 @@ const UsersTable = createEntityTab<AccessUser, UserValues, AccessUsersTabOwnProp
     groups: user.groups,
     sendInvite: false,
   }),
+  // A clone is a new user: invite them as Add would.
+  cloneDefaults: { sendInvite: userDefaults.sendInvite },
   renderForm: (form, { roles, groups }) => <UserForm {...form} roles={roles} groups={groups} />,
   rowActions: (ctx, user) => [
     editAction(ctx, user),

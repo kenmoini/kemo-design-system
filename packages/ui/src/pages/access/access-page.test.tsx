@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { forwardRef } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { LinkComponent } from '../auth/types'
 import { AccessPage } from './access-page'
 import { accessTabs } from './access-tabs'
@@ -95,5 +95,27 @@ describe('AccessPage', () => {
     expect(audit).toHaveAttribute('href', '/access/audit')
     expect(audit).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('heading', { level: 1, name: 'Identity' })).toBeInTheDocument()
+  })
+
+  it('scrolls the active tab into view', () => {
+    // jsdom has no scrollIntoView; the page calls it only where it exists.
+    const scrollIntoView = vi.fn()
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      writable: true,
+      value: scrollIntoView,
+    })
+    try {
+      render(
+        <AccessPage activeTab="settings" tabHref={tabHref}>
+          <p>Settings content</p>
+        </AccessPage>,
+      )
+      expect(scrollIntoView).toHaveBeenCalledTimes(1)
+      expect(scrollIntoView).toHaveBeenCalledWith({ inline: 'nearest', block: 'nearest' })
+      expect(scrollIntoView.mock.contexts[0]).toBe(screen.getByRole('tab', { name: 'Settings' }))
+    } finally {
+      delete (HTMLElement.prototype as { scrollIntoView?: unknown }).scrollIntoView
+    }
   })
 })

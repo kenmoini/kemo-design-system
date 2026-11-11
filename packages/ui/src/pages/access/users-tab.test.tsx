@@ -80,6 +80,8 @@ function renderTab(props: Partial<AccessUsersTabProps> = {}) {
   return { ...handlers, ...props }
 }
 
+const bodyRows = () => within(screen.getByRole('table')).getAllByRole('row').slice(1)
+
 const rowFor = (name: string) => screen.getByRole('row', { name: new RegExp(name) })
 
 async function openRowAction(user: ReturnType<typeof userEvent.setup>, name: string, item: string) {
@@ -134,15 +136,25 @@ describe('AccessUsersTab', () => {
     expect(within(rowFor('Ken Moini')).getByText('r-legacy')).toBeInTheDocument()
   })
 
-  it('filters by status, source and role', () => {
+  it('filters by status, source and role', async () => {
+    const user = userEvent.setup()
     renderTab()
     const rail = screen.getByRole('complementary', { name: 'Filters' })
     expect(within(rail).getByRole('group', { name: 'Status' })).toBeInTheDocument()
-    expect(within(rail).getByRole('checkbox', { name: 'Disabled 1' })).toBeInTheDocument()
     expect(within(rail).getByRole('group', { name: 'Source' })).toBeInTheDocument()
     expect(within(rail).getByRole('checkbox', { name: 'OIDC 2' })).toBeInTheDocument()
     expect(within(rail).getByRole('combobox', { name: 'Role' })).toHaveTextContent('All roles')
     expect(within(rail).getByRole('searchbox', { name: 'Search users' })).toBeInTheDocument()
+    expect(bodyRows()).toHaveLength(4)
+
+    await user.click(within(rail).getByRole('checkbox', { name: 'Disabled 1' }))
+    expect(bodyRows()).toHaveLength(1)
+    expect(bodyRows()[0]).toHaveTextContent('Lena Fischer')
+
+    await user.click(within(rail).getByRole('checkbox', { name: 'Disabled 1' }))
+    await choose(user, rail, 'Role', 'Deployer')
+    expect(bodyRows()).toHaveLength(1)
+    expect(bodyRows()[0]).toHaveTextContent('Marcus Lee')
   })
 
   it('opens the Add user dialog', async () => {
@@ -151,6 +163,16 @@ describe('AccessUsersTab', () => {
     await user.click(screen.getByRole('button', { name: '+ Add user' }))
     const dialog = await screen.findByRole('dialog', { name: 'Add user' })
     expect(within(dialog).getByRole('textbox', { name: 'Full name' })).toHaveValue('')
+    expect(within(dialog).getByRole('textbox', { name: 'Full name' })).toBeRequired()
+    expect(within(dialog).getByRole('textbox', { name: 'Email' })).toBeRequired()
+    expect(within(dialog).getByRole('combobox', { name: 'Role' })).toHaveAttribute(
+      'aria-required',
+      'true',
+    )
+    expect(within(dialog).getByRole('combobox', { name: 'Source' })).not.toHaveAttribute(
+      'aria-required',
+      'true',
+    )
     expect(within(dialog).getByRole('combobox', { name: 'Source' })).toHaveTextContent('Internal')
     expect(within(dialog).getByRole('switch', { name: 'Send the invite email now' })).toBeChecked()
     await waitFor(() =>
@@ -195,6 +217,26 @@ describe('AccessUsersTab', () => {
       groups: ['g-oncall'],
       sendInvite: false,
     })
+  })
+
+  it('shows the chosen groups as separate chips', async () => {
+    const user = userEvent.setup()
+    renderTab()
+    await user.click(screen.getByRole('button', { name: '+ Add user' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Add user' })
+    const groupsTrigger = within(dialog).getByRole('combobox', { name: 'Groups' })
+    expect(groupsTrigger).toHaveTextContent('Add a group…')
+
+    await user.click(groupsTrigger)
+    await user.click(await screen.findByRole('option', { name: 'platform-eng' }))
+    await user.click(screen.getByRole('option', { name: 'on-call' }))
+    await user.keyboard('{Escape}')
+
+    // Each label is its own element, not one comma-joined string.
+    expect(within(groupsTrigger).getByText('platform-eng')).toBeInTheDocument()
+    expect(within(groupsTrigger).getByText('on-call')).toBeInTheDocument()
+    expect(groupsTrigger).not.toHaveTextContent(',')
+    expect(groupsTrigger).not.toHaveTextContent('Add a group…')
   })
 
   it('pre-fills Edit and saves through onUpdate', async () => {
@@ -255,10 +297,12 @@ describe('AccessUsersTab', () => {
     expect(within(dialog).getByRole('textbox', { name: 'Full name' })).toHaveValue(
       'Marcus Lee (copy)',
     )
+    // A clone is a new user, so the invite goes out as it would from Add (Edit starts it off).
+    expect(within(dialog).getByRole('switch', { name: 'Send the invite email now' })).toBeChecked()
     await user.click(within(dialog).getByRole('button', { name: 'Add user' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(onCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'Marcus Lee (copy)', role: 'r-deployer' }),
+      expect.objectContaining({ name: 'Marcus Lee (copy)', role: 'r-deployer', sendInvite: true }),
     )
   })
 
@@ -387,8 +431,10 @@ describe('AccessUsersTab', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(screen.queryByRole('row', { name: /Priya Natarajan/ })).toBeNull()
-    await waitFor(() => expect(document.activeElement).not.toBe(document.body))
-    expect(document.activeElement).toContainElement(screen.getByRole('table'))
+    await waitFor(() => expect(screen.getByRole('region', { name: 'users table' })).toHaveFocus())
+    expect(screen.getByRole('region', { name: 'users table' })).toContainElement(
+      screen.getByRole('table'),
+    )
   })
 
   it('does not let a late submit close the next dialog', async () => {
