@@ -430,6 +430,17 @@ describe('DataTable', () => {
     expect(within(dialog).getByRole('searchbox', { name: 'Search users' })).toBeInTheDocument()
   })
 
+  it('opens a select filter in the drawer above the drawer', async () => {
+    setMediaMatches(MEDIA_LG, false)
+    const user = userEvent.setup()
+    renderTable()
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Filters' })
+    await user.click(within(dialog).getByRole('combobox', { name: 'Role' }))
+    // The select recipe stacks a list at `dropdown`, below the drawer (`modal`).
+    expect(await screen.findByRole('listbox')).toHaveClass('z_popover')
+  })
+
   it('shows the active filter count on the Filters button', async () => {
     setMediaMatches(MEDIA_LG, false)
     const user = userEvent.setup()

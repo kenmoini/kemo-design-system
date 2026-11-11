@@ -1,5 +1,6 @@
-import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
 import type { ActivityItem, EventStreamEvent, StatCardProps } from '../../../widgets'
 import { AccessOverview } from './overview-tab'
 
@@ -90,5 +91,40 @@ describe('AccessOverview', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: 'Authenticated API calls · live' }),
     ).toBeVisible()
+  })
+
+  it('asks to pause the calls only while the pointer is over their card', async () => {
+    const user = userEvent.setup()
+    const onStreamPauseChange = vi.fn()
+    const { unmount } = render(
+      <AccessOverview
+        stats={stats}
+        signIns={signIns}
+        apiCalls={apiCalls}
+        live
+        onStreamPauseChange={onStreamPauseChange}
+      />,
+    )
+    const signInsTitle = screen.getByRole('heading', { level: 2, name: /^Sign-ins/ })
+    const callsTitle = screen.getByRole('heading', { level: 2, name: /^Authenticated API calls/ })
+
+    await user.hover(signInsTitle)
+    expect(onStreamPauseChange).not.toHaveBeenCalled()
+    await user.hover(callsTitle)
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(true)
+    // A move within the card (user-event's hover would leave the page in between, as no browser
+    // does): the pointer leaves the title for a call, and the card stays entered.
+    const call = screen.getByText('POST /v1/deployments · priya · 201')
+    fireEvent.pointerOut(callsTitle, { relatedTarget: call })
+    fireEvent.pointerOver(call, { relatedTarget: callsTitle })
+    expect(onStreamPauseChange).toHaveBeenCalledTimes(1)
+    await user.unhover(callsTitle)
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(false)
+
+    // A card that goes away while paused hands the stream back.
+    await user.hover(callsTitle)
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(true)
+    unmount()
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(false)
   })
 })

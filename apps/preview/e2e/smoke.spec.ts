@@ -560,14 +560,11 @@ test.describe('access page', () => {
   const countOf = async (page: Page) => Number.parseInt(await userCount(page).innerText(), 10)
   const search = (page: Page) => page.getByRole('searchbox', { name: 'Search users' })
   const bodyRows = (page: Page) => page.locator('tbody tr')
-  // A click or keystroke in the few ms between `load` and hydration is lost, so the tests that act
-  // first wait until React owns the main landmark (it tags each DOM node it hydrates).
+  // A click or keystroke in the few ms between `load` and hydration is lost, so the tests wait for
+  // the root layout's marker (`<html data-hydrated>`, set once React has hydrated the page).
   const open = async (page: Page, path: string) => {
     await page.goto(path)
-    await page.waitForFunction(() => {
-      const main = document.querySelector('main')
-      return main !== null && Object.keys(main).some((key) => key.startsWith('__reactProps'))
-    })
+    await page.locator('html[data-hydrated]').waitFor({ state: 'attached' })
   }
   // Park's checkbox input is visually hidden inside its label: click the label, as a pointer would.
   const check = async (checkbox: Locator) => {
@@ -684,15 +681,27 @@ test.describe('access page', () => {
 
   test('audit layout and oidc badges', async ({ page }) => {
     await open(page, '/access/audit')
-    await expect(
-      page.getByRole('heading', { level: 2, name: 'Forward the audit log' }),
-    ).toBeVisible()
-    await expect(page.getByRole('heading', { level: 2, name: /^API audit stream/ })).toBeVisible()
+    const cardOf = (name: string | RegExp) =>
+      page
+        .locator('.card__root')
+        .filter({ has: page.getByRole('heading', { level: 2, name }) })
+        .boundingBox()
+    // On lg the form spans two of the three columns and the stream the third, side by side.
+    const form = await cardOf('Forward the audit log')
+    const stream = await cardOf(/^API audit stream/)
+    expect(form).not.toBeNull()
+    expect(stream).not.toBeNull()
+    expect(Math.abs(form!.y - stream!.y)).toBeLessThan(1)
+    expect(form!.x).toBeLessThan(stream!.x)
+    expect(form!.width / stream!.width).toBeGreaterThan(1.8)
+    expect(form!.width / stream!.width).toBeLessThan(2.3)
 
     await open(page, '/access/oidc')
     await expect(page.getByText('Synced', { exact: true })).toBeVisible()
     await expect(page.getByText('Syncing · 61%', { exact: true })).toBeVisible()
     await expect(page.getByText('Error · invalid client secret', { exact: true })).toBeVisible()
+    // Google Workspace's seeded sync finishes, so its "Sync now" works.
+    await expect(page.getByText('Synced', { exact: true })).toHaveCount(2)
   })
 
   test('unknown access tab is a 404', async ({ page, baseURL }) => {
@@ -711,15 +720,16 @@ test.describe('access page', () => {
     await page.setViewportSize({ width: 375, height: 812 })
     const scrollWidth = () => page.evaluate(() => document.documentElement.scrollWidth)
 
-    // The strip scrolls sideways: the last tab, when current, is scrolled into view.
-    await open(page, '/access/settings')
+    // The strip scrolls sideways, not the page: the last tab scrolls into view inside it.
+    await open(page, '/access/users')
     const settings = page.getByRole('tab', { name: 'Settings', exact: true })
-    await expect(settings).toHaveAttribute('aria-selected', 'true')
+    await expect(settings).not.toBeInViewport()
+    await settings.scrollIntoViewIfNeeded()
+    await expect(settings).toBeVisible()
     await expect(settings).toBeInViewport()
     await expect(page.getByRole('tab', { name: 'Overview', exact: true })).not.toBeInViewport()
     expect(await scrollWidth()).toBe(375)
 
-    await open(page, '/access/users')
     await expect(page.getByRole('complementary', { name: 'Filters' })).toHaveCount(0)
     await page.getByRole('button', { name: 'Filters' }).click()
     const drawer = page.getByRole('dialog', { name: 'Filters' })

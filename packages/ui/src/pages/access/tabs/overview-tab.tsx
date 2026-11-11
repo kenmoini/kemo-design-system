@@ -1,3 +1,4 @@
+'use client'
 import { Grid, Stack } from '../../../../styled-system/jsx'
 import { Card } from '../../../components/ui'
 import {
@@ -9,6 +10,7 @@ import {
   type StatCardProps,
 } from '../../../widgets'
 import { TitleNote } from '../cells'
+import { useReaderPause } from '../use-reader-pause'
 
 export interface AccessOverviewProps {
   /** Four stats, in order: internal users, groups, OIDC users, active sessions. */
@@ -19,13 +21,25 @@ export interface AccessOverviewProps {
   apiCalls: EventStreamEvent[]
   /** The calls update as they happen: the card says so and announces additions politely. */
   live?: boolean
+  /**
+   * Called with `true` while the pointer is over the calls card or focus is inside it, and `false`
+   * once it leaves, so the host can pause the stream for a reader (WCAG 2.2.2).
+   */
+  onStreamPauseChange?: (paused: boolean) => void
 }
 
 /**
  * The Access Overview tab: four stat cards (two per row on `md`, four on `lg`), then the last
  * day's sign-ins beside the authenticated API calls on `lg` (stacked below).
  */
-export function AccessOverview({ stats, signIns, apiCalls, live = false }: AccessOverviewProps) {
+export function AccessOverview({
+  stats,
+  signIns,
+  apiCalls,
+  live = false,
+  onStreamPauseChange,
+}: AccessOverviewProps) {
+  const pause = useReaderPause(onStreamPauseChange)
   return (
     <Stack gap="6">
       <Grid columns={{ base: 1, md: 2, lg: 4 }} gap="4">
@@ -45,7 +59,7 @@ export function AccessOverview({ stats, signIns, apiCalls, live = false }: Acces
             <ActivityFeed items={signIns} />
           </Card.Body>
         </Card.Root>
-        <Card.Root variant="outline">
+        <Card.Root variant="outline" {...pause}>
           <Card.Header>
             <Card.Title as="h2">
               Authenticated API calls

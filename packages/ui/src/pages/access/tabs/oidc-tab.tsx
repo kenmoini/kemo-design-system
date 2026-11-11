@@ -51,7 +51,24 @@ function SyncBadge({ provider }: { provider: OidcProvider }) {
         </Badge>
       )
     case 'error':
-      return <Badge colorPalette="red">{message ? `Error · ${message}` : 'Error'}</Badge>
+      // A provider's message can be long: it wraps within a bounded width (the status word first,
+      // so "Error" stays on the first line) instead of widening the column and pushing the row's
+      // actions out of view.
+      return (
+        <Badge
+          colorPalette="red"
+          h="auto"
+          minH="5"
+          maxW="56"
+          py="0.5"
+          lineHeight="tight"
+          whiteSpace="normal"
+          overflowWrap="break-word"
+          textAlign="start"
+        >
+          {message ? `Error · ${message}` : 'Error'}
+        </Badge>
+      )
     default:
       return <Badge colorPalette="gray">Disabled</Badge>
   }

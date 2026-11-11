@@ -136,7 +136,9 @@ function SelectFilter<T extends { id: string }>({
       </Select.Control>
       <Portal>
         <Select.Positioner>
-          <Select.Content>
+          {/* Below `lg` this select sits in the Filters drawer: the recipe's `dropdown` layer is
+              below `modal`, so the list stacks at `popover` (Zag lifts the positioner to match). */}
+          <Select.Content zIndex="popover">
             {collection.items.map((item) => (
               <Select.Item key={item.value} item={item}>
                 <Select.ItemText>{item.label}</Select.ItemText>

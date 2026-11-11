@@ -6,6 +6,7 @@ import { EventStream, type EventStreamEvent } from '../../../widgets'
 import { TitleNote } from '../cells'
 import { AuditForwardingForm } from '../forms/audit-forwarding-form'
 import type { AuditEvent, AuditForwardingValues } from '../types'
+import { useReaderPause } from '../use-reader-pause'
 
 export interface AccessAuditProps {
   /** The saved forwarding settings. */
@@ -20,6 +21,11 @@ export interface AccessAuditProps {
   events: AuditEvent[]
   /** The stream updates as calls happen: it says so and announces additions politely. */
   live?: boolean
+  /**
+   * Called with `true` while the pointer is over the stream's card or focus is inside it, and
+   * `false` once it leaves, so the host can pause the stream for a reader (WCAG 2.2.2).
+   */
+  onStreamPauseChange?: (paused: boolean) => void
 }
 
 type StreamFilter = 'all' | 'errors' | 'admin'
@@ -78,8 +84,10 @@ export function AccessAudit({
   lastDeliveryAt,
   events,
   live = false,
+  onStreamPauseChange,
 }: AccessAuditProps) {
   const titleId = useId()
+  const pause = useReaderPause(onStreamPauseChange)
   const [filter, setFilter] = useState<StreamFilter>('all')
   const streamEvents = useMemo(
     () => events.filter((event) => matches(event, filter)).map(toStreamEvent),
@@ -107,7 +115,7 @@ export function AccessAudit({
           />
         </Card.Body>
       </Card.Root>
-      <Card.Root variant="outline">
+      <Card.Root variant="outline" {...pause}>
         <Card.Header>
           <Card.Title as="h2">
             API audit stream

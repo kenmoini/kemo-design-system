@@ -404,12 +404,26 @@ export function accessReducer(state: AccessState, action: AccessAction): AccessS
     case 'providerRemove':
       return { ...state, providers: state.providers.filter((row) => row.id !== action.id) }
     case 'providerSetEnabled':
+      // Disabling stops a running sync (`disabled`, which its finishing timer skips); enabling a
+      // provider whose sync was stopped runs it again (the demo schedules its end).
       return {
         ...state,
-        providers: patch(state.providers, [action.id], (provider) => ({
-          ...provider,
-          enabled: action.enabled,
-        })),
+        providers: patch(state.providers, [action.id], (provider) => {
+          if (!action.enabled) {
+            const stopped = provider.sync.state === 'syncing'
+            return {
+              ...provider,
+              enabled: false,
+              sync: stopped ? { state: 'disabled' } : provider.sync,
+            }
+          }
+          const resumed = provider.sync.state === 'disabled'
+          return {
+            ...provider,
+            enabled: true,
+            sync: resumed ? { state: 'syncing', progress: 0 } : provider.sync,
+          }
+        }),
       }
     case 'providerSyncStart':
       return {
@@ -424,8 +438,8 @@ export function accessReducer(state: AccessState, action: AccessAction): AccessS
       return {
         ...state,
         providers: patch(state.providers, action.ids, (provider) => {
-          // A provider disabled or removed mid-sync is left as it is.
-          if (provider.sync.state !== 'syncing') return provider
+          // A provider disabled mid-sync (or removed) is left as it is.
+          if (!provider.enabled || provider.sync.state !== 'syncing') return provider
           return state.providerSecrets[provider.id]?.rejected
             ? { ...provider, sync: { state: 'error', message: 'invalid client secret' } }
             : { ...provider, sync: { state: 'synced' }, lastSyncAt: DEMO_NOW }
@@ -446,6 +460,11 @@ export function syncableProviderIds(providers: OidcProvider[], ids?: string[]): 
     .filter((provider) => provider.enabled && provider.sync.state !== 'syncing')
     .map((provider) => provider.id)
 }
+
+/** The providers seeded part-way through a sync (Google Workspace); the demo finishes them. */
+export const seededSyncIds = initialAccessState.providers
+  .filter((provider) => provider.sync.state === 'syncing')
+  .map((provider) => provider.id)
 
 /** The id `providerCreate` gives the next provider, so the demo can finish its first sync. */
 export function nextProviderId(state: AccessState): string {

@@ -282,7 +282,9 @@ describe('AccessOidc', () => {
     const user = userEvent.setup()
     const { onRemove } = renderOidc()
     await openRowAction(user, 'Azure AD (contractors)', 'Remove')
-    const dialog = await screen.findByRole('dialog', { name: 'Remove Azure AD (contractors)?' })
+    const dialog = await screen.findByRole('alertdialog', {
+      name: 'Remove Azure AD (contractors)?',
+    })
     expect(dialog).toHaveAccessibleDescription(
       'Users who signed in through it keep their accounts but can no longer use it.',
     )

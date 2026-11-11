@@ -16,6 +16,11 @@ export interface EntityDialogProps {
   initialFocusEl?: () => HTMLElement | null
   /** The element to focus on close; defaults to the element that had focus when it opened. */
   finalFocusEl?: () => HTMLElement | null
+  /**
+   * `alertdialog` for a question that interrupts (a confirmation): read as urgent, and a backdrop
+   * click no longer closes it (Escape and the close button still do).
+   */
+  role?: 'dialog' | 'alertdialog'
 }
 
 /**
@@ -32,6 +37,7 @@ export function EntityDialog({
   size = 'md',
   initialFocusEl,
   finalFocusEl,
+  role = 'dialog',
 }: EntityDialogProps) {
   return (
     <Dialog.Root
@@ -42,6 +48,7 @@ export function EntityDialog({
       size={size}
       initialFocusEl={initialFocusEl}
       finalFocusEl={finalFocusEl}
+      role={role}
     >
       <Portal>
         <Dialog.Backdrop />

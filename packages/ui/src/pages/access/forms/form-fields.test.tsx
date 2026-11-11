@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { stubLayout } from '../../../test/layout'
-import { FormFooter, TagsField } from './form-fields'
+import { FormFooter, MultiSelectField, NumberField, SelectField, TagsField } from './form-fields'
 
 function Tags({
   onChange,
@@ -100,5 +100,63 @@ describe('FormFooter', () => {
     act(() => name.focus())
     rerender(footer(false))
     expect(name).toHaveFocus()
+  })
+})
+
+const roleOptions = [
+  { value: 'viewer', label: 'Viewer' },
+  { value: 'deployer', label: 'Deployer' },
+]
+
+describe('SelectField and MultiSelectField', () => {
+  beforeEach(() => {
+    stubLayout()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  // The select recipe stacks a list at `dropdown`, below dialogs and drawers (`modal`), and these
+  // fields live in dialogs: their lists stack at `popover` (Zag lifts the positioner to match).
+  it('opens its list on the popover layer, above a dialog', async () => {
+    const user = userEvent.setup()
+    render(<SelectField label="Role" options={roleOptions} value="" onChange={() => {}} />)
+    await user.click(screen.getByRole('combobox', { name: 'Role' }))
+    expect(await screen.findByRole('listbox')).toHaveClass('z_popover')
+  })
+
+  it('opens a multiple list on the popover layer too', async () => {
+    const user = userEvent.setup()
+    render(<MultiSelectField label="Roles" options={roleOptions} value={[]} onChange={() => {}} />)
+    await user.click(screen.getByRole('combobox', { name: 'Roles' }))
+    expect(await screen.findByRole('listbox')).toHaveClass('z_popover')
+  })
+})
+
+describe('NumberField', () => {
+  it('puts the input beside the stepper column, with both steppers', () => {
+    render(<NumberField label="Port" value={587} onChange={() => {}} />)
+    const input = screen.getByRole('spinbutton', { name: 'Port' })
+    const increment = screen.getByRole('button', { name: 'increment value' })
+    const decrement = screen.getByRole('button', { name: 'decrease value' })
+
+    // Park's control is the absolutely placed stepper column: it holds the triggers, and the input
+    // is its sibling inside the root, so the input keeps the field's full width.
+    const control = increment.parentElement
+    expect(control).toHaveAttribute('data-part', 'control')
+    expect(control).toContainElement(decrement)
+    expect(control).not.toContainElement(input)
+    expect(input.parentElement).toHaveAttribute('data-part', 'root')
+    expect(input.parentElement).toBe(control?.parentElement)
+  })
+
+  it('steps the value with its triggers', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<NumberField label="Port" value={587} onChange={onChange} />)
+    await user.click(screen.getByRole('button', { name: 'increment value' }))
+    expect(onChange).toHaveBeenLastCalledWith(588)
+    await waitFor(() => expect(screen.getByRole('spinbutton', { name: 'Port' })).toHaveValue('588'))
   })
 })

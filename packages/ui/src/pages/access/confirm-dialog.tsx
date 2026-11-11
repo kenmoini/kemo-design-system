@@ -18,8 +18,9 @@ export interface ConfirmDialogProps {
 }
 
 /**
- * A small dialog that asks before an action happens: the question, what it means, Cancel (focused
- * first, so Enter never confirms by accident) and the confirm button, which acts and then closes.
+ * A small alert dialog that asks before an action happens: the question (its name), what it means
+ * (its description), Cancel (focused first, so Enter never confirms by accident) and the confirm
+ * button, which acts and then closes. Escape or the close button cancel; a backdrop click does not.
  */
 export function ConfirmDialog({
   open,
@@ -39,6 +40,7 @@ export function ConfirmDialog({
       title={title}
       description={description}
       size="sm"
+      role="alertdialog"
       initialFocusEl={() => cancelRef.current}
       finalFocusEl={finalFocusEl}
     >

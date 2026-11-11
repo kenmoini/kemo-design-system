@@ -328,13 +328,13 @@ describe('AccessUsersTab', () => {
     const user = userEvent.setup()
     const { onDelete } = renderTab()
     await openRowAction(user, 'Priya Natarajan', 'Delete')
-    const dialog = await screen.findByRole('dialog', { name: 'Delete Priya Natarajan?' })
+    const dialog = await screen.findByRole('alertdialog', { name: 'Delete Priya Natarajan?' })
     expect(dialog).toHaveAccessibleDescription("This can't be undone.")
     expect(onDelete).not.toHaveBeenCalled()
 
     await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
     expect(onDelete).toHaveBeenCalledWith(['u1'])
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
   })
 
   it('assigns a role to the selection', async () => {
@@ -382,10 +382,10 @@ describe('AccessUsersTab', () => {
     expect(onSetStatus).toHaveBeenLastCalledWith(['u1', 'u3'], 'disabled')
 
     await openBulkAction(user, 'Delete')
-    const dialog = await screen.findByRole('dialog', { name: 'Delete 2 users?' })
+    const dialog = await screen.findByRole('alertdialog', { name: 'Delete 2 users?' })
     await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
     expect(onDelete).toHaveBeenCalledWith(['u1', 'u3'])
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
     // The deleted ids leave the selection.
     expect(screen.queryByText('· 2 selected')).toBeNull()
   })
@@ -424,12 +424,12 @@ describe('AccessUsersTab', () => {
     }
     render(<Host />)
     await openRowAction(user, 'Priya Natarajan', 'Delete')
-    const dialog = await screen.findByRole('dialog', { name: 'Delete Priya Natarajan?' })
+    const dialog = await screen.findByRole('alertdialog', { name: 'Delete Priya Natarajan?' })
     await waitFor(() =>
       expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus(),
     )
     await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
     expect(screen.queryByRole('row', { name: /Priya Natarajan/ })).toBeNull()
     await waitFor(() => expect(screen.getByRole('region', { name: 'users table' })).toHaveFocus())
     expect(screen.getByRole('region', { name: 'users table' })).toContainElement(

@@ -25,7 +25,6 @@ import { useSelectedLayoutSegment } from 'next/navigation'
 import {
   createContext,
   type Dispatch,
-  type FocusEvent,
   type ReactNode,
   useContext,
   useEffect,
@@ -34,7 +33,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Box, HStack, Stack } from '../../../styled-system/jsx'
+import { HStack, Stack } from '../../../styled-system/jsx'
 import { ConsoleFrame } from '@/components/console/console-frame'
 import {
   type AccessAction,
@@ -42,6 +41,7 @@ import {
   accessReducer,
   initialAccessState,
   nextProviderId,
+  seededSyncIds,
   syncableProviderIds,
   withGroupMembers,
   withPermissionRoles,
@@ -70,8 +70,17 @@ function clock(seconds: number): string {
   const part = (n: number) => String(n).padStart(2, '0')
   return `${part(Math.floor(seconds / 3600) % 24)}:${part(Math.floor(seconds / 60) % 60)}:${part(seconds % 60)}`
 }
-/** The last delivery the demo starts with: 14:02:11, when the newest audit event arrived. */
-const FIRST_DELIVERY = 14 * 3600 + 2 * 60 + 11
+/** Seconds after midnight for "HH:MM:SS". */
+function secondsOf(time: string): number {
+  const [hours = 0, minutes = 0, seconds = 0] = time.split(':').map(Number)
+  return hours * 3600 + minutes * 60 + seconds
+}
+/** The demo clock's start: 14:02:11, when the newest seeded audit event arrived (and was delivered). */
+const STREAM_START = secondsOf(auditEvents[0]?.time ?? '14:02:11')
+/** Seconds between live audit events. */
+const TICK_S = 4
+/** Live audit event `n`'s time on the demo clock: 14:02:15, 14:02:19, … (never the wall clock). */
+const streamTime = (n: number) => clock(STREAM_START + TICK_S * (n + 1))
 
 const tabHref = (tab: AccessTabId) => (tab === 'overview' ? '/access' : `/access/${tab}`)
 
@@ -106,12 +115,14 @@ interface AccessDemoContextValue {
   stream: AuditEvent[]
   /** Whether the stream is ticking (not paused by a reader). */
   live: boolean
-  /** Pause the stream while the pointer or focus is inside a tab that shows it (WCAG 2.2.2). */
+  /** Pause the stream while the pointer or focus is on its card (WCAG 2.2.2); the card reports it. */
   setReaderPaused: (paused: boolean) => void
   lastDeliveryAt: string
   sendTestEvent: () => Promise<void>
   /** Start a sync on `ids` (or every provider) and finish it after `SYNC_MS`. */
   syncProviders: (ids?: string[]) => void
+  /** "Disable"/"Enable"; enabling a provider whose sync was stopped runs it again. */
+  setProviderEnabled: (id: string, enabled: boolean) => void
   /** "Add provider": create it and finish its first sync. */
   createProvider: (values: OidcProviderValues) => void
   /** Show the token or secret the last rotation issued. */
@@ -136,27 +147,31 @@ export function AccessDemoShell({ children }: Readonly<{ children: ReactNode }>)
   const tab = accessTabs.find((t) => t.id === segment)?.id ?? 'overview'
   const [state, dispatch] = useReducer(accessReducer, initialAccessState)
 
-  // The stream ticks on the two tabs that show it, unless a reader is inside them. A reader's pause
-  // ends with the tab (adjusted during render rather than in an effect).
+  // The stream ticks on the two tabs that show it, unless a reader is on its card (the card reports
+  // it, and hands the stream back when it goes away with its tab).
   const [readerPaused, setReaderPaused] = useState(false)
-  const [shownTab, setShownTab] = useState(tab)
-  if (tab !== shownTab) {
-    setShownTab(tab)
-    setReaderPaused(false)
-  }
   const streaming = tab === 'overview' || tab === 'audit'
   const stream = useLiveEvents(auditEvents, {
     rotation: auditEventRotation,
+    timeOf: streamTime,
+    intervalMs: TICK_S * 1000,
     max: 20,
     paused: !streaming || readerPaused,
   })
 
-  // Every sync's finishing timer, cleared if the demo goes away first.
+  // Every sync's finishing timer, cleared if the demo goes away first. The seeded sync (Google
+  // Workspace, part-way through) finishes like any other.
   const timers = useRef(new Set<number>())
   useEffect(() => {
     const pending = timers.current
+    const seeded = window.setTimeout(() => {
+      pending.delete(seeded)
+      dispatch({ type: 'providerSyncDone', ids: seededSyncIds })
+    }, SYNC_MS)
+    pending.add(seeded)
     return () => {
       for (const timer of pending) window.clearTimeout(timer)
+      pending.clear()
     }
   }, [])
   const finishSync = (ids: string[]) => {
@@ -167,15 +182,17 @@ export function AccessDemoShell({ children }: Readonly<{ children: ReactNode }>)
     timers.current.add(timer)
   }
 
-  // "Send test event": every third call fails, the others move the last delivery on.
+  // "Send test event": every third call fails; the others are delivered on the demo clock, a second
+  // after the newest call in the stream (and after the last delivery).
   const testCalls = useRef(0)
-  const [deliveries, setDeliveries] = useState(0)
+  const [deliveredAt, setDeliveredAt] = useState(STREAM_START)
+  const streamNow = secondsOf(stream[0]?.time ?? clock(STREAM_START))
   const sendTestEvent = async () => {
     testCalls.current += 1
     const call = testCalls.current
     await wait(DELAY_MS)
     if (call % 3 === 0) throw new Error('Could not reach splunk.acme.dev:8088')
-    setDeliveries((count) => count + 1)
+    setDeliveredAt((last) => Math.max(last, streamNow) + 1)
   }
 
   const [revealOpen, setRevealOpen] = useState(false)
@@ -187,13 +204,19 @@ export function AccessDemoShell({ children }: Readonly<{ children: ReactNode }>)
     stream,
     live: !readerPaused,
     setReaderPaused,
-    lastDeliveryAt: clock(FIRST_DELIVERY + deliveries * 9),
+    lastDeliveryAt: clock(deliveredAt),
     sendTestEvent,
     syncProviders: (ids) => {
       const started = syncableProviderIds(state.providers, ids)
       if (started.length === 0) return
       dispatch({ type: 'providerSyncStart', ids: started })
       finishSync(started)
+    },
+    setProviderEnabled: (id, enabled) => {
+      const stopped =
+        state.providers.find((provider) => provider.id === id)?.sync.state === 'disabled'
+      dispatch({ type: 'providerSetEnabled', id, enabled })
+      if (enabled && stopped) finishSync([id])
     },
     createProvider: (values) => {
       const id = nextProviderId(state)
@@ -244,25 +267,6 @@ export function AccessDemoShell({ children }: Readonly<{ children: ReactNode }>)
   )
 }
 
-/** Pauses the live stream while the pointer or keyboard focus is inside its children. */
-function LiveRegionPause({ children }: Readonly<{ children: ReactNode }>) {
-  const { setReaderPaused } = useAccessDemo()
-  return (
-    <Box
-      onPointerEnter={() => setReaderPaused(true)}
-      onPointerLeave={() => setReaderPaused(false)}
-      onFocus={() => setReaderPaused(true)}
-      onBlur={(event: FocusEvent<HTMLDivElement>) => {
-        // Focus within: only a move out of the tab resumes the stream.
-        const next = event.relatedTarget
-        if (!(next instanceof Node && event.currentTarget.contains(next))) setReaderPaused(false)
-      }}
-    >
-      {children}
-    </Box>
-  )
-}
-
 /** One tab's content, wired to the shell's state. The `[[...tab]]` page renders it. */
 export function AccessDemo({ tab }: Readonly<{ tab: AccessTabId }>) {
   const demo = useAccessDemo()
@@ -292,9 +296,13 @@ export function AccessDemo({ tab }: Readonly<{ tab: AccessTabId }>) {
   switch (tab) {
     case 'overview':
       return (
-        <LiveRegionPause>
-          <AccessOverview stats={stats} signIns={signIns} apiCalls={apiCalls} live={demo.live} />
-        </LiveRegionPause>
+        <AccessOverview
+          stats={stats}
+          signIns={signIns}
+          apiCalls={apiCalls}
+          live={demo.live}
+          onStreamPauseChange={demo.setReaderPaused}
+        />
       )
     case 'users':
       return (
@@ -355,19 +363,18 @@ export function AccessDemo({ tab }: Readonly<{ tab: AccessTabId }>) {
       )
     case 'audit':
       return (
-        <LiveRegionPause>
-          <AccessAudit
-            forwarding={state.forwarding}
-            onSaveForwarding={async (values) => {
-              await wait(DELAY_MS)
-              dispatch({ type: 'saveForwarding', values })
-            }}
-            onSendTest={demo.sendTestEvent}
-            lastDeliveryAt={demo.lastDeliveryAt}
-            events={demo.stream}
-            live={demo.live}
-          />
-        </LiveRegionPause>
+        <AccessAudit
+          forwarding={state.forwarding}
+          onSaveForwarding={async (values) => {
+            await wait(DELAY_MS)
+            dispatch({ type: 'saveForwarding', values })
+          }}
+          onSendTest={demo.sendTestEvent}
+          lastDeliveryAt={demo.lastDeliveryAt}
+          events={demo.stream}
+          live={demo.live}
+          onStreamPauseChange={demo.setReaderPaused}
+        />
       )
     case 'oidc':
       return (
@@ -377,7 +384,7 @@ export function AccessDemo({ tab }: Readonly<{ tab: AccessTabId }>) {
           onUpdate={(id, values) => dispatch({ type: 'providerUpdate', id, values })}
           onSyncNow={(id) => demo.syncProviders([id])}
           onSyncAll={() => demo.syncProviders()}
-          onSetEnabled={(id, enabled) => dispatch({ type: 'providerSetEnabled', id, enabled })}
+          onSetEnabled={demo.setProviderEnabled}
           onRemove={(id) => dispatch({ type: 'providerRemove', id })}
         />
       )

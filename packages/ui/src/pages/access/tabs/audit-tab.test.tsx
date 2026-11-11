@@ -279,4 +279,30 @@ describe('AccessAudit', () => {
     expect(region).toHaveAttribute('aria-live', 'polite')
     expect(screen.getByRole('heading', { level: 2, name: 'API audit stream · live' })).toBeVisible()
   })
+
+  it('asks to pause the stream while the pointer or focus is on its card only', async () => {
+    const user = userEvent.setup()
+    const onStreamPauseChange = vi.fn()
+    renderAudit({ live: true, onStreamPauseChange })
+    const streamTitle = screen.getByRole('heading', { level: 2, name: /^API audit stream/ })
+
+    // The forwarding form is not the stream: reading or typing there keeps it live.
+    await user.hover(screen.getByRole('heading', { level: 2, name: 'Forward the audit log' }))
+    act(() => within(form()).getByRole('textbox', { name: 'Endpoint URL' }).focus())
+    expect(onStreamPauseChange).not.toHaveBeenCalled()
+
+    await user.hover(streamTitle)
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(true)
+    await user.unhover(streamTitle)
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(false)
+
+    // Focus inside the card pauses it; a move within the card does not resume it.
+    act(() => screen.getByRole('radio', { name: 'All' }).focus())
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(true)
+    act(() => screen.getByRole('radio', { name: 'Admin' }).focus())
+    expect(onStreamPauseChange).toHaveBeenCalledTimes(3)
+    act(() => within(form()).getByRole('textbox', { name: 'Endpoint URL' }).focus())
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(false)
+    expect(onStreamPauseChange).toHaveBeenCalledTimes(4)
+  })
 })

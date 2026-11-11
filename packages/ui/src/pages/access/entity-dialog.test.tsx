@@ -80,8 +80,10 @@ describe('ConfirmDialog', () => {
         onConfirm={onConfirm}
       />,
     )
-    const dialog = await screen.findByRole('dialog', { name: 'Delete Priya Natarajan?' })
+    const dialog = await screen.findByRole('alertdialog', { name: 'Delete Priya Natarajan?' })
     expect(dialog).toHaveAccessibleDescription("This can't be undone.")
+    expect(dialog).toHaveAttribute('aria-describedby', screen.getByText("This can't be undone.").id)
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
     await waitFor(() => expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus())
 
     await user.click(screen.getByRole('button', { name: 'Delete' }))
@@ -103,7 +105,7 @@ describe('ConfirmDialog', () => {
         onConfirm={onConfirm}
       />,
     )
-    await screen.findByRole('dialog', { name: 'Delete 2 users?' })
+    await screen.findByRole('alertdialog', { name: 'Delete 2 users?' })
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(onConfirm).not.toHaveBeenCalled()
     expect(onOpenChange).toHaveBeenCalledWith(false)

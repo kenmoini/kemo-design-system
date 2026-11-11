@@ -192,6 +192,12 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
 ) {
   return (
     <Field.Root invalid={!!error} required={required}>
+      {/* The field's label, outside the root: the root is the positioning box of the stepper column,
+          which spans its full height. Ark links the label and the input through the field. */}
+      <Field.Label>
+        {label}
+        <Field.RequiredIndicator />
+      </Field.Label>
       <NumberInput.Root
         // The input's own text is the source of truth while typing (a number round trip would
         // drop "1." or race with fast keystrokes); `value` only seeds it.
@@ -202,21 +208,14 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
         clampValueOnBlur={false}
         allowOverflow
       >
-        <NumberInput.Label>
-          {label}
-          <Field.RequiredIndicator />
-        </NumberInput.Label>
-        <NumberInput.Control>
-          <Field.Context>
-            {(field) => (
-              <NumberInput.Input
-                ref={ref}
-                onBlur={onBlur}
-                aria-describedby={field.ariaDescribedby}
-              />
-            )}
-          </Field.Context>
-        </NumberInput.Control>
+        {/* Park's tree: the control is the stepper column (its default children are the increment
+            and decrement triggers), placed over the input's end; the input is its sibling. */}
+        <NumberInput.Control />
+        <Field.Context>
+          {(field) => (
+            <NumberInput.Input ref={ref} onBlur={onBlur} aria-describedby={field.ariaDescribedby} />
+          )}
+        </Field.Context>
       </NumberInput.Root>
       <FieldMessages helper={helper} error={error} />
     </Field.Root>
@@ -418,7 +417,9 @@ const SelectFieldInner = forwardRef<HTMLButtonElement, SelectFieldInnerProps>(
           </Select.Control>
           <Portal>
             <Select.Positioner>
-              <Select.Content>
+              {/* These fields live in dialogs: the recipe's `dropdown` layer is below `modal`, so the
+                  list stacks at `popover` (Zag lifts the positioner to the content's z-index). */}
+              <Select.Content zIndex="popover">
                 {collection.items.map((item) => (
                   <Select.Item key={item.value} item={item}>
                     <Select.ItemText>{item.label}</Select.ItemText>

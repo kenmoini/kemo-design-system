@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { DM_Sans } from 'next/font/google'
 import type { ReactNode } from 'react'
+import { HydrationMarker } from '@/components/hydration-marker'
 import { PreviewPanel } from '@/components/preview-panel'
 import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           {children}
           <PreviewPanel />
         </ThemeProvider>
+        <HydrationMarker />
       </body>
     </html>
   )
