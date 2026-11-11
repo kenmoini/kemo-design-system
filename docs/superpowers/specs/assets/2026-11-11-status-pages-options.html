@@ -1,0 +1,129 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .ep { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; }
+  .ep .card-image { display: block; aspect-ratio: auto; }
+  .ep-frame {
+    position: relative; width: 100%; height: 400px; overflow: hidden; isolation: isolate;
+    background:
+      linear-gradient(rgba(12,8,22,.58), rgba(12,8,22,.58)),
+      linear-gradient(115deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,0) 28%),
+      linear-gradient(135deg, #4a0f26 0%, #5d1f7e 48%, #140b2a 100%);
+    color: #f3eef6; box-sizing: border-box;
+  }
+  .ep-frame.sat { filter: saturate(.85); }
+  .ep-brand { position: absolute; top: 20px; left: 24px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; letter-spacing: .01em; opacity: .9; }
+  .ep-brand .mark { width: 20px; height: 20px; border-radius: 3px; background: rgba(255,255,255,.16); display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+  .ep-foot { position: absolute; left: 24px; right: 24px; bottom: 16px; display: flex; justify-content: space-between; font-size: 11px; color: rgba(243,238,246,.5); }
+  .ep-code { font-weight: 500; font-size: 12px; letter-spacing: .02em; color: rgba(243,238,246,.62); font-variant-numeric: tabular-nums; }
+  .ep-h { font-weight: 600; letter-spacing: -.02em; line-height: 1.1; margin: 0; color: #f3eef6; }
+  .ep-p { color: rgba(243,238,246,.72); line-height: 1.5; margin: 0; font-size: 14px; max-width: 42ch; }
+  .ep-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .ep-btn { font: 500 13px/1 'DM Sans', sans-serif; padding: 9px 14px; border-radius: 2px; border: 1px solid transparent; display: inline-block; }
+  .ep-btn.solid { background: #f3eef6; color: #140b2a; }
+  .ep-btn.outline { border-color: rgba(243,238,246,.35); color: #f3eef6; background: transparent; }
+  .ep-btn.plain { color: rgba(243,238,246,.8); background: transparent; padding-inline: 6px; }
+  .ep-rule { width: 32px; height: 1px; background: rgba(243,238,246,.4); display: inline-block; }
+  .ep-note { font-size: 12px; color: #6b6b6b; margin-top: 8px; }
+  .ep-note b { color: #333; font-weight: 600; }
+  /* A: centered */
+  .a-wrap { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; }
+  .a-col { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .a-col .ep-h { font-size: 28px; }
+  .a-col .ep-actions { justify-content: center; }
+  /* B: editorial bottom-left with watermark */
+  .b-wm { position: absolute; right: -16px; top: -44px; font-size: 260px; font-weight: 700; letter-spacing: -.06em; line-height: 1; color: rgba(243,238,246,.06); user-select: none; }
+  .b-col { position: absolute; left: 24px; right: 24px; bottom: 52px; display: flex; flex-direction: column; gap: 12px; max-width: 460px; }
+  .b-col .ep-h { font-size: 30px; }
+  .b-top { display: flex; align-items: center; gap: 10px; }
+  /* C: split, code and text on one baseline */
+  .c-wrap { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; }
+  .c-row { display: grid; grid-template-columns: auto 1px 1fr; gap: 24px; align-items: start; max-width: 560px; }
+  .c-num { font-size: 64px; font-weight: 600; letter-spacing: -.04em; line-height: .9; font-variant-numeric: tabular-nums; color: #f3eef6; }
+  .c-div { width: 1px; background: rgba(243,238,246,.22); align-self: stretch; }
+  .c-col { display: flex; flex-direction: column; gap: 12px; padding-top: 4px; }
+  .c-col .ep-h { font-size: 22px; }
+  .ep-tone { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: rgba(243,238,246,.6); }
+  .ep-tone .dot { width: 7px; height: 7px; border-radius: 50%; background: #e5484d; display: inline-block; }
+</style>
+
+<h2>Error pages on the muted Nightfall gradient</h2>
+<p class="subtitle">Three compositions for 401 / 403 / 404 / 500 / 503. All of them sit text directly on the gradient (no drawer), with the brand top-left and a request id in the footer. Each shows the 404; the 5xx pages swap the copy, show a status dot and add a "View status page" link.</p>
+
+<div class="cards ep">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="ep-frame sat">
+        <div class="ep-brand"><span class="mark">K</span> Kemo Console</div>
+        <div class="a-wrap">
+          <div class="a-col">
+            <div class="ep-code">Error 404</div>
+            <div class="ep-h">We can't find that page.</div>
+            <p class="ep-p">The link may be out of date, or the page may have moved. Check the address or head back to the dashboard.</p>
+            <div class="ep-actions">
+              <span class="ep-btn solid">Go to dashboard</span>
+              <span class="ep-btn plain">Contact support</span>
+            </div>
+          </div>
+        </div>
+        <div class="ep-foot"><span>Request ID 7f3a-21c9</span><span>Kemo Console v0.3.0</span></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · Centered statement</h3>
+      <p>A small "Error 404" label, one-sentence heading, one line of help, two actions. Calm and symmetrical; reads the same at every size.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="ep-frame sat">
+        <div class="ep-brand"><span class="mark">K</span> Kemo Console</div>
+        <div class="b-wm">404</div>
+        <div class="b-col">
+          <div class="b-top"><span class="ep-rule"></span><span class="ep-code">404 · Not found</span></div>
+          <div class="ep-h">There's nothing at this address.</div>
+          <p class="ep-p">It may have been moved or removed. If you followed a link from inside the console, let us know and we'll fix it.</p>
+          <div class="ep-actions">
+            <span class="ep-btn solid">Go to dashboard</span>
+            <span class="ep-btn outline">Go back</span>
+          </div>
+        </div>
+        <div class="ep-foot"><span>Request ID 7f3a-21c9</span><span>Kemo Console v0.3.0</span></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · Editorial, bottom-left</h3>
+      <p>The code is a faint oversized watermark bleeding off the top-right; the message anchors bottom-left behind a short rule like a title card. The most distinctive of the three.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="ep-frame sat">
+        <div class="ep-brand"><span class="mark">K</span> Kemo Console</div>
+        <div class="c-wrap">
+          <div class="c-row">
+            <div class="c-num">404</div>
+            <div class="c-div"></div>
+            <div class="c-col">
+              <div class="ep-h">Page not found</div>
+              <p class="ep-p">We looked everywhere. The address might be mistyped, or the page may no longer exist.</p>
+              <div class="ep-actions">
+                <span class="ep-btn solid">Go to dashboard</span>
+                <span class="ep-btn plain">Contact support</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ep-foot"><span>Request ID 7f3a-21c9</span><span class="ep-tone"><span class="dot"></span> 5xx pages add "View status page" here</span></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C · Split on one baseline</h3>
+      <p>The code sits large on the left, a hairline divides it from the message on the right. Compact; the number does the identifying so the heading can stay short.</p>
+    </div>
+  </div>
+</div>
+
+<p class="ep-note"><b>Shared across all three:</b> the Nightfall gradient darkened by about 60% and slightly desaturated so near-white text at 14–30px passes contrast; brand mark top-left; actions use the Park button styles (solid = light on dark); the request id and version sit in the footer. Click the one that feels right, then tell me in the terminal what to change.</p>

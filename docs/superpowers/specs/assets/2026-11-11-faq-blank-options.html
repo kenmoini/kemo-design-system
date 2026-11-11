@@ -1,0 +1,166 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .sh { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; }
+  .sh .card-image { display: block; aspect-ratio: auto; }
+  .fr { position: relative; width: 100%; height: 420px; overflow: hidden; background: #fcfcfc; color: #202020; display: grid; grid-template-rows: 40px 1fr; grid-template-columns: 150px 1fr; font-size: 11px; box-sizing: border-box; }
+  .tb { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-bottom: 1px solid #e3e3e3; background: #fff; }
+  .tb .brand { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 11px; }
+  .tb .mark { width: 16px; height: 16px; border-radius: 2px; background: #202020; color: #fff; display: grid; place-items: center; font-size: 9px; font-weight: 700; }
+  .tb .search { flex: 0 0 180px; height: 24px; border: 1px solid #e0e0e0; border-radius: 2px; background: #fff; color: #9a9a9a; display: flex; align-items: center; padding: 0 8px; margin-left: 6px; }
+  .tb .sp { flex: 1; }
+  .tb .av { width: 20px; height: 20px; border-radius: 50%; background: #e8e8e8; display: grid; place-items: center; font-size: 8px; font-weight: 600; }
+  .nav { border-right: 1px solid #e3e3e3; background: #fff; padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; }
+  .nav .g { font-size: 9px; color: #8d8d8d; margin: 6px 6px 3px; }
+  .nav .i { padding: 5px 6px; border-radius: 2px; color: #3a3a3a; display: flex; justify-content: space-between; }
+  .nav .i.on { background: #f0f0f0; color: #202020; font-weight: 500; }
+  .nav .i .b { font-size: 8px; background: #ededed; padding: 1px 4px; border-radius: 2px; }
+  .main { padding: 14px 18px; overflow: hidden; display: flex; flex-direction: column; gap: 10px; }
+  .ph { display: flex; justify-content: space-between; align-items: flex-start; }
+  .ph h1 { font-size: 17px; font-weight: 600; letter-spacing: -.02em; margin: 0; }
+  .ph .ctx { color: #7a7a7a; font-size: 10px; margin-top: 2px; }
+  .btn { font-size: 10px; font-weight: 500; padding: 5px 9px; border-radius: 2px; border: 1px solid #d9d9d9; background: #fff; color: #202020; display: inline-block; }
+  .btn.solid { background: #202020; color: #fff; border-color: #202020; }
+  .card { background: #fff; border: 1px solid #e3e3e3; border-radius: 4px; }
+  .q { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #ececec; }
+  .q:last-child { border-bottom: 0; }
+  .q .t { font-weight: 500; }
+  .q .ch { color: #9a9a9a; }
+  .q.open { flex-direction: column; align-items: stretch; gap: 4px; background: #fafafa; }
+  .q.open .a { color: #6b6b6b; line-height: 1.45; font-weight: 400; }
+  .q.open .t { display: flex; justify-content: space-between; }
+  .sec { font-size: 10px; font-weight: 600; color: #202020; margin: 4px 0 0; }
+  .in { height: 26px; border: 1px solid #d9d9d9; border-radius: 2px; background: #fff; display: flex; align-items: center; padding: 0 8px; color: #9a9a9a; }
+  .foot { margin-top: auto; border-top: 1px solid #e3e3e3; padding-top: 6px; display: flex; justify-content: space-between; color: #8d8d8d; font-size: 9px; }
+  /* B: two column */
+  .two { display: grid; grid-template-columns: 110px 1fr; gap: 14px; }
+  .toc { display: flex; flex-direction: column; gap: 3px; font-size: 10px; }
+  .toc .t { padding: 4px 6px; border-left: 2px solid transparent; color: #5a5a5a; }
+  .toc .t.on { border-left-color: #202020; color: #202020; font-weight: 500; }
+  .doc h3 { font-size: 11px; margin: 6px 0 2px; font-weight: 600; }
+  .doc p { margin: 0 0 6px; color: #6b6b6b; line-height: 1.45; }
+  .doc .anchor { color: #b0b0b0; margin-left: 4px; }
+  /* C: searchable hub */
+  .hero { background: #fff; border: 1px solid #e3e3e3; border-radius: 4px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; }
+  .hero .in { width: 60%; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tile { padding: 8px 10px; }
+  .tile .k { font-weight: 500; }
+  .tile .m { color: #8d8d8d; font-size: 9px; margin-top: 2px; }
+  .contact { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; }
+  /* blank */
+  .empty { border: 1px dashed #d9d9d9; border-radius: 4px; display: grid; place-items: center; height: 230px; text-align: center; }
+  .empty .m { color: #7a7a7a; margin-bottom: 8px; }
+  .note { font-size: 12px; color: #6b6b6b; margin-top: 8px; }
+  .note b { color: #333; font-weight: 600; }
+</style>
+
+<h2>FAQ page inside the console shell</h2>
+<p class="subtitle">Same Console shell as the dashboard (sidebar with "Help" active, top bar, footer). Three ways to lay out the questions. Each shows the same six questions across three topics.</p>
+
+<div class="cards sh">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="search">Search services, deployments, users</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="nav"><div class="g">Platform</div><div class="i">Overview</div><div class="i">Services</div><div class="i">Deployments <span class="b">3</span></div><div class="g">Manage</div><div class="i">Settings</div><div class="i on">Help</div></div>
+        <div class="main">
+          <div class="ph"><div><h1>Frequently asked questions</h1><div class="ctx">Answers about accounts, deployments and billing</div></div><span class="btn">Contact support</span></div>
+          <div class="in">Search questions</div>
+          <div class="sec">Deployments</div>
+          <div class="card">
+            <div class="q open"><div class="t">How do I roll back a deployment? <span class="ch">−</span></div><div class="a">Open the deployment, choose "Roll back" and confirm. The previous version is restored within a minute and the event appears in the stream.</div></div>
+            <div class="q"><span class="t">Why is my canary stuck at 10%?</span><span class="ch">+</span></div>
+            <div class="q"><span class="t">Can I deploy to more than one environment at once?</span><span class="ch">+</span></div>
+          </div>
+          <div class="sec">Accounts and access</div>
+          <div class="card">
+            <div class="q"><span class="t">How do I invite a teammate?</span><span class="ch">+</span></div>
+            <div class="q"><span class="t">What does the Viewer role allow?</span><span class="ch">+</span></div>
+          </div>
+          <div class="foot"><span>Kemo Console v0.3.0</span><span>Docs · Support · Status</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · Grouped accordion</h3>
+      <p>A search field, then one outlined card per topic with Park Accordion rows. The first answer is open so the page never looks empty. Simplest to scan on a phone.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="search">Search services, deployments, users</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="nav"><div class="g">Platform</div><div class="i">Overview</div><div class="i">Services</div><div class="i">Deployments <span class="b">3</span></div><div class="g">Manage</div><div class="i">Settings</div><div class="i on">Help</div></div>
+        <div class="main">
+          <div class="ph"><div><h1>Frequently asked questions</h1><div class="ctx">Answers about accounts, deployments and billing</div></div><span class="btn">Contact support</span></div>
+          <div class="two">
+            <div class="toc"><div class="t on">Deployments</div><div class="t">Accounts and access</div><div class="t">Billing</div><div class="t">Security</div></div>
+            <div class="doc">
+              <h3>How do I roll back a deployment?<span class="anchor">#</span></h3>
+              <p>Open the deployment, choose "Roll back" and confirm. The previous version is restored within a minute and the event appears in the stream.</p>
+              <h3>Why is my canary stuck at 10%?<span class="anchor">#</span></h3>
+              <p>A canary holds until its error rate stays below the threshold for the configured window. Check the service's health signals.</p>
+              <h3>Can I deploy to more than one environment at once?<span class="anchor">#</span></h3>
+              <p>Not today. Promote through environments in order so each gate runs.</p>
+            </div>
+          </div>
+          <div class="foot"><span>Kemo Console v0.3.0</span><span>Docs · Support · Status</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · Topic index + open answers</h3>
+      <p>A sticky topic list on the left; answers on the right are always open with anchor links, like documentation. Best when answers are longer and people share links to them.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="search">Search services, deployments, users</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="nav"><div class="g">Platform</div><div class="i">Overview</div><div class="i">Services</div><div class="i">Deployments <span class="b">3</span></div><div class="g">Manage</div><div class="i">Settings</div><div class="i on">Help</div></div>
+        <div class="main">
+          <div class="hero"><h1 style="font-size:15px;font-weight:600;margin:0;letter-spacing:-.02em">How can we help?</h1><div class="in">Search questions, e.g. "roll back"</div></div>
+          <div class="sec">Popular</div>
+          <div class="grid3">
+            <div class="card tile"><div class="k">Roll back a deployment</div><div class="m">Deployments</div></div>
+            <div class="card tile"><div class="k">Invite a teammate</div><div class="m">Accounts</div></div>
+            <div class="card tile"><div class="k">Change the billing email</div><div class="m">Billing</div></div>
+          </div>
+          <div class="sec">All questions</div>
+          <div class="card">
+            <div class="q"><span class="t">Why is my canary stuck at 10%?</span><span class="ch">+</span></div>
+            <div class="q"><span class="t">What does the Viewer role allow?</span><span class="ch">+</span></div>
+          </div>
+          <div class="card contact"><span>Still need help? Our team replies within a day.</span><span class="btn solid">Contact support</span></div>
+          <div class="foot"><span>Kemo Console v0.3.0</span><span>Docs · Support · Status</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C · Help hub</h3>
+      <p>A search hero, three popular questions as tiles, then the full accordion and a "Still need help?" card. More of a support landing page than a list.</p>
+    </div>
+  </div>
+</div>
+
+<h2 style="margin-top:28px">Blank page (playback, not a choice)</h2>
+<p class="subtitle">The starter for any new console page: the shell, a PageHeader with a title and one action, an empty outlined area with an EmptyState, and the footer. This is what a developer copies to begin a new screen.</p>
+<div class="mockup sh">
+  <div class="mockup-header">Preview: Blank page</div>
+  <div class="mockup-body" style="padding:0">
+    <div class="fr">
+      <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="search">Search services, deployments, users</span><span class="sp"></span><span class="av">KM</span></div>
+      <div class="nav"><div class="g">Platform</div><div class="i">Overview</div><div class="i">Services</div><div class="i on">New page</div><div class="g">Manage</div><div class="i">Settings</div><div class="i">Help</div></div>
+      <div class="main">
+        <div class="ph"><div><h1>Page title</h1><div class="ctx">One line of context about this page</div></div><span class="btn solid">Primary action</span></div>
+        <div class="empty"><div><div class="m">Nothing here yet. Replace this area with your content.</div><span class="btn">Secondary action</span></div></div>
+        <div class="foot"><span>Kemo Console v0.3.0</span><span>Docs · Support · Status</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="note"><b>Shared:</b> all three FAQ options and the Blank page use the existing <code>AppShell</code>, <code>PageHeader</code>, <code>PageFooter</code> and outlined cards from the dashboard work; the accordion would be a newly synced Park component. Click the FAQ layout you prefer and tell me in the terminal if the Blank page needs anything else.</p>

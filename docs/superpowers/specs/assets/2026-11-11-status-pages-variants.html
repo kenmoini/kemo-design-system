@@ -1,0 +1,121 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .ep { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; }
+  .ep .mockup-body { padding: 0; }
+  .ep-frame {
+    position: relative; width: 100%; height: 360px; overflow: hidden; isolation: isolate; filter: saturate(.85);
+    background:
+      linear-gradient(rgba(12,8,22,.58), rgba(12,8,22,.58)),
+      linear-gradient(115deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,0) 28%),
+      linear-gradient(135deg, #4a0f26 0%, #5d1f7e 48%, #140b2a 100%);
+    color: #f3eef6; box-sizing: border-box;
+  }
+  .ep-brand { position: absolute; top: 18px; left: 22px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; opacity: .9; }
+  .ep-brand .mark { width: 18px; height: 18px; border-radius: 3px; background: rgba(255,255,255,.16); display: grid; place-items: center; font-size: 10px; font-weight: 700; }
+  .ep-foot { position: absolute; left: 22px; right: 22px; bottom: 14px; display: flex; justify-content: space-between; font-size: 10px; color: rgba(243,238,246,.5); }
+  .ep-code { font-weight: 500; font-size: 11px; letter-spacing: .02em; color: rgba(243,238,246,.62); font-variant-numeric: tabular-nums; }
+  .ep-h { font-weight: 600; letter-spacing: -.02em; line-height: 1.1; margin: 0; color: #f3eef6; font-size: 24px; }
+  .ep-p { color: rgba(243,238,246,.72); line-height: 1.5; margin: 0; font-size: 12.5px; max-width: 40ch; }
+  .ep-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .ep-btn { font: 500 12px/1 'DM Sans', sans-serif; padding: 8px 12px; border-radius: 2px; border: 1px solid transparent; display: inline-block; }
+  .ep-btn.solid { background: #f3eef6; color: #140b2a; }
+  .ep-btn.outline { border-color: rgba(243,238,246,.35); color: #f3eef6; background: transparent; }
+  .ep-btn.plain { color: rgba(243,238,246,.8); background: transparent; padding-inline: 4px; }
+  .ep-rule { width: 28px; height: 1px; background: rgba(243,238,246,.4); display: inline-block; }
+  .b-wm { position: absolute; right: -14px; top: -36px; font-size: 220px; font-weight: 700; letter-spacing: -.06em; line-height: 1; color: rgba(243,238,246,.06); user-select: none; white-space: nowrap; }
+  .b-wm.word { font-size: 150px; top: -10px; }
+  .b-col { position: absolute; left: 22px; right: 22px; bottom: 48px; display: flex; flex-direction: column; gap: 10px; max-width: 420px; }
+  .b-top { display: flex; align-items: center; gap: 10px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 5px; }
+  .dot.amber { background: #ffb224; } .dot.red { background: #e5484d; }
+  .meta { font-size: 11px; color: rgba(243,238,246,.62); display: flex; gap: 14px; }
+  .meta b { color: #f3eef6; font-weight: 500; }
+  .split3 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 1100px) { .split3 { grid-template-columns: 1fr 1fr; } }
+  .note { font-size: 12px; color: #6b6b6b; margin-top: 8px; }
+  .note b { color: #333; font-weight: 600; }
+</style>
+
+<h2>The same frame carrying Maintenance, a server error and a sign-in error</h2>
+<p class="subtitle">Option B applied to the other pages. Only the copy, the watermark, the actions and the footer status change; the composition is fixed. This is a playback: tell me in the terminal if anything is off.</p>
+
+<div class="split3 ep">
+  <div class="mockup">
+    <div class="mockup-header">Maintenance (503) — scheduled window</div>
+    <div class="mockup-body">
+      <div class="ep-frame">
+        <div class="ep-brand"><span class="mark">K</span> Kemo Console</div>
+        <div class="b-wm word">Back soon</div>
+        <div class="b-col">
+          <div class="b-top"><span class="ep-rule"></span><span class="ep-code"><span class="dot amber"></span>Scheduled maintenance</span></div>
+          <div class="ep-h">We're making improvements.</div>
+          <p class="ep-p">The console is offline while we upgrade the database. Deployments already in progress will finish; nothing else is affected.</p>
+          <div class="meta"><span>Started <b>02:00 UTC</b></span><span>Expected back <b>03:30 UTC</b></span></div>
+          <div class="ep-actions">
+            <span class="ep-btn solid">View status page</span>
+            <span class="ep-btn plain">Subscribe to updates</span>
+          </div>
+        </div>
+        <div class="ep-foot"><span>This page refreshes itself every minute</span><span>Kemo Console v0.3.0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">500 — something broke on our side</div>
+    <div class="mockup-body">
+      <div class="ep-frame">
+        <div class="ep-brand"><span class="mark">K</span> Kemo Console</div>
+        <div class="b-wm">500</div>
+        <div class="b-col">
+          <div class="b-top"><span class="ep-rule"></span><span class="ep-code"><span class="dot red"></span>500 · Server error</span></div>
+          <div class="ep-h">Something went wrong on our side.</div>
+          <p class="ep-p">The request couldn't be completed. It's been logged with the id below; trying again usually works.</p>
+          <div class="ep-actions">
+            <span class="ep-btn solid">Try again</span>
+            <span class="ep-btn outline">Go to dashboard</span>
+            <span class="ep-btn plain">View status page</span>
+          </div>
+        </div>
+        <div class="ep-foot"><span>Request ID 7f3a-21c9</span><span>Kemo Console v0.3.0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">401 — not signed in (403 swaps the copy and offers "Request access")</div>
+    <div class="mockup-body">
+      <div class="ep-frame">
+        <div class="ep-brand"><span class="mark">K</span> Kemo Console</div>
+        <div class="b-wm">401</div>
+        <div class="b-col">
+          <div class="b-top"><span class="ep-rule"></span><span class="ep-code">401 · Sign in required</span></div>
+          <div class="ep-h">You need to sign in to see this.</div>
+          <p class="ep-p">Your session may have expired. Sign in again and we'll bring you back to this page.</p>
+          <div class="ep-actions">
+            <span class="ep-btn solid">Sign in</span>
+            <span class="ep-btn plain">Go to dashboard</span>
+          </div>
+        </div>
+        <div class="ep-foot"><span>Request ID 7f3a-21c9</span><span>Kemo Console v0.3.0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Per-page copy and actions (what the spec will pin)</div>
+    <div class="mockup-body" style="padding:14px;font-size:12px;line-height:1.6;color:#333">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <tr style="text-align:left;color:#777"><th style="padding:4px 6px;border-bottom:1px solid #e3e3e3">Page</th><th style="padding:4px 6px;border-bottom:1px solid #e3e3e3">Label</th><th style="padding:4px 6px;border-bottom:1px solid #e3e3e3">Heading</th><th style="padding:4px 6px;border-bottom:1px solid #e3e3e3">Actions</th></tr>
+        <tr><td style="padding:4px 6px">401</td><td style="padding:4px 6px">Sign in required</td><td style="padding:4px 6px">You need to sign in to see this.</td><td style="padding:4px 6px">Sign in · Go to dashboard</td></tr>
+        <tr><td style="padding:4px 6px">403</td><td style="padding:4px 6px">No access</td><td style="padding:4px 6px">You don't have access to this page.</td><td style="padding:4px 6px">Request access · Go to dashboard</td></tr>
+        <tr><td style="padding:4px 6px">404</td><td style="padding:4px 6px">Not found</td><td style="padding:4px 6px">There's nothing at this address.</td><td style="padding:4px 6px">Go to dashboard · Go back</td></tr>
+        <tr><td style="padding:4px 6px">500</td><td style="padding:4px 6px"><span class="dot red"></span>Server error</td><td style="padding:4px 6px">Something went wrong on our side.</td><td style="padding:4px 6px">Try again · Go to dashboard · View status page</td></tr>
+        <tr><td style="padding:4px 6px">503</td><td style="padding:4px 6px"><span class="dot red"></span>Unavailable</td><td style="padding:4px 6px">We're temporarily unavailable.</td><td style="padding:4px 6px">Try again · View status page</td></tr>
+        <tr><td style="padding:4px 6px">Maintenance</td><td style="padding:4px 6px"><span class="dot amber"></span>Scheduled maintenance</td><td style="padding:4px 6px">We're making improvements.</td><td style="padding:4px 6px">View status page · Subscribe to updates (+ started / expected back)</td></tr>
+      </table>
+      <p style="margin:10px 0 0;color:#777">Every action is host-supplied (href or onSelect), the request id and version are props, and the watermark text defaults to the code (a word for Maintenance).</p>
+    </div>
+  </div>
+</div>
