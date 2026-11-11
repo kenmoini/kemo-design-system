@@ -1,5 +1,6 @@
 export * from './components/ui'
 export * from './pages/auth'
+export * from './pages/status'
 export * from './layouts/app-shell'
 export { fonts } from './theme/tokens/fonts'
 export { radii } from './theme/radii'

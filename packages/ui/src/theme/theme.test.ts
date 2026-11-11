@@ -37,6 +37,7 @@ describe('theme tokens', () => {
   })
   it('defines the Nightfall auth gradient', () => {
     expect(token('gradients.auth')).toContain('linear-gradient(135deg, #4a0f26 0%')
+    expect(token('gradients.status')).toContain('rgba(12, 8, 22, 0.58)')
   })
   it('defines the dataviz chart series tokens', () => {
     expect(token('colors.chart.1').startsWith('var(')).toBe(true)
