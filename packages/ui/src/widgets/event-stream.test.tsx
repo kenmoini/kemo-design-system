@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { EventStream, type EventStreamEvent } from './event-stream'
 
-const events: EventStreamEvent[] = [
+// Plain strings, so each item's text can be matched as it is.
+const events: (EventStreamEvent & { text: string })[] = [
   {
     id: 'e5',
     time: '14:02:11',
@@ -45,5 +46,29 @@ describe('EventStream', () => {
     const region = screen.getByRole('status')
     expect(region).toHaveAttribute('aria-live', 'polite')
     expect(region).toHaveAttribute('aria-atomic', 'false')
+  })
+
+  it('renders rich text: an element instead of a string', () => {
+    render(
+      <EventStream
+        events={[
+          {
+            id: 'r1',
+            time: '14:02:11',
+            tone: 'warning',
+            text: (
+              <>
+                <strong>DELETE /v1/users/88</strong>
+                <span>marcus · 403 · 12 ms</span>
+              </>
+            ),
+          },
+        ]}
+      />,
+    )
+    const item = screen.getByRole('listitem')
+    expect(within(item).getByText('DELETE /v1/users/88').tagName).toBe('STRONG')
+    expect(within(item).getByText('marcus · 403 · 12 ms')).toBeInTheDocument()
+    expect(item).toHaveTextContent('Warning: DELETE /v1/users/88')
   })
 })

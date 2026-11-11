@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { AccessSettingsValues, AuditForwardingValues } from './types'
 
 export const userSchema = z.object({
   name: z.string().trim().min(1, 'Enter a name.').max(64, 'Use at most 64 characters.'),
@@ -112,3 +113,88 @@ export const oauthAppDefaults: OAuthAppValues = {
   scopes: [],
   description: '',
 }
+
+/** A required URL: "{empty}" when blank, "{invalid}" when it does not parse. */
+function urlField(empty: string, invalid: string, protocol?: RegExp) {
+  return z
+    .string()
+    .trim()
+    .min(1, empty)
+    .pipe(z.url({ protocol, error: invalid }))
+}
+
+export const auditForwardingSchema = z.object({
+  destination: z.enum(['splunk', 'syslog', 's3', 'webhook'], 'Choose a destination.'),
+  format: z.enum(['json', 'cef'], 'Choose a format.'),
+  endpoint: urlField('Enter the endpoint URL.', 'Enter a valid URL.'),
+  token: z.string().trim().min(1, 'Enter the token.'),
+  include: z
+    .array(z.enum(['signins', 'admin', 'api']))
+    .min(1, 'Choose at least one kind of event.'),
+  failedOnly: z.boolean(),
+  enabled: z.boolean(),
+}) satisfies z.ZodType<AuditForwardingValues>
+
+/** The OIDC provider form's values; `clientSecret` is blank on Edit unless it changes. */
+export const oidcProviderSchema = z.object({
+  name: nameField,
+  issuer: urlField(
+    'Enter the issuer URL.',
+    'Enter a valid URL, e.g. https://acme.okta.com.',
+    /^https?$/,
+  ),
+  clientId: z.string().trim().min(1, 'Enter the client id.'),
+  clientSecret: z.string().trim().min(1, 'Enter the client secret.'),
+  scopes: z.array(z.string().trim().min(1)),
+  groupClaim: z.string().trim(),
+  autoCreateUsers: z.boolean(),
+})
+
+/** `oidcProviderSchema` for Edit: a blank secret keeps the current one. */
+export const oidcProviderEditSchema = oidcProviderSchema.extend({ clientSecret: z.string().trim() })
+
+export type OidcProviderValues = z.infer<typeof oidcProviderSchema>
+
+/** The Add provider form's starting values. */
+export const oidcProviderDefaults: OidcProviderValues = {
+  name: '',
+  issuer: '',
+  clientId: '',
+  clientSecret: '',
+  scopes: ['openid', 'profile', 'email', 'groups'],
+  groupClaim: 'groups',
+  autoCreateUsers: true,
+}
+
+const portMessage = 'Use a port from 1 to 65535.'
+
+export const accessSettingsSchema = z
+  .object({
+    passwordSignIn: z.boolean(),
+    requireMfaForAdmins: z.boolean(),
+    accessTokenMinutes: z.literal([15, 30, 60, 120], 'Choose a lifetime.'),
+    refreshTokenDays: z.literal([7, 30, 90], 'Choose a lifetime.'),
+    idleTimeoutHours: z.literal([1, 8, 24], 'Choose a timeout.'),
+    serviceTokenMaxDays: z.literal([30, 90, 365], 'Choose a lifetime.'),
+    requireVerifiedEmail: z.boolean(),
+    smtp: z.object({
+      host: z.string().trim(),
+      port: z
+        .number('Enter a port number.')
+        .int('Use a whole number.')
+        .min(1, portMessage)
+        .max(65535, portMessage),
+      username: z.string().trim(),
+      password: z.string(),
+      from: z.string().trim(),
+    }),
+  })
+  .superRefine((values, ctx) => {
+    if (values.requireVerifiedEmail && values.smtp.from === '') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['smtp', 'from'],
+        message: 'Enter the address emails come from.',
+      })
+    }
+  }) satisfies z.ZodType<AccessSettingsValues>

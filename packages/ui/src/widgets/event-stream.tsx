@@ -1,4 +1,5 @@
 'use client'
+import type { ReactNode } from 'react'
 import { Box, Flex, styled } from '../../styled-system/jsx'
 import { Text } from '../components/ui'
 
@@ -6,7 +7,9 @@ export interface EventStreamEvent {
   id: string
   time: string
   tone: 'info' | 'warning' | 'critical' | 'good'
-  text: string
+  /** A sentence, or richer content (two lines, say) inside the item's `span`: use phrasing
+   * elements only (`span`, `strong`, `code`…). */
+  text: ReactNode
 }
 
 export interface EventStreamProps {

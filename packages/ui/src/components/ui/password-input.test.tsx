@@ -49,6 +49,18 @@ describe('PasswordInput', () => {
     expect(onBlur).toHaveBeenCalledTimes(1)
   })
 
+  it('puts aria-describedby on the input', () => {
+    render(
+      <>
+        <PasswordInput placeholder="Password" aria-describedby="hint" />
+        <p id="hint">Leave blank to keep it</p>
+      </>,
+    )
+    expect(screen.getByPlaceholderText('Password')).toHaveAccessibleDescription(
+      'Leave blank to keep it',
+    )
+  })
+
   it('supports a controlled value', () => {
     render(<PasswordInput placeholder="Password" value="secret" onChange={() => {}} />)
     expect(screen.getByPlaceholderText('Password')).toHaveValue('secret')

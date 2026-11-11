@@ -108,3 +108,15 @@ export function BuiltInName({ name, builtIn }: { name: string; builtIn: boolean 
     </HStack>
   )
 }
+
+/** A muted note after a card title, set off by a dot: "Sign-ins · last 24 h". */
+export function TitleNote({ children }: { children: ReactNode }) {
+  return (
+    <>
+      {' '}
+      <Text as="span" color="fg.subtle" fontWeight="normal">
+        · {children}
+      </Text>
+    </>
+  )
+}

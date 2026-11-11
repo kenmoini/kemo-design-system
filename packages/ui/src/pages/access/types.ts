@@ -85,6 +85,11 @@ export interface OAuthApp {
   description?: string
 }
 
+/**
+ * An OIDC identity provider. `users` counts the accounts synced through it; `sync.progress` is a
+ * percentage while `syncing`; `sync.message` says what went wrong on `error`. The optional fields
+ * at the end are its client settings, which the Edit dialog pre-fills (the secret never is).
+ */
 export interface OidcProvider {
   id: string
   name: string
@@ -92,8 +97,15 @@ export interface OidcProvider {
   users: number
   groupsMapped: number
   sync: { state: 'synced' | 'syncing' | 'error' | 'disabled'; progress?: number; message?: string }
+  /** An ISO timestamp; none means it has never synced. */
   lastSyncAt?: string
   enabled: boolean
+  clientId?: string
+  scopes?: string[]
+  /** The ID token claim that lists a user's groups. */
+  groupClaim?: string
+  /** Whether a first sign-in through this provider creates the account. */
+  autoCreateUsers?: boolean
 }
 
 export interface AuditEvent {

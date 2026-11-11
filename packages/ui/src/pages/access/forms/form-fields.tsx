@@ -12,6 +12,8 @@ import {
   Input,
   type InputProps,
   NumberInput,
+  PasswordInput,
+  type PasswordInputProps,
   RadioGroup,
   Select,
   Switch,
@@ -82,6 +84,36 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
     </Field.Root>
   )
 })
+
+export type PasswordFieldProps = Omit<PasswordInputProps, 'children'> & {
+  label: string
+  error?: string
+  helper?: ReactNode
+  required?: boolean
+}
+
+/**
+ * `TextField` for secrets: a labelled Park `PasswordInput` (masked, with a show/hide button) with
+ * helper and error text; spread react-hook-form's `register()` on it.
+ */
+export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
+  function PasswordField({ label, error, helper, required, ...inputProps }, ref) {
+    return (
+      <Field.Root invalid={!!error} required={required}>
+        <Field.Label>
+          {label}
+          <Field.RequiredIndicator />
+        </Field.Label>
+        <Field.Context>
+          {(field) => (
+            <PasswordInput ref={ref} aria-describedby={field.ariaDescribedby} {...inputProps} />
+          )}
+        </Field.Context>
+        <FieldMessages helper={helper} error={error} />
+      </Field.Root>
+    )
+  },
+)
 
 export type TextareaFieldProps = Omit<TextareaProps, 'ref' | 'children'> & {
   label: string

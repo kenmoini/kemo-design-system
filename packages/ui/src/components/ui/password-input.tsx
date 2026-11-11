@@ -12,10 +12,11 @@ const Input = styled(ArkPasswordInput.Input, input)
 
 type InputEventProps = Pick<
   ComponentProps<'input'>,
-  'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'onFocus'
+  'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'onFocus' | 'aria-describedby'
 >
 
 // Value and event props belong to the <input>, not the Root <div>, so they are typed as input props.
+// So does `aria-describedby`: a Field's helper and error text describe the input.
 export interface PasswordInputProps
   extends Omit<ArkPasswordInput.RootProps, keyof InputEventProps | 'placeholder'>, InputEventProps {
   size?: InputProps['size']
@@ -35,6 +36,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
       onChange,
       onBlur,
       onFocus,
+      'aria-describedby': ariaDescribedby,
       ...rootProps
     } = props
 
@@ -51,6 +53,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             onChange={onChange}
             onBlur={onBlur}
             onFocus={onFocus}
+            aria-describedby={ariaDescribedby}
             pe="var(--input-height)"
           />
           <ArkPasswordInput.VisibilityTrigger asChild>
