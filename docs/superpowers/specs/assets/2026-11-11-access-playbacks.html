@@ -1,0 +1,300 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .sh { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; }
+  .sh .mockup-body { padding: 0; }
+  .fr { position: relative; width: 100%; height: 440px; overflow: hidden; background: #fcfcfc; color: #202020; display: grid; grid-template-rows: 36px 1fr; grid-template-columns: 56px 1fr; font-size: 10.5px; box-sizing: border-box; }
+  .tb { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-bottom: 1px solid #e3e3e3; background: #fff; }
+  .tb .brand { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 11px; }
+  .tb .mark { width: 16px; height: 16px; border-radius: 2px; background: #202020; color: #fff; display: grid; place-items: center; font-size: 9px; font-weight: 700; }
+  .tb .sp { flex: 1; }
+  .tb .av { width: 18px; height: 18px; border-radius: 50%; background: #e8e8e8; display: grid; place-items: center; font-size: 8px; font-weight: 600; }
+  .rail { border-right: 1px solid #e3e3e3; background: #fff; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .rail .i { width: 18px; height: 18px; border-radius: 3px; background: #ececec; }
+  .rail .i.on { background: #202020; }
+  .main { padding: 12px 16px; overflow: hidden; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .ph h1 { font-size: 16px; font-weight: 600; letter-spacing: -.02em; margin: 0; }
+  .ph .ctx { color: #7a7a7a; font-size: 10px; margin-top: 2px; }
+  .tabs { display: flex; gap: 14px; border-bottom: 1px solid #e3e3e3; font-size: 10.5px; color: #6b6b6b; white-space: nowrap; overflow: hidden; }
+  .tabs span { padding: 4px 0 6px; }
+  .tabs .on { color: #202020; font-weight: 500; border-bottom: 2px solid #202020; margin-bottom: -1px; }
+  .btn { font-size: 10px; font-weight: 500; padding: 4px 8px; border-radius: 2px; border: 1px solid #d9d9d9; background: #fff; color: #202020; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .btn.solid { background: #202020; color: #fff; border-color: #202020; }
+  .btn.plain { border-color: transparent; }
+  .btn.dis { color: #9a9a9a; }
+  .in { height: 24px; border: 1px solid #d9d9d9; border-radius: 2px; background: #fff; display: flex; align-items: center; padding: 0 8px; color: #9a9a9a; gap: 6px; }
+  .in.v { color: #202020; }
+  .toolbar { display: flex; align-items: center; gap: 6px; }
+  .toolbar .grow { flex: 1; }
+  .card { background: #fff; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  th { text-align: left; font-weight: 500; color: #6b6b6b; padding: 6px 8px; border-bottom: 1px solid #e3e3e3; white-space: nowrap; }
+  td { padding: 6px 8px; border-bottom: 1px solid #efefef; white-space: nowrap; }
+  tr.sel td { background: #f5f5f5; }
+  .cb { width: 11px; height: 11px; border: 1px solid #9a9a9a; border-radius: 2px; display: inline-block; vertical-align: middle; background: #fff; }
+  .cb.on { background: #202020; border-color: #202020; }
+  .bdg { font-size: 9px; padding: 1px 5px; border-radius: 2px; background: #eef7f1; color: #1a7f4b; }
+  .bdg.off { background: #f2f2f2; color: #7a7a7a; }
+  .bdg.ext { background: #eef3fb; color: #2a5db0; }
+  .bdg.warn { background: #fff6e5; color: #9a6400; }
+  .bdg.err { background: #fdecec; color: #b42318; }
+  .dots { color: #6b6b6b; letter-spacing: 1px; text-align: right; }
+  .sort::after { content: ' ↓'; color: #202020; }
+  .foot { display: flex; justify-content: space-between; align-items: center; color: #7a7a7a; font-size: 10px; padding: 6px 8px; }
+  .pg span { display: inline-block; min-width: 18px; text-align: center; padding: 2px 4px; border-radius: 2px; }
+  .pg .cur { border: 1px solid #d9d9d9; color: #202020; }
+  .two { display: grid; grid-template-columns: 150px 1fr; gap: 10px; min-height: 0; }
+  .filters { display: flex; flex-direction: column; gap: 7px; font-size: 10px; }
+  .filters .lbl { color: #6b6b6b; font-weight: 500; margin-top: 4px; }
+  .filters .opt { display: flex; align-items: center; gap: 6px; color: #3a3a3a; }
+  .menu { position: absolute; background: #fff; border: 1px solid #e3e3e3; border-radius: 3px; box-shadow: 0 6px 20px rgba(0,0,0,.12); padding: 4px; font-size: 10.5px; width: 150px; }
+  .menu div { padding: 5px 8px; border-radius: 2px; }
+  .menu div.hdr { color: #8d8d8d; font-size: 9px; }
+  .menu div.danger { color: #b42318; }
+  .menu hr { border: 0; border-top: 1px solid #ececec; margin: 3px 0; }
+  /* dialog */
+  .backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.35); display: grid; place-items: center; }
+  .dlg { width: 360px; background: #fff; border-radius: 4px; box-shadow: 0 20px 60px rgba(0,0,0,.25); padding: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 10.5px; }
+  .dlg h2 { margin: 0; font-size: 14px; font-weight: 600; }
+  .dlg .desc { color: #7a7a7a; margin-top: -4px; }
+  .fld { display: flex; flex-direction: column; gap: 3px; }
+  .fld label { font-size: 10px; font-weight: 500; }
+  .fld .help { font-size: 9.5px; color: #8d8d8d; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tag { display: inline-block; font-size: 9.5px; padding: 1px 6px; background: #f0f0f0; border-radius: 2px; margin-right: 3px; }
+  .sw { width: 22px; height: 12px; border-radius: 999px; background: #202020; position: relative; display: inline-block; vertical-align: middle; }
+  .sw::after { content: ''; position: absolute; right: 2px; top: 2px; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+  .sw.off { background: #d9d9d9; } .sw.off::after { right: auto; left: 2px; }
+  .dfoot { display: flex; justify-content: flex-end; gap: 6px; margin-top: 4px; }
+  /* overview */
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .stat { padding: 10px; }
+  .stat .l { color: #7a7a7a; font-size: 10px; }
+  .stat .v { font-size: 18px; font-weight: 600; letter-spacing: -.02em; margin-top: 2px; }
+  .stat .d { font-size: 9.5px; color: #1a7f4b; margin-top: 2px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-height: 0; }
+  .wcard { padding: 10px; }
+  .wcard h3 { margin: 0 0 6px; font-size: 11.5px; font-weight: 600; }
+  .ev { display: grid; grid-template-columns: 8px 44px 1fr; gap: 6px; align-items: baseline; padding: 3px 0; font-size: 10px; }
+  .ev .dot { width: 6px; height: 6px; border-radius: 50%; background: #2a78d6; display: inline-block; }
+  .ev .dot.g { background: #1baf7a; } .ev .dot.r { background: #e5484d; } .ev .dot.a { background: #eda100; }
+  .ev .t { color: #8d8d8d; font-variant-numeric: tabular-nums; }
+  .act { display: flex; gap: 8px; align-items: center; padding: 4px 0; font-size: 10px; border-bottom: 1px solid #f0f0f0; }
+  .act .av { width: 18px; height: 18px; border-radius: 50%; background: #e8e8e8; display: grid; place-items: center; font-size: 8px; font-weight: 600; }
+  .act .w { color: #8d8d8d; margin-left: auto; }
+  /* audit */
+  .audit { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; min-height: 0; }
+  .form { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .form h3 { margin: 0; font-size: 12px; font-weight: 600; }
+  .form .desc { color: #7a7a7a; font-size: 10px; margin-top: -4px; }
+  .chk { display: flex; gap: 10px; flex-wrap: wrap; font-size: 10px; }
+  .chk span { display: inline-flex; align-items: center; gap: 4px; }
+  /* settings */
+  .sect { padding: 12px; display: grid; grid-template-columns: 160px 1fr; gap: 10px; border-bottom: 1px solid #ececec; }
+  .sect:last-child { border-bottom: 0; }
+  .sect h3 { margin: 0; font-size: 11.5px; font-weight: 600; }
+  .sect .desc { color: #7a7a7a; font-size: 10px; margin-top: 2px; }
+  .sect .fields { display: flex; flex-direction: column; gap: 6px; }
+  .split3 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 1100px) { .split3 { grid-template-columns: 1fr 1fr; } }
+  .note { font-size: 12px; color: #6b6b6b; margin-top: 8px; }
+  .note b { color: #333; font-weight: 600; }
+</style>
+
+<h2>Access · playbacks (option B with the toolbar you asked for)</h2>
+<p class="subtitle">Not a choice: six views to check. Tell me in the terminal what's off or missing.</p>
+
+<div class="split3 sh">
+  <div class="mockup">
+    <div class="mockup-header">Users tab · filter rail + toolbar (Bulk actions ▾ · + Add user) with the bulk menu open</div>
+    <div class="mockup-body">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="ph"><h1>Access</h1><div class="ctx">Users, groups, roles and how people sign in</div></div>
+          <div class="tabs"><span>Overview</span><span class="on">Users</span><span>Groups</span><span>Roles</span><span>Permissions</span><span>Audit</span><span>OIDC</span><span>Service accounts</span><span>OAuth apps</span><span>Settings</span></div>
+          <div class="two">
+            <div class="filters">
+              <div class="in">⌕ Search users</div>
+              <div class="lbl">Status</div>
+              <div class="opt"><span class="cb on"></span> Active <span style="color:#9a9a9a">231</span></div>
+              <div class="opt"><span class="cb"></span> Disabled <span style="color:#9a9a9a">17</span></div>
+              <div class="lbl">Source</div>
+              <div class="opt"><span class="cb on"></span> Internal</div>
+              <div class="opt"><span class="cb on"></span> OIDC</div>
+              <div class="lbl">Role</div>
+              <div class="in" style="height:22px">All roles ▾</div>
+              <span class="btn plain" style="align-self:flex-start">Clear filters</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;min-width:0;position:relative">
+              <div class="toolbar"><span style="color:#6b6b6b">231 users · <b style="color:#202020">2 selected</b></span><span class="grow"></span><span class="btn">Bulk actions ▾</span><span class="btn solid">+ Add user</span></div>
+              <div class="menu" style="right:84px;top:28px;z-index:2"><div class="hdr">2 users</div><div>Enable</div><div>Disable</div><div>Add to group…</div><div>Assign role…</div><hr><div class="danger">Delete</div></div>
+              <div class="card">
+                <table>
+                  <tr><th><span class="cb on"></span></th><th class="sort">Name</th><th>Role</th><th>Source</th><th>Status</th><th>Last sign-in</th><th></th></tr>
+                  <tr class="sel"><td><span class="cb on"></span></td><td>Priya Natarajan</td><td>Admin</td><td><span class="bdg ext">OIDC</span></td><td><span class="bdg">Active</span></td><td>4 min ago</td><td class="dots">⋯</td></tr>
+                  <tr class="sel"><td><span class="cb on"></span></td><td>Marcus Lee</td><td>Deployer</td><td>Internal</td><td><span class="bdg">Active</span></td><td>22 min ago</td><td class="dots">⋯</td></tr>
+                  <tr><td><span class="cb"></span></td><td>Sofia Reyes</td><td>Viewer</td><td><span class="bdg ext">OIDC</span></td><td><span class="bdg">Active</span></td><td>1 h ago</td><td class="dots">⋯</td></tr>
+                  <tr><td><span class="cb"></span></td><td>Ken Moini</td><td>Owner</td><td>Internal</td><td><span class="bdg">Active</span></td><td>Yesterday</td><td class="dots">⋯</td></tr>
+                  <tr><td><span class="cb"></span></td><td>Lena Fischer</td><td>Viewer</td><td><span class="bdg ext">OIDC</span></td><td><span class="bdg off">Disabled</span></td><td>Never</td><td class="dots">⋯</td></tr>
+                </table>
+                <div class="foot"><span>1–10 of 231</span><span class="pg">‹ <span class="cur">1</span> <span>2</span> <span>3</span> … <span>24</span> ›</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">"+ Add user" · Park Dialog with the mock form (Edit reuses it pre-filled)</div>
+    <div class="mockup-body">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div></div>
+        <div class="main"><div class="ph"><h1>Access</h1></div><div class="tabs"><span>Overview</span><span class="on">Users</span><span>Groups</span><span>Roles</span></div></div>
+        <div class="backdrop">
+          <div class="dlg">
+            <h2>Add user</h2>
+            <div class="desc">They'll get an email with a link to set a password.</div>
+            <div class="row2">
+              <div class="fld"><label>Full name</label><div class="in v">Lena Fischer</div></div>
+              <div class="fld"><label>Email</label><div class="in v">lena@acme.dev</div></div>
+            </div>
+            <div class="row2">
+              <div class="fld"><label>Role</label><div class="in v">Viewer ▾</div></div>
+              <div class="fld"><label>Source</label><div class="in v">Internal ▾</div></div>
+            </div>
+            <div class="fld"><label>Groups</label><div class="in v" style="height:auto;padding:4px 6px"><span class="tag">platform-eng ×</span><span class="tag">on-call ×</span><span style="color:#9a9a9a">Add a group…</span></div><div class="help">Groups grant roles; you can change them later.</div></div>
+            <div class="fld" style="flex-direction:row;align-items:center;justify-content:space-between"><label>Send the invite email now</label><span class="sw"></span></div>
+            <div class="dfoot"><span class="btn">Cancel</span><span class="btn solid">Add user</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Overview tab · dashboard widgets scoped to access</div>
+    <div class="mockup-body">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="ph"><h1>Access</h1><div class="ctx">Users, groups, roles and how people sign in</div></div>
+          <div class="tabs"><span class="on">Overview</span><span>Users</span><span>Groups</span><span>Roles</span><span>Permissions</span><span>Audit</span><span>OIDC</span><span>Service accounts</span><span>OAuth apps</span><span>Settings</span></div>
+          <div class="grid4">
+            <div class="card stat"><div class="l">Internal users</div><div class="v">231</div><div class="d">▲ 4 this week</div></div>
+            <div class="card stat"><div class="l">Groups</div><div class="v">18</div><div class="d" style="color:#7a7a7a">no change</div></div>
+            <div class="card stat"><div class="l">OIDC users</div><div class="v">412</div><div class="d">▲ 37 synced today</div></div>
+            <div class="card stat"><div class="l">Active sessions</div><div class="v">57</div><div class="d" style="color:#7a7a7a">last 15 min</div></div>
+          </div>
+          <div class="grid2">
+            <div class="card wcard">
+              <h3>Sign-ins <span style="color:#9a9a9a;font-weight:400">· last 24 h</span></h3>
+              <div class="act"><span class="av">P</span><span><b>Priya Natarajan</b> signed in via Okta</span><span class="w">4 min</span></div>
+              <div class="act"><span class="av">M</span><span><b>Marcus Lee</b> signed in with password</span><span class="w">22 min</span></div>
+              <div class="act"><span class="av">S</span><span><b>Sofia Reyes</b> signed in via Okta</span><span class="w">1 h</span></div>
+              <div class="act"><span class="av">K</span><span><b>Ken Moini</b> signed in with password + MFA</span><span class="w">3 h</span></div>
+              <div class="act"><span class="av">L</span><span><b>Lena Fischer</b> failed sign-in (locked)</span><span class="w">5 h</span></div>
+            </div>
+            <div class="card wcard">
+              <h3>Authenticated API calls <span style="color:#9a9a9a;font-weight:400">· live</span></h3>
+              <div class="ev"><span class="dot g"></span><span class="t">14:02:11</span><span>POST /v1/deployments · priya · 201</span></div>
+              <div class="ev"><span class="dot"></span><span class="t">14:02:03</span><span>GET /v1/services · svc-ci-runner · 200</span></div>
+              <div class="ev"><span class="dot r"></span><span class="t">14:01:48</span><span>DELETE /v1/users/88 · marcus · 403</span></div>
+              <div class="ev"><span class="dot a"></span><span class="t">14:01:30</span><span>PUT /v1/roles/viewer · ken · 200 (slow)</span></div>
+              <div class="ev"><span class="dot"></span><span class="t">14:01:02</span><span>GET /v1/audit · sofia · 200</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Audit tab · forwarding form (⅔) + expanded API audit stream (⅓)</div>
+    <div class="mockup-body">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="ph"><h1>Access</h1></div>
+          <div class="tabs"><span>Overview</span><span>Users</span><span>Groups</span><span>Roles</span><span>Permissions</span><span class="on">Audit</span><span>OIDC</span><span>Service accounts</span><span>OAuth apps</span><span>Settings</span></div>
+          <div class="audit">
+            <div class="card form">
+              <h3>Forward the audit log</h3>
+              <div class="desc">Every call to an authenticated route is recorded here and can be streamed to your SIEM.</div>
+              <div class="row2">
+                <div class="fld"><label>Destination</label><div class="in v">Splunk HEC ▾</div></div>
+                <div class="fld"><label>Format</label><div class="in v">JSON ▾</div></div>
+              </div>
+              <div class="fld"><label>Endpoint URL</label><div class="in v">https://splunk.acme.dev:8088/services/collector</div></div>
+              <div class="fld"><label>Token</label><div class="in v">••••••••••••••••</div></div>
+              <div class="fld"><label>Include</label><div class="chk"><span><span class="cb on"></span> Sign-ins</span><span><span class="cb on"></span> Admin changes</span><span><span class="cb on"></span> API calls</span><span><span class="cb"></span> Failed requests only</span></div></div>
+              <div class="fld" style="flex-direction:row;align-items:center;justify-content:space-between"><label>Forwarding enabled</label><span class="sw"></span></div>
+              <div class="dfoot" style="justify-content:flex-start"><span class="btn">Send test event</span><span class="btn solid">Save</span><span style="color:#1a7f4b;font-size:10px;align-self:center;margin-left:6px">● Last delivery 14:02:11</span></div>
+            </div>
+            <div class="card wcard" style="overflow:hidden">
+              <h3>API audit stream <span style="color:#9a9a9a;font-weight:400">· live</span></h3>
+              <div style="display:flex;gap:4px;margin-bottom:6px"><span class="btn plain" style="padding:2px 6px">All</span><span class="btn plain" style="padding:2px 6px;color:#9a9a9a">4xx/5xx</span><span class="btn plain" style="padding:2px 6px;color:#9a9a9a">Admin</span></div>
+              <div class="ev"><span class="dot g"></span><span class="t">14:02:11</span><span>POST /v1/deployments<br><span style="color:#8d8d8d">priya · 201 · 182 ms · 10.0.3.17</span></span></div>
+              <div class="ev"><span class="dot"></span><span class="t">14:02:03</span><span>GET /v1/services<br><span style="color:#8d8d8d">svc-ci-runner · 200 · 41 ms</span></span></div>
+              <div class="ev"><span class="dot r"></span><span class="t">14:01:48</span><span>DELETE /v1/users/88<br><span style="color:#8d8d8d">marcus · 403 · denied: users.delete</span></span></div>
+              <div class="ev"><span class="dot a"></span><span class="t">14:01:30</span><span>PUT /v1/roles/viewer<br><span style="color:#8d8d8d">ken · 200 · 2.4 s</span></span></div>
+              <div class="ev"><span class="dot"></span><span class="t">14:01:02</span><span>GET /v1/audit<br><span style="color:#8d8d8d">sofia · 200 · 55 ms</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">OIDC tab · providers with sync status</div>
+    <div class="mockup-body">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="ph"><h1>Access</h1></div>
+          <div class="tabs"><span>Overview</span><span>Users</span><span>Groups</span><span>Roles</span><span>Permissions</span><span>Audit</span><span class="on">OIDC</span><span>Service accounts</span><span>OAuth apps</span><span>Settings</span></div>
+          <div class="toolbar"><span style="color:#6b6b6b">3 providers · 412 synced users</span><span class="grow"></span><span class="btn">Sync all</span><span class="btn solid">+ Add provider</span></div>
+          <div class="card">
+            <table>
+              <tr><th>Provider</th><th>Issuer</th><th>Users</th><th>Groups mapped</th><th>Sync</th><th>Last sync</th><th></th></tr>
+              <tr><td><b>Okta (acme)</b></td><td>https://acme.okta.com</td><td>318</td><td>12</td><td><span class="bdg">Synced</span></td><td>7 min ago</td><td class="dots">⋯</td></tr>
+              <tr><td><b>Google Workspace</b></td><td>https://accounts.google.com</td><td>94</td><td>4</td><td><span class="bdg warn">Syncing · 61%</span></td><td>running</td><td class="dots">⋯</td></tr>
+              <tr><td><b>Azure AD (contractors)</b></td><td>https://login.microsoftonline.com/…</td><td>0</td><td>0</td><td><span class="bdg err">Error · invalid client secret</span></td><td>2 d ago</td><td class="dots">⋯</td></tr>
+            </table>
+          </div>
+          <div style="color:#7a7a7a;font-size:10px">Each row's menu: Sync now · Edit · Disable · Remove. "Add provider" opens a Dialog: name, issuer URL, client id, client secret, scopes, group claim, "Auto-create users" switch.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Settings tab · general access settings</div>
+    <div class="mockup-body">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="ph"><h1>Access</h1></div>
+          <div class="tabs"><span>Overview</span><span>Users</span><span>Groups</span><span>Roles</span><span>Permissions</span><span>Audit</span><span>OIDC</span><span>Service accounts</span><span>OAuth apps</span><span class="on">Settings</span></div>
+          <div class="card">
+            <div class="sect"><div><h3>Internal authentication</h3><div class="desc">Email and password sign-in alongside OIDC.</div></div><div class="fields"><div class="fld" style="flex-direction:row;align-items:center;gap:8px"><span class="sw"></span><label>Allow password sign-in</label></div><div class="fld" style="flex-direction:row;align-items:center;gap:8px"><span class="sw"></span><label>Require MFA for admins</label></div></div></div>
+            <div class="sect"><div><h3>Tokens and sessions</h3><div class="desc">How long access lasts before people sign in again.</div></div><div class="fields"><div class="row2"><div class="fld"><label>Access token lifetime</label><div class="in v">60 minutes ▾</div></div><div class="fld"><label>Refresh token lifetime</label><div class="in v">30 days ▾</div></div></div><div class="row2"><div class="fld"><label>Idle timeout</label><div class="in v">8 hours ▾</div></div><div class="fld"><label>Service account token max</label><div class="in v">90 days ▾</div></div></div></div></div>
+            <div class="sect"><div><h3>Email verification</h3><div class="desc">Used for invites, verification and password resets.</div></div><div class="fields"><div class="fld" style="flex-direction:row;align-items:center;gap:8px"><span class="sw"></span><label>Require verified email before first sign-in</label></div><div class="row2"><div class="fld"><label>SMTP host</label><div class="in v">smtp.acme.dev</div></div><div class="fld"><label>Port</label><div class="in v">587</div></div></div><div class="row2"><div class="fld"><label>Username</label><div class="in v">console@acme.dev</div></div><div class="fld"><label>Password</label><div class="in v">••••••••</div></div></div><div class="row2"><div class="fld"><label>From address</label><div class="in v">Kemo Console &lt;no-reply@acme.dev&gt;</div></div><div class="fld"><label>&nbsp;</label><span class="btn" style="align-self:flex-start">Send test email</span></div></div></div></div>
+            <div class="foot" style="justify-content:flex-end;gap:6px;border-top:1px solid #e3e3e3"><span class="btn">Discard changes</span><span class="btn solid">Save settings</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="note"><b>My guesses to check:</b> each tab has its own URL (<code>/access/users</code>); "Edit" reuses the Add dialog pre-filled; the bulk menu is disabled until a row is checked and names the count; Groups/Roles/Permissions/Service accounts/OAuth apps repeat the Users arrangement with their own columns, filters and form fields (proposed in the spec); OIDC rows have Sync now / Edit / Disable / Remove; Settings saves with a sticky footer.</p>

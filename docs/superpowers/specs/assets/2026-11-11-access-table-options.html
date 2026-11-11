@@ -1,0 +1,174 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .sh { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; }
+  .sh .card-image { display: block; aspect-ratio: auto; }
+  .fr { position: relative; width: 100%; height: 470px; overflow: hidden; background: #fcfcfc; color: #202020; display: grid; grid-template-rows: 36px 1fr; grid-template-columns: 56px 1fr; font-size: 10.5px; box-sizing: border-box; }
+  .tb { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-bottom: 1px solid #e3e3e3; background: #fff; }
+  .tb .brand { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 11px; }
+  .tb .mark { width: 16px; height: 16px; border-radius: 2px; background: #202020; color: #fff; display: grid; place-items: center; font-size: 9px; font-weight: 700; }
+  .tb .search { flex: 0 0 170px; height: 22px; border: 1px solid #e0e0e0; border-radius: 2px; background: #fff; color: #9a9a9a; display: flex; align-items: center; padding: 0 8px; margin-left: 6px; }
+  .tb .sp { flex: 1; }
+  .tb .av { width: 18px; height: 18px; border-radius: 50%; background: #e8e8e8; display: grid; place-items: center; font-size: 8px; font-weight: 600; }
+  .rail { border-right: 1px solid #e3e3e3; background: #fff; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .rail .i { width: 18px; height: 18px; border-radius: 3px; background: #ececec; }
+  .rail .i.on { background: #202020; }
+  .main { padding: 12px 16px; overflow: hidden; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .ph { display: flex; justify-content: space-between; align-items: flex-start; }
+  .ph h1 { font-size: 16px; font-weight: 600; letter-spacing: -.02em; margin: 0; }
+  .ph .ctx { color: #7a7a7a; font-size: 10px; margin-top: 2px; }
+  .tabs { display: flex; gap: 14px; border-bottom: 1px solid #e3e3e3; font-size: 10.5px; color: #6b6b6b; white-space: nowrap; overflow: hidden; }
+  .tabs span { padding: 4px 0 6px; }
+  .tabs .on { color: #202020; font-weight: 500; border-bottom: 2px solid #202020; margin-bottom: -1px; }
+  .btn { font-size: 10px; font-weight: 500; padding: 4px 8px; border-radius: 2px; border: 1px solid #d9d9d9; background: #fff; color: #202020; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .btn.solid { background: #202020; color: #fff; border-color: #202020; }
+  .btn.plain { border-color: transparent; }
+  .in { height: 24px; border: 1px solid #d9d9d9; border-radius: 2px; background: #fff; display: flex; align-items: center; padding: 0 8px; color: #9a9a9a; gap: 6px; }
+  .toolbar { display: flex; align-items: center; gap: 6px; }
+  .toolbar .grow { flex: 1; }
+  .chip { font-size: 10px; padding: 3px 7px; border-radius: 999px; border: 1px solid #d9d9d9; background: #fff; color: #3a3a3a; white-space: nowrap; }
+  .chip.on { background: #f0f0f0; border-color: #c8c8c8; }
+  .card { background: #fff; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  th { text-align: left; font-weight: 500; color: #6b6b6b; padding: 6px 8px; border-bottom: 1px solid #e3e3e3; white-space: nowrap; }
+  td { padding: 6px 8px; border-bottom: 1px solid #efefef; white-space: nowrap; }
+  tr.sel td { background: #f5f5f5; }
+  .cb { width: 11px; height: 11px; border: 1px solid #9a9a9a; border-radius: 2px; display: inline-block; vertical-align: middle; background: #fff; }
+  .cb.on { background: #202020; border-color: #202020; }
+  .bdg { font-size: 9px; padding: 1px 5px; border-radius: 2px; background: #eef7f1; color: #1a7f4b; }
+  .bdg.off { background: #f2f2f2; color: #7a7a7a; }
+  .bdg.ext { background: #eef3fb; color: #2a5db0; }
+  .dots { color: #6b6b6b; letter-spacing: 1px; text-align: right; }
+  .sort::after { content: ' ↓'; color: #202020; }
+  .foot { display: flex; justify-content: space-between; align-items: center; color: #7a7a7a; font-size: 10px; padding: 6px 8px; }
+  .pg span { display: inline-block; min-width: 18px; text-align: center; padding: 2px 4px; border-radius: 2px; }
+  .pg .cur { border: 1px solid #d9d9d9; color: #202020; }
+  .bulk { display: flex; align-items: center; gap: 8px; background: #202020; color: #fff; border-radius: 3px; padding: 6px 10px; font-size: 10.5px; }
+  .bulk .sp { flex: 1; }
+  .bulk .b { padding: 2px 7px; border: 1px solid rgba(255,255,255,.35); border-radius: 2px; }
+  .bulk .b.danger { border-color: #e5484d; color: #ffb3b5; }
+  /* B: filter rail */
+  .two { display: grid; grid-template-columns: 150px 1fr; gap: 10px; min-height: 0; }
+  .filters { display: flex; flex-direction: column; gap: 8px; font-size: 10px; }
+  .filters .lbl { color: #6b6b6b; font-weight: 500; margin-top: 4px; }
+  .filters .opt { display: flex; align-items: center; gap: 6px; color: #3a3a3a; }
+  .floating { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); box-shadow: 0 6px 20px rgba(0,0,0,.18); }
+  /* C: card header */
+  .cardhead { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 10px 8px; border-bottom: 1px solid #e3e3e3; }
+  .cardhead h2 { margin: 0; font-size: 12px; font-weight: 600; }
+  .cardhead .ctx { color: #7a7a7a; font-size: 10px; margin-top: 2px; }
+  .seg { display: inline-flex; border: 1px solid #d9d9d9; border-radius: 2px; overflow: hidden; }
+  .seg span { padding: 3px 8px; font-size: 10px; color: #3a3a3a; }
+  .seg .on { background: #f0f0f0; font-weight: 500; }
+  .note { font-size: 12px; color: #6b6b6b; margin-top: 8px; }
+  .note b { color: #333; font-weight: 600; }
+</style>
+
+<h2>Access · the object tabs (Users shown)</h2>
+<p class="subtitle">Inside the console shell with "Access" active. A tab strip under the page header carries Overview, Users, Groups, Roles, Permissions, Audit, OIDC, Service accounts, OAuth apps, Settings. Three ways to arrange the table tab: where the search and filters go, where "Add" sits, and how bulk actions appear once rows are checked. Every row has a checkbox and a ⋯ actions menu (edit, clone, disable/enable, delete).</p>
+
+<div class="cards sh">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="search">Search services, deployments, users</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="ph"><div><h1>Access</h1><div class="ctx">Users, groups, roles and how people sign in</div></div></div>
+          <div class="tabs"><span>Overview</span><span class="on">Users</span><span>Groups</span><span>Roles</span><span>Permissions</span><span>Audit</span><span>OIDC</span><span>Service accounts</span><span>OAuth apps</span><span>Settings</span></div>
+          <div class="toolbar"><div class="in" style="width:180px">⌕ Search users</div><span class="chip on">Status: Active ×</span><span class="chip">Role ▾</span><span class="chip">Source ▾</span><span class="grow"></span><span class="btn plain">Columns ▾</span><span class="btn solid">+ Add user</span></div>
+          <div class="bulk"><span><b>3 selected</b></span><span class="b">Enable</span><span class="b">Disable</span><span class="b">Add to group</span><span class="b danger">Delete</span><span class="sp"></span><span>✕</span></div>
+          <div class="card">
+            <table>
+              <tr><th><span class="cb on"></span></th><th class="sort">Name</th><th>Email</th><th>Role</th><th>Source</th><th>Status</th><th>Last sign-in</th><th></th></tr>
+              <tr class="sel"><td><span class="cb on"></span></td><td>Priya Natarajan</td><td>priya@acme.dev</td><td>Admin</td><td><span class="bdg ext">OIDC</span></td><td><span class="bdg">Active</span></td><td>4 min ago</td><td class="dots">⋯</td></tr>
+              <tr class="sel"><td><span class="cb on"></span></td><td>Marcus Lee</td><td>marcus@acme.dev</td><td>Deployer</td><td>Internal</td><td><span class="bdg">Active</span></td><td>22 min ago</td><td class="dots">⋯</td></tr>
+              <tr class="sel"><td><span class="cb on"></span></td><td>Sofia Reyes</td><td>sofia@acme.dev</td><td>Viewer</td><td><span class="bdg ext">OIDC</span></td><td><span class="bdg">Active</span></td><td>1 h ago</td><td class="dots">⋯</td></tr>
+              <tr><td><span class="cb"></span></td><td>Ken Moini</td><td>ken@acme.dev</td><td>Owner</td><td>Internal</td><td><span class="bdg">Active</span></td><td>Yesterday</td><td class="dots">⋯</td></tr>
+              <tr><td><span class="cb"></span></td><td>svc-ci-runner</td><td>—</td><td>Deployer</td><td>Internal</td><td><span class="bdg off">Disabled</span></td><td>Never</td><td class="dots">⋯</td></tr>
+            </table>
+            <div class="foot"><span>Showing 1–10 of 248</span><span class="pg">‹ <span class="cur">1</span> <span>2</span> <span>3</span> … <span>25</span> ›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · Toolbar table</h3>
+      <p>One toolbar above the table: search, active filters as removable chips, "Columns" and "Add user" on the right. Checking rows swaps a dark bulk bar in below the toolbar. Closest to the dashboard's density.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="search">Search services, deployments, users</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="ph"><div><h1>Access</h1><div class="ctx">Users, groups, roles and how people sign in</div></div><span class="btn solid">+ Add user</span></div>
+          <div class="tabs"><span>Overview</span><span class="on">Users</span><span>Groups</span><span>Roles</span><span>Permissions</span><span>Audit</span><span>OIDC</span><span>Service accounts</span><span>OAuth apps</span><span>Settings</span></div>
+          <div class="two">
+            <div class="filters">
+              <div class="in">⌕ Search</div>
+              <div class="lbl">Status</div>
+              <div class="opt"><span class="cb on"></span> Active <span style="color:#9a9a9a">231</span></div>
+              <div class="opt"><span class="cb"></span> Disabled <span style="color:#9a9a9a">17</span></div>
+              <div class="lbl">Source</div>
+              <div class="opt"><span class="cb on"></span> Internal</div>
+              <div class="opt"><span class="cb on"></span> OIDC</div>
+              <div class="lbl">Role</div>
+              <div class="in" style="height:22px">All roles ▾</div>
+              <span class="btn plain" style="align-self:flex-start">Clear filters</span>
+            </div>
+            <div class="card">
+              <table>
+                <tr><th><span class="cb on"></span></th><th class="sort">Name</th><th>Role</th><th>Source</th><th>Status</th><th>Last sign-in</th><th></th></tr>
+                <tr class="sel"><td><span class="cb on"></span></td><td>Priya Natarajan</td><td>Admin</td><td><span class="bdg ext">OIDC</span></td><td><span class="bdg">Active</span></td><td>4 min ago</td><td class="dots">⋯</td></tr>
+                <tr class="sel"><td><span class="cb on"></span></td><td>Marcus Lee</td><td>Deployer</td><td>Internal</td><td><span class="bdg">Active</span></td><td>22 min ago</td><td class="dots">⋯</td></tr>
+                <tr><td><span class="cb"></span></td><td>Sofia Reyes</td><td>Viewer</td><td><span class="bdg ext">OIDC</span></td><td><span class="bdg">Active</span></td><td>1 h ago</td><td class="dots">⋯</td></tr>
+                <tr><td><span class="cb"></span></td><td>Ken Moini</td><td>Owner</td><td>Internal</td><td><span class="bdg">Active</span></td><td>Yesterday</td><td class="dots">⋯</td></tr>
+                <tr><td><span class="cb"></span></td><td>svc-ci-runner</td><td>Deployer</td><td>Internal</td><td><span class="bdg off">Disabled</span></td><td>Never</td><td class="dots">⋯</td></tr>
+              </table>
+              <div class="foot"><span>1–10 of 231</span><span class="pg">‹ <span class="cur">1</span> <span>2</span> <span>3</span> … ›</span></div>
+            </div>
+          </div>
+          <div class="bulk floating"><span><b>2 selected</b></span><span class="b">Enable</span><span class="b">Disable</span><span class="b danger">Delete</span><span>✕</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · Filter rail</h3>
+      <p>A persistent filter panel on the left with counts per value; "Add user" lives in the page header so it never moves. Bulk actions float at the bottom when rows are checked. Best when filtering is the main job.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="search">Search services, deployments, users</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="ph"><div><h1>Access</h1><div class="ctx">Users, groups, roles and how people sign in</div></div></div>
+          <div class="tabs"><span>Overview</span><span class="on">Users</span><span>Groups</span><span>Roles</span><span>Permissions</span><span>Audit</span><span>OIDC</span><span>Service accounts</span><span>OAuth apps</span><span>Settings</span></div>
+          <div class="card">
+            <div class="cardhead"><div><h2>Users <span style="color:#9a9a9a;font-weight:400">248</span></div><div class="ctx">People who can sign in to this workspace</div></div><span class="btn solid">+ Add user</span></div>
+            <div class="toolbar" style="padding:8px 10px;border-bottom:1px solid #e3e3e3"><span class="seg"><span class="on">All</span><span>Active</span><span>Disabled</span></span><span class="seg"><span class="on">Any source</span><span>Internal</span><span>OIDC</span></span><span class="grow"></span><div class="in" style="width:160px">⌕ Search</div><span class="btn plain">Filters ▾</span></div>
+            <table>
+              <tr><th><span class="cb on"></span></th><th class="sort">Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last sign-in</th><th></th></tr>
+              <tr class="sel"><td><span class="cb on"></span></td><td>Priya Natarajan</td><td>priya@acme.dev</td><td>Admin</td><td><span class="bdg">Active</span></td><td>4 min ago</td><td class="dots">⋯</td></tr>
+              <tr><td><span class="cb"></span></td><td>Marcus Lee</td><td>marcus@acme.dev</td><td>Deployer</td><td><span class="bdg">Active</span></td><td>22 min ago</td><td class="dots">⋯</td></tr>
+              <tr><td><span class="cb"></span></td><td>Sofia Reyes</td><td>sofia@acme.dev</td><td>Viewer</td><td><span class="bdg">Active</span></td><td>1 h ago</td><td class="dots">⋯</td></tr>
+              <tr><td><span class="cb"></span></td><td>Ken Moini</td><td>ken@acme.dev</td><td>Owner</td><td><span class="bdg">Active</span></td><td>Yesterday</td><td class="dots">⋯</td></tr>
+            </table>
+            <div class="foot"><span><b style="color:#202020">1 selected</b> · <span style="color:#202020">Enable</span> · <span style="color:#202020">Disable</span> · <span style="color:#c0392b">Delete</span></span><span class="pg">‹ <span class="cur">1</span> <span>2</span> <span>3</span> … <span>25</span> ›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C · Card with segmented filters</h3>
+      <p>Each tab is one outlined card: a header with the count, description and "Add"; a filter row of segmented toggles plus search; bulk actions appear inline in the footer next to the pager. Quietest; fewer controls on screen at once.</p>
+    </div>
+  </div>
+</div>
+
+<p class="note"><b>Shared:</b> TanStack Table v9 under Park's <code>Table</code> (sortable headers, column/global filters, row selection, client pagination), Park <code>Checkbox</code> in the first column, Park <code>Menu</code> for the ⋯ actions, Park <code>Dialog</code> for "Add". The same arrangement repeats on Groups, Roles, Permissions, Service accounts and OAuth apps with their own columns. Click the arrangement you prefer; the Overview, Audit, OIDC and Settings tabs come next as playbacks.</p>
