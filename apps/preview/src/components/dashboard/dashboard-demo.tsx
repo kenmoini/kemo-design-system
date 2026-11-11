@@ -2,7 +2,6 @@
 import {
   ActivityFeed,
   AlertBanner,
-  AppShell,
   Badge,
   BarChart,
   Button,
@@ -10,34 +9,26 @@ import {
   Card,
   ChartCard,
   type Column,
-  createListCollection,
   DataTableCard,
   DonutGauge,
   EmptyState,
   EventStream,
   Heading,
   LineChart,
-  type NavGroup,
-  PageFooter,
   PageHeader,
-  Portal,
   ProgressList,
   RankedBars,
   SegmentedBar,
-  Select,
-  SideNav,
   SmallMultiples,
   Sparkline,
   StatCard,
   StatusGrid,
   Text,
-  TopBar,
 } from '@kemo/ui'
 import { PlusIcon } from 'lucide-react'
-import NextLink from 'next/link'
-import { type ComponentProps, type FocusEvent, type ReactNode, useMemo, useState } from 'react'
+import { type ComponentProps, type FocusEvent, type ReactNode, useState } from 'react'
 import { Box, Grid, HStack, Stack, styled } from '../../../styled-system/jsx'
-import { BrandMark } from '@/components/brand-mark'
+import { ConsoleFrame, DemoSelect } from '@/components/console/console-frame'
 import {
   activity,
   capacity,
@@ -49,13 +40,9 @@ import {
   deploymentsTable,
   deploymentsTotal,
   deploymentTabs,
-  environments,
   events,
-  footer,
-  footerLinks,
   heatmap,
   incident,
-  navGroups as mockNavGroups,
   nodeCells,
   nodeTable,
   pageContext,
@@ -66,21 +53,15 @@ import {
   services,
   stats,
   timeRanges,
-  topBar,
   topEndpoints,
   topEndpointsTable,
-  workspaces,
 } from '@/lib/mock-dashboard'
 import { useLiveEvents } from '@/lib/use-live-events'
 
-// Every control on this page is inert: buttons call no-ops, and the selects (environment, time
-// range, service, workspace), the table tabs and the pager hold local state so they respond.
+// Every control on this page is inert: buttons call no-ops, and the selects (time range, service;
+// `ConsoleFrame` holds environment and workspace), the table tabs and the pager hold local state so
+// they respond.
 const noop = () => {}
-
-const navGroups: NavGroup[] = mockNavGroups.map((group) => ({
-  ...group,
-  items: group.items.map(({ icon: Icon, ...item }) => ({ ...item, icon: <Icon /> })),
-}))
 
 const thousands = (n: number) => `${(n / 1000).toFixed(1)}k`
 
@@ -120,64 +101,6 @@ function Panel({
       </Card.Header>
       <Card.Body gap="6">{children}</Card.Body>
     </Card.Root>
-  )
-}
-
-interface DemoSelectProps {
-  /** Visually hidden; names the combobox. */
-  label: string
-  options: { value: string; label: string }[]
-  value: string
-  onChange: (value: string) => void
-  placement?: 'bottom-start' | 'bottom-end' | 'top-start'
-  /**
-   * Lift the list above modal layers. The select recipe stacks its content at `dropdown`, below the
-   * navigation drawer, so the side navigation's copy (also rendered in the drawer) needs this.
-   */
-  raised?: boolean
-}
-
-/** A small Park `Select` holding a local value, built the way `TopBar`'s environment select is. */
-function DemoSelect({
-  label,
-  options,
-  value,
-  onChange,
-  placement = 'bottom-end',
-  raised = false,
-}: DemoSelectProps) {
-  const collection = useMemo(() => createListCollection({ items: options }), [options])
-  return (
-    <Select.Root
-      collection={collection}
-      value={[value]}
-      onValueChange={(details) => {
-        const next = details.value[0]
-        if (next !== undefined) onChange(next)
-      }}
-      size="sm"
-      positioning={{ placement }}
-    >
-      <Select.Label srOnly>{label}</Select.Label>
-      <Select.Control>
-        <Select.Trigger>
-          <Select.ValueText />
-          <Select.Indicator />
-        </Select.Trigger>
-      </Select.Control>
-      <Portal>
-        <Select.Positioner>
-          <Select.Content zIndex={raised ? 'popover' : undefined}>
-            {collection.items.map((item) => (
-              <Select.Item key={item.value} item={item}>
-                <Select.ItemText>{item.label}</Select.ItemText>
-                <Select.ItemIndicator />
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select.Positioner>
-      </Portal>
-    </Select.Root>
   )
 }
 
@@ -311,38 +234,11 @@ function EventStreamCard() {
 }
 
 export function DashboardDemo() {
-  const [environment, setEnvironment] = useState('prod-us-east')
-  const [workspace, setWorkspace] = useState('core')
   const [timeRange, setTimeRange] = useState('24h')
   const [service, setService] = useState('all')
 
   return (
-    <AppShell
-      topBar={
-        <TopBar
-          {...topBar}
-          brand={{ ...topBar.brand, logo: <BrandMark letter="K" /> }}
-          environment={{ options: environments, value: environment, onChange: setEnvironment }}
-        />
-      }
-      sideNav={
-        <SideNav
-          groups={navGroups}
-          linkComponent={NextLink}
-          footer={
-            <DemoSelect
-              label="Workspace"
-              options={workspaces}
-              value={workspace}
-              onChange={setWorkspace}
-              placement="top-start"
-              raised
-            />
-          }
-        />
-      }
-      footer={<PageFooter {...footer} links={footerLinks} />}
-    >
+    <ConsoleFrame active="overview">
       <Stack gap="6">
         <PageHeader
           title="Overview"
@@ -474,6 +370,6 @@ export function DashboardDemo() {
           </Slot>
         </Grid>
       </Stack>
-    </AppShell>
+    </ConsoleFrame>
   )
 }

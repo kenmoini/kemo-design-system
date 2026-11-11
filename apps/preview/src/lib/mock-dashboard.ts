@@ -11,6 +11,7 @@ import type {
 } from '@kemo/ui'
 import {
   BoxesIcon,
+  CircleHelpIcon,
   KeyRoundIcon,
   LayersIcon,
   LayoutDashboardIcon,
@@ -26,20 +27,17 @@ import {
 
 // Shell
 
-/** Nav items carry the icon component; the demo renders it (`NavItem.icon` is a node). */
-export type MockNavItem = Omit<NavItem, 'icon'> & { icon: LucideIcon }
+/**
+ * Nav items carry the icon component; `ConsoleFrame` renders it (`NavItem.icon` is a node) and sets
+ * `active` from its own `active` prop, so no item here is marked current.
+ */
+export type MockNavItem = Omit<NavItem, 'icon' | 'active'> & { icon: LucideIcon }
 
 export const navGroups: { label: string; items: MockNavItem[] }[] = [
   {
     label: 'Platform',
     items: [
-      {
-        id: 'overview',
-        label: 'Overview',
-        icon: LayoutDashboardIcon,
-        href: '/dashboard',
-        active: true,
-      },
+      { id: 'overview', label: 'Overview', icon: LayoutDashboardIcon, href: '/dashboard' },
       { id: 'services', label: 'Services', icon: BoxesIcon, href: '#services' },
       { id: 'deployments', label: 'Deployments', icon: RocketIcon, href: '#deployments', badge: 3 },
       { id: 'incidents', label: 'Incidents', icon: SirenIcon, href: '#incidents', badge: 1 },
@@ -51,6 +49,7 @@ export const navGroups: { label: string; items: MockNavItem[] }[] = [
       { id: 'environments', label: 'Environments', icon: LayersIcon, href: '#environments' },
       { id: 'access', label: 'Access', icon: KeyRoundIcon, href: '#access' },
       { id: 'settings', label: 'Settings', icon: SettingsIcon, href: '#settings' },
+      { id: 'help', label: 'Help', icon: CircleHelpIcon, href: '/faq' },
     ],
   },
 ]

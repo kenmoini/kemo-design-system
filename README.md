@@ -8,9 +8,10 @@ whose scopes or mappers leave the profile incomplete). Other Kemo apps are meant
 `@kemo/ui` so a token or component change lands everywhere.
 
 This repository holds the tooling, theme, components, auth pages, the application shell and
-dashboard widgets, the preview and CI (see [Auth pages](#auth-pages),
-[Application shell and dashboard widgets](#application-shell-and-dashboard-widgets) and
-[Roadmap](#roadmap)).
+dashboard widgets, status pages and console pages, the preview and CI (see
+[Auth pages](#auth-pages),
+[Application shell and dashboard widgets](#application-shell-and-dashboard-widgets),
+[Status pages and console pages](#status-pages-and-console-pages) and [Roadmap](#roadmap)).
 
 ## Stack and design language
 
@@ -296,14 +297,91 @@ its `ref` to the `<a>`; Next.js's `Link` does. Mark the current page with `activ
 item.
 
 The preview's `/dashboard` is the full example: a 12-column grid with every widget, built only
-from these parts. The demo is in `apps/preview/src/components/dashboard/` and its mock data in
-`apps/preview/src/lib/mock-dashboard.ts`. `apps/preview/src/lib/use-live-events.ts` prepends a
+from these parts. The demo is in `apps/preview/src/components/dashboard/`, its shell (`ConsoleFrame`, shared with the
+FAQ and Blank page demos) in `apps/preview/src/components/console/console-frame.tsx` and its mock
+data in `apps/preview/src/lib/mock-dashboard.ts`. `apps/preview/src/lib/use-live-events.ts` prepends a
 mock event to the stream every 4 seconds (keeping the newest 20) and takes a `paused` option; the
 demo pauses it while the pointer is over the Event stream card or focus is inside it, so its live
 announcements can be stopped. The controls are inert: the selects (environment, workspace, time
 range, service), the table tabs and the pager hold local state, and the buttons do nothing. The
 demo builds its selects from Park's `Select` with `createListCollection` and `Portal`, which
 `@kemo/ui` re-exports from Ark so a consumer needs no direct `@ark-ui/react` dependency.
+
+## Status pages and console pages
+
+Two more page families, presentational like the auth pages (the host supplies actions and data):
+
+- Status pages, shown bare (no shell): `UnauthorizedPage` (401), `ForbiddenPage` (403),
+  `NotFoundPage` (404), `ServerErrorPage` (500), `UnavailablePage` (503) and `MaintenancePage`, all
+  thin wrappers over `StatusLayout`, plus `statusCopy` (the pinned copy), `mergeActions` and the
+  types `StatusAction`, `StatusLayoutProps`, `StatusPageProps` and `StatusPageTone`. Each is the
+  Nightfall gradient muted by the `gradients.status` token, in forced dark mode, with a decorative
+  watermark, the message bottom-left and the request id and version in the footer.
+- Console pages, rendered inside your `AppShell`: `FaqPage` (a topic index beside always-open,
+  linkable answers), `BlankPage`, the `useCurrentSection` hook behind the index, and the types
+  `FaqTopic`, `FaqQuestion`, `FaqPageProps` and `BlankPageProps`.
+
+Every status page string is a prop. `actions` merge into the page's defaults by label, so
+`{ label: 'Try again', onSelect: reset }` wires the default "Try again" and keeps the others; an
+unknown label is appended. An action with `href` renders through `linkComponent`, one with
+`onSelect` is a button, and one with neither is an inert button: there is no built-in
+`history.back()` or reload. `MaintenancePage` adds `startedAt` and `expectedBackAt` (formatted
+strings), and `refreshIntervalMs` calls `onRefresh` (default: reload) on that interval.
+
+Wiring Next.js's boundaries, as the preview does:
+
+```tsx
+// app/error.tsx: Next renders this when a route below the root layout throws.
+'use client'
+import { ServerErrorPage } from '@kemo/ui'
+import NextLink from 'next/link'
+
+type Props = { error: Error & { digest?: string }; reset: () => void }
+
+export default function ErrorBoundary({ error, reset }: Props) {
+  const actions = [
+    { label: 'Try again', onSelect: reset },
+    { label: 'Go to dashboard', href: '/dashboard' },
+  ]
+  return <ServerErrorPage requestId={error.digest} actions={actions} linkComponent={NextLink} />
+}
+```
+
+`app/not-found.tsx` stays a server component, so Next answers unmatched URLs with a 404 status.
+Render `NotFoundPage` from a small `'use client'` component when you pass
+`linkComponent={NextLink}`: a server component can't hand a function to a client component. Only
+server errors carry `error.digest`; without one the footer shows no request id. Next 16.3 and
+later also pass `retry`, which re-fetches the segment before rendering it again.
+
+The FAQ takes its questions as data:
+
+```ts
+interface FaqTopic {
+  id: string // becomes the anchor #topic-{id}
+  label: string
+  questions: FaqQuestion[]
+}
+interface FaqQuestion {
+  id: string // becomes the anchor #q-{id}
+  question: string
+  answer: ReactNode
+}
+```
+
+Topic and question ids must be unique across the page, because they become DOM ids. `FaqPage` also
+takes `title` (default "Frequently asked questions"), `description`, one outline `action` and
+`linkComponent`. The index is a sticky column from `lg` and a scrollable row below it.
+
+`BlankPage` is the starter for a new screen: a `PageHeader` (`title`, `context`, one solid `action`)
+over a dashed `EmptyState` (`emptyMessage`, `emptyAction`) that your `children` replace. Copy
+`apps/preview/src/components/console/blank-demo.tsx` to begin one.
+
+In the preview, `/maintenance` and `/errors/401` to `/errors/503` render
+`apps/preview/src/components/status/status-demo.tsx` with the props in
+`apps/preview/src/lib/mock-status.ts`; `apps/preview/src/app/not-found.tsx` and `error.tsx` are the
+real boundaries, and `/errors/throw` throws on render to show the second. `/faq` and `/blank`
+render the demos in `apps/preview/src/components/console/` inside `ConsoleFrame`, with "Help"
+current on the FAQ, and the questions are in `apps/preview/src/lib/mock-faq.ts`.
 
 ## Testing
 
@@ -315,8 +393,8 @@ demo builds its selects from Park's `Select` with `createListCollection` and `Po
 | `make e2e` (`pnpm test:e2e`) | Builds, then runs the Playwright smoke suite in `apps/preview/e2e` |
 | `make check`                 | Lint, format check, typecheck and unit tests                       |
 
-The e2e suite loads every route (landing page, auth pages, component pages) and fails on any
-console error or uncaught page error. It also checks the theme (font, radii), dark mode through the
+The e2e suite loads every route (landing page, auth pages, component pages, dashboard, FAQ, Blank
+page and status pages) and fails on any console error or uncaught page error. It also checks the theme (font, radii), dark mode through the
 preview panel's theme toggle, and that the panel navigates, closes and marks the current page. On
 the auth pages, where any uncaught page error (such as an escaped `onSubmit` rejection) fails the
 test, it checks validation and the mock error on every form, the sent state and that its heading
@@ -325,8 +403,12 @@ that the drawer stays dark in a light host, ignores Escape, fills a 375px viewpo
 fields stacked, and leaves the preview panel usable. On the dashboard it checks the shell's
 landmarks and the nine card titles, the chart's table toggle, that dark mode changes the series
 colours, the icon rail just below `lg` (1023px), the navigation drawer and no horizontal overflow
-at 375px, and that the live event stream grows. It runs against a built preview, so build first
-(`make e2e` does).
+at 375px, and that the live event stream grows. On the status and console pages it checks that
+the 404 heading is light on the gradient with both actions and no overflow at 375px, that an
+unknown URL answers 404 with the status page, that the error boundary shows the 500 page and "Try
+again" renders the route again, the maintenance window, and that the FAQ index jumps to a topic and
+marks it current and a question's anchor sets the hash. It runs against a built preview, so build
+first (`make e2e` does).
 
 ## CI
 
@@ -356,4 +438,8 @@ access because `next build` fetches DM Sans from Google Fonts.
    `/dashboard` demo in the preview (see
    [Application shell and dashboard widgets](#application-shell-and-dashboard-widgets)); spec in
    `docs/superpowers/specs/2026-11-10-dashboard-design.md`.
-4. Publishing `@kemo/ui`, once the package prefix is decided.
+4. Done: status pages (401, 403, 404, 500, 503, Maintenance) and console pages (FAQ, Blank page),
+   exported from `@kemo/ui`, with preview routes and the preview's `not-found` and `error`
+   boundaries wired to them (see [Status pages and console pages](#status-pages-and-console-pages));
+   spec in `docs/superpowers/specs/2026-11-11-status-and-console-pages-design.md`.
+5. Publishing `@kemo/ui`, once the package prefix is decided.

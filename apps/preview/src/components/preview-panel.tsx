@@ -15,10 +15,21 @@ interface Route {
 const pageRoutes: Route[] = [
   { href: '/', label: 'Home' },
   { href: '/dashboard', label: 'Dashboard' },
+  { href: '/faq', label: 'FAQ' },
+  { href: '/blank', label: 'Blank page' },
   { href: '/login', label: 'Sign in' },
   { href: '/register', label: 'Create your account' },
   { href: '/forgot-password', label: 'Reset your password' },
   { href: '/complete-profile', label: 'Complete your profile' },
+]
+
+const statusRoutes: Route[] = [
+  { href: '/maintenance', label: 'Maintenance' },
+  { href: '/errors/401', label: '401 Unauthorized' },
+  { href: '/errors/403', label: '403 Forbidden' },
+  { href: '/errors/404', label: '404 Not found' },
+  { href: '/errors/500', label: '500 Server error' },
+  { href: '/errors/503', label: '503 Unavailable' },
 ]
 
 const componentRoutes: Route[] = [
@@ -80,6 +91,9 @@ export function PreviewPanel() {
               <Stack as="nav" aria-label="Preview routes" gap="8" width="full">
                 <PanelSection title="Pages">
                   <RouteList routes={pageRoutes} pathname={pathname} onNavigate={close} />
+                </PanelSection>
+                <PanelSection title="Status pages">
+                  <RouteList routes={statusRoutes} pathname={pathname} onNavigate={close} />
                 </PanelSection>
                 <PanelSection title="Components">
                   <RouteList routes={componentRoutes} pathname={pathname} onNavigate={close} />

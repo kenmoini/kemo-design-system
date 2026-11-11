@@ -11,6 +11,14 @@ const ROUTES = [
   '/components/surfaces',
   '/components/typography',
   '/dashboard',
+  '/faq',
+  '/blank',
+  '/maintenance',
+  '/errors/401',
+  '/errors/403',
+  '/errors/404',
+  '/errors/500',
+  '/errors/503',
 ]
 
 test.describe('routes', () => {
@@ -399,5 +407,108 @@ test.describe('dashboard', () => {
 
     // The 4 s interval starts after hydration, so allow two ticks' worth.
     await expect.poll(() => events.count(), { timeout: 9_000 }).toBeGreaterThan(before)
+  })
+})
+
+test.describe('status and console pages', () => {
+  // Every console error and uncaught error fails these tests unless the test lists it in `expected`
+  // (a substring of `message [source url]`).
+  let errors: string[] = []
+  let expected: string[] = []
+  test.beforeEach(({ page }) => {
+    errors = []
+    expected = []
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(`${message.text()} [${message.location().url}]`)
+    })
+    page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`))
+  })
+  test.afterEach(() => {
+    expect(errors.filter((error) => !expected.some((text) => error.includes(text)))).toEqual([])
+  })
+
+  test('status page reads on the gradient', async ({ page }) => {
+    await page.goto('/errors/404')
+    const heading = page.getByRole('heading', {
+      level: 1,
+      name: "There's nothing at this address.",
+    })
+
+    await expect(heading).toBeVisible()
+    await expect(page.getByRole('main')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Go to dashboard' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Go back' })).toBeVisible()
+    const color = await heading.evaluate((el) => getComputedStyle(el).color)
+    expect(parseColor(color).luminance).toBeGreaterThan(0.8)
+
+    await page.setViewportSize({ width: 375, height: 812 })
+    await expect(heading).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(375)
+  })
+
+  test('real 404 uses the status page', async ({ page, baseURL }) => {
+    // The browser logs that the document itself came back 404: the status under test.
+    expected = [`status of 404 (Not Found) [${baseURL}/this-page-does-not-exist]`]
+
+    const response = await page.goto('/this-page-does-not-exist')
+
+    expect(response?.status()).toBe(404)
+    await expect(
+      page.getByRole('heading', { level: 1, name: "There's nothing at this address." }),
+    ).toBeVisible()
+  })
+
+  test('error boundary uses the status page', async ({ page, baseURL }) => {
+    const intentional = 'intentional render error'
+    expected = [
+      // The page throws during the server render too, so the document comes back 500 and the
+      // browser renders the boundary.
+      `status of 500 (Internal Server Error) [${baseURL}/errors/throw]`,
+      // React logs the error the boundary caught.
+      intentional,
+    ]
+    const thrown = () => errors.filter((error) => error.includes(intentional)).length
+
+    await page.goto('/errors/throw')
+
+    const heading = page.getByRole('heading', {
+      level: 1,
+      name: 'Something went wrong on our side.',
+    })
+    await expect(heading).toBeVisible()
+    const tryAgain = page.getByRole('button', { name: 'Try again' })
+    await expect(tryAgain).toBeVisible()
+
+    // "Try again" is Next's `reset`: the page renders again, throws again, and the boundary returns.
+    await expect.poll(thrown).toBeGreaterThan(0)
+    const before = thrown()
+    await tryAgain.click()
+    await expect.poll(thrown).toBeGreaterThan(before)
+    await expect(heading).toBeVisible()
+  })
+
+  test('maintenance shows the window', async ({ page }) => {
+    await page.goto('/maintenance')
+
+    await expect(page.getByText('02:00 UTC')).toBeVisible()
+    await expect(page.getByText('03:30 UTC')).toBeVisible()
+    await expect(page.getByText('Scheduled maintenance')).toBeVisible()
+    // The warning tone's amber dot sits before the label (decorative; the label carries the meaning).
+    await expect(page.getByTestId('status-dot')).toBeVisible()
+  })
+
+  test('faq index links to topics', async ({ page }) => {
+    await page.goto('/faq')
+    const billing = page.getByRole('navigation', { name: 'Topics' }).getByRole('link', {
+      name: 'Billing',
+    })
+
+    await billing.click()
+    await expect(billing).toHaveAttribute('aria-current', 'true', { timeout: 2000 })
+    expect(page.url()).toMatch(/#topic-billing$/)
+    await expect(page.getByRole('heading', { level: 2, name: 'Billing' })).toBeInViewport()
+
+    await page.getByRole('link', { name: 'Link to this question' }).first().click()
+    await expect.poll(() => new URL(page.url()).hash).toMatch(/^#q-/)
   })
 })
