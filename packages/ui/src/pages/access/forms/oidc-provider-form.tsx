@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { Grid, Stack } from '../../../../styled-system/jsx'
 import {
+  type OidcProviderEditValues,
   type OidcProviderValues,
   oidcProviderDefaults,
   oidcProviderEditSchema,
@@ -18,40 +19,48 @@ import {
   useFormSubmit,
 } from './form-fields'
 
-export interface OidcProviderFormProps {
-  /** `create` needs the client secret; on `edit` a blank secret keeps the current one. */
-  mode: 'create' | 'edit'
+export type OidcProviderFormProps = {
   /** Starting values (Edit); missing ones come from `oidcProviderDefaults`. */
   defaultValues?: Partial<OidcProviderValues>
   submitLabel: string
-  /** Resolve to close the dialog; reject to keep the input and show the error's message. */
-  onSubmit: (values: OidcProviderValues) => void | Promise<void>
   onCancel: () => void
-}
+} & (
+  | {
+      /** The client secret is required. */
+      mode: 'create'
+      /** Resolve to close the dialog; reject to keep the input and show the error's message. */
+      onSubmit: (values: OidcProviderValues) => void | Promise<void>
+    }
+  | {
+      /** A blank secret keeps the current one: `clientSecret` is then left out of the values. */
+      mode: 'edit'
+      /** Resolve to close the dialog; reject to keep the input and show the error's message. */
+      onSubmit: (values: OidcProviderEditValues) => void | Promise<void>
+    }
+)
 
 /**
  * Add or edit an OIDC provider: name, issuer URL, client id and secret, the scopes to ask for, the
  * claim that carries a user's groups, and whether a first sign-in creates the account.
  */
-export function OidcProviderForm({
-  mode,
-  defaultValues,
-  submitLabel,
-  onSubmit,
-  onCancel,
-}: OidcProviderFormProps) {
+export function OidcProviderForm(props: OidcProviderFormProps) {
+  const { mode, defaultValues, submitLabel, onCancel } = props
   const {
     register,
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<OidcProviderValues>({
-    resolver: zodResolver(mode === 'create' ? oidcProviderSchema : oidcProviderEditSchema),
+  } = useForm<OidcProviderValues, unknown, OidcProviderEditValues>({
+    resolver:
+      mode === 'create' ? zodResolver(oidcProviderSchema) : zodResolver(oidcProviderEditSchema),
     defaultValues: { ...oidcProviderDefaults, ...defaultValues },
     mode: 'onSubmit',
     reValidateMode: 'onChange',
   })
-  const { submit, error } = useFormSubmit(onSubmit)
+  const { submit, error } = useFormSubmit((values: OidcProviderEditValues) =>
+    // On create the schema has required the secret, so the values carry it.
+    props.mode === 'create' ? props.onSubmit(values as OidcProviderValues) : props.onSubmit(values),
+  )
 
   return (
     <form noValidate onSubmit={handleSubmit(submit)}>

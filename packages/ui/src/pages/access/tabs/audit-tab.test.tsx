@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { stubLayout } from '../../../test/layout'
@@ -152,6 +152,50 @@ describe('AccessAudit', () => {
     expect(onSaveForwarding).not.toHaveBeenCalled()
   })
 
+  it('takes only http(s), tcp, udp, tls or s3 endpoints', async () => {
+    const user = userEvent.setup()
+    const { onSaveForwarding } = renderAudit()
+    const endpoint = within(form()).getByRole('textbox', { name: 'Endpoint URL' })
+    await user.clear(endpoint)
+    await user.type(endpoint, 'javascript:alert(1)')
+    await user.click(within(form()).getByRole('button', { name: 'Save' }))
+    expect(
+      await within(form()).findByText('Use an http(s), tcp, udp, tls or s3 URL.'),
+    ).toBeInTheDocument()
+    expect(onSaveForwarding).not.toHaveBeenCalled()
+
+    await user.clear(endpoint)
+    await user.type(endpoint, 'tls://siem.acme.dev:6514')
+    await user.click(within(form()).getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(onSaveForwarding).toHaveBeenCalledWith({
+        ...forwarding,
+        endpoint: 'tls://siem.acme.dev:6514',
+      }),
+    )
+  })
+
+  it('gives focus back to Send test event when the wait took it away', async () => {
+    const user = userEvent.setup()
+    let finish: () => void = () => {}
+    const onSendTest = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve
+        }),
+    )
+    renderAudit({ onSendTest })
+    const send = within(form()).getByRole('button', { name: 'Send test event' })
+    send.focus()
+    await user.keyboard('{Enter}')
+    expect(onSendTest).toHaveBeenCalledTimes(1)
+    // A browser drops focus from a button that becomes disabled; jsdom does not, so do it here.
+    act(() => send.blur())
+    expect(document.activeElement).toBe(document.body)
+    await act(async () => finish())
+    await waitFor(() => expect(send).toHaveFocus())
+  })
+
   it('sends a test event and shows why one failed', async () => {
     const user = userEvent.setup()
     const onSendTest = vi
@@ -188,6 +232,8 @@ describe('AccessAudit', () => {
     expect(within(items[0]!).getByText('POST /v1/deployments')).toBeInTheDocument()
     expect(within(items[0]!).getByText('priya · 201 · 182 ms · 10.0.3.17')).toBeInTheDocument()
     expect(within(items[1]!).getByText('svc-ci-runner · 200 · 41 ms')).toBeInTheDocument()
+    // A second or more reads as seconds, to one decimal.
+    expect(within(items[3]!).getByText('ken · 200 · 2.4 s')).toBeInTheDocument()
     expect(items[0]).toHaveTextContent('Info:')
     expect(items[2]).toHaveTextContent('Warning:')
     expect(items[3]).toHaveTextContent('Success:')

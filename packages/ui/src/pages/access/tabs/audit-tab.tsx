@@ -43,6 +43,11 @@ function toneOf(event: AuditEvent): EventStreamEvent['tone'] {
   return 'info'
 }
 
+/** "182 ms" below a second; "2.4 s" from a second up. */
+function formatDuration(ms: number): string {
+  return ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${ms} ms`
+}
+
 /** An audit event as a stream item: method and path, then who, the status, the time taken and the IP. */
 function toStreamEvent(event: AuditEvent): EventStreamEvent {
   return {
@@ -55,7 +60,7 @@ function toStreamEvent(event: AuditEvent): EventStreamEvent {
           {`${event.method} ${event.path}`}
         </Text>
         <Text as="span" display="block" textStyle="xs" color="fg.subtle">
-          {`${event.actor} · ${event.status} · ${event.durationMs} ms${event.ip ? ` · ${event.ip}` : ''}`}
+          {`${event.actor} · ${event.status} · ${formatDuration(event.durationMs)}${event.ip ? ` · ${event.ip}` : ''}`}
         </Text>
       </>
     ),

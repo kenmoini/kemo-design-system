@@ -1,7 +1,16 @@
 'use client'
 import { Portal } from '@ark-ui/react/portal'
 import { createListCollection } from '@ark-ui/react/select'
-import { forwardRef, type ReactNode, useCallback, useMemo, useState } from 'react'
+import {
+  forwardRef,
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { HStack, Stack } from '../../../../styled-system/jsx'
 import {
   Badge,
@@ -50,6 +59,26 @@ export function useFormSubmit<V>(onSubmit: (values: V) => void | Promise<void>) 
     [onSubmit],
   )
   return { submit, error }
+}
+
+/**
+ * A button that is disabled while its action runs (Park's `loading`) loses focus to the page in a
+ * browser. When `pending` ends and focus is still on the page, hand it back to the button, so a
+ * keyboard user carries on from where they were. Focus that moved elsewhere meanwhile stays put.
+ */
+export function useRefocusAfter(ref: RefObject<HTMLElement | null>, pending: boolean) {
+  const wasPending = useRef(false)
+  useEffect(() => {
+    if (pending) {
+      wasPending.current = true
+      return
+    }
+    if (!wasPending.current) return
+    wasPending.current = false
+    const button = ref.current
+    const active = document.activeElement
+    if (button?.isConnected && (active === null || active === document.body)) button.focus()
+  }, [pending, ref])
 }
 
 function FieldMessages({ helper, error }: { helper?: ReactNode; error?: string }) {
@@ -538,14 +567,19 @@ export interface FormFooterProps {
   submitting?: boolean
 }
 
-/** A dialog form's footer: Cancel and the submit button, which spins while the submit runs. */
-export function FormFooter({ onCancel, submitLabel, submitting }: FormFooterProps) {
+/**
+ * A dialog form's footer: Cancel and the submit button, which spins while the submit runs and has
+ * focus back afterwards when the wait took it away (a rejected submit keeps the dialog open).
+ */
+export function FormFooter({ onCancel, submitLabel, submitting = false }: FormFooterProps) {
+  const submitRef = useRef<HTMLButtonElement>(null)
+  useRefocusAfter(submitRef, submitting)
   return (
     <HStack justify="flex-end" gap="3" pt="2">
       <Button type="button" variant="outline" onClick={onCancel}>
         Cancel
       </Button>
-      <Button type="submit" variant="solid" loading={submitting}>
+      <Button ref={submitRef} type="submit" variant="solid" loading={submitting}>
         {submitLabel}
       </Button>
     </HStack>

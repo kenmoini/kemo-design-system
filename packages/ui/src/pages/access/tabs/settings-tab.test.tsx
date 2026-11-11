@@ -84,15 +84,25 @@ describe('AccessSettings', () => {
         }),
     )
     renderSettings({ onSave })
-    expect(save()).toBeDisabled()
-    expect(discard()).toBeDisabled()
+    // Off, but still focusable: aria-disabled, and Enter does nothing.
+    expect(save()).toHaveAttribute('aria-disabled', 'true')
+    expect(discard()).toHaveAttribute('aria-disabled', 'true')
+    expect(save()).not.toBeDisabled()
+    save().focus()
+    await user.keyboard('{Enter}')
+    expect(onSave).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('switch', { name: 'Require MFA for admins' }))
     await choose(user, 'Access token lifetime', '30 minutes')
-    expect(save()).toBeEnabled()
-    expect(discard()).toBeEnabled()
+    expect(save()).not.toHaveAttribute('aria-disabled')
+    expect(discard()).not.toHaveAttribute('aria-disabled')
+    // The select hands focus back to its trigger as it closes; move on from there.
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: 'Access token lifetime' })).toHaveFocus(),
+    )
 
-    await user.click(save())
+    save().focus()
+    await user.keyboard('{Enter}')
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith({
         ...values,
@@ -100,14 +110,28 @@ describe('AccessSettings', () => {
         accessTokenMinutes: 30,
       }),
     )
+    // Busy, not disabled, so the button keeps focus while the save runs.
+    const busy = screen.getByRole('button', { name: 'Saving…' })
+    expect(busy).toHaveAttribute('aria-busy', 'true')
+    expect(busy).not.toBeDisabled()
+    expect(busy).toHaveFocus()
+
     resolveSave()
     // Saved: the saved values are the form's new starting point, so it is clean again.
-    await waitFor(() => expect(save()).toBeDisabled())
-    expect(discard()).toBeDisabled()
+    expect(await screen.findByText('Settings saved')).toBeInTheDocument()
+    expect(screen.getByText('Settings saved')).toHaveAttribute('role', 'status')
+    expect(save()).toHaveAttribute('aria-disabled', 'true')
+    expect(discard()).toHaveAttribute('aria-disabled', 'true')
+    expect(save()).toHaveFocus()
+    expect(document.activeElement).not.toBe(document.body)
     expect(screen.getByRole('switch', { name: 'Require MFA for admins' })).toBeChecked()
     expect(screen.getByRole('combobox', { name: 'Access token lifetime' })).toHaveTextContent(
       '30 minutes',
     )
+
+    // A new change clears the message.
+    await user.click(screen.getByRole('switch', { name: 'Require MFA for admins' }))
+    expect(screen.queryByText('Settings saved')).not.toBeInTheDocument()
   })
 
   it('discards changes', async () => {
@@ -121,14 +145,18 @@ describe('AccessSettings', () => {
     await user.clear(port)
     await user.type(port, '2525')
     await user.click(screen.getByRole('switch', { name: 'Allow password sign-in' }))
-    expect(discard()).toBeEnabled()
+    expect(discard()).not.toHaveAttribute('aria-disabled')
 
-    await user.click(discard())
+    discard().focus()
+    await user.keyboard('{Enter}')
     expect(screen.getByRole('textbox', { name: 'SMTP host' })).toHaveValue('smtp.acme.dev')
     expect(screen.getByRole('spinbutton', { name: 'Port' })).toHaveValue('587')
     expect(screen.getByRole('switch', { name: 'Allow password sign-in' })).toBeChecked()
-    await waitFor(() => expect(save()).toBeDisabled())
-    expect(discard()).toBeDisabled()
+    await waitFor(() => expect(save()).toHaveAttribute('aria-disabled', 'true'))
+    expect(discard()).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByText('Changes discarded')).toHaveAttribute('role', 'status')
+    expect(discard()).toHaveFocus()
+    expect(document.activeElement).not.toBe(document.body)
     expect(onSave).not.toHaveBeenCalled()
   })
 
@@ -155,7 +183,7 @@ describe('AccessSettings', () => {
     )
     expect(screen.getByRole('combobox', { name: 'Idle timeout' })).toHaveTextContent('24 hours')
     expect(screen.getByRole('textbox', { name: 'Username' })).toHaveValue('mailer@acme.dev')
-    expect(save()).toBeEnabled()
+    expect(save()).not.toHaveAttribute('aria-disabled')
   })
 
   it('needs a from address while verified email is required', async () => {
@@ -181,6 +209,19 @@ describe('AccessSettings', () => {
         smtp: { ...values.smtp, from: '' },
       }),
     )
+  })
+
+  it('shows the from-address message even when the port is empty', async () => {
+    const user = userEvent.setup({ delay: 20 })
+    const { onSave } = renderSettings()
+    await user.clear(screen.getByRole('spinbutton', { name: 'Port' }))
+    await user.clear(screen.getByRole('textbox', { name: 'From address' }))
+    await user.click(save())
+    expect(
+      await screen.findByText('Enter a port number.', undefined, { timeout: 4000 }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Enter the address emails come from.')).toBeInTheDocument()
+    expect(onSave).not.toHaveBeenCalled()
   })
 
   it('keeps the port between 1 and 65535', async () => {
@@ -221,6 +262,7 @@ describe('AccessSettings', () => {
     await user.click(save())
     expect(await screen.findByRole('alert')).toHaveTextContent('Settings are locked')
     expect(screen.getByRole('switch', { name: 'Require MFA for admins' })).toBeChecked()
-    expect(save()).toBeEnabled()
+    expect(save()).not.toHaveAttribute('aria-disabled')
+    expect(screen.queryByText('Settings saved')).not.toBeInTheDocument()
   })
 })

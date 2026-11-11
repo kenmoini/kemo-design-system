@@ -222,7 +222,8 @@ describe('AccessOidc', () => {
 
   it('edits a provider and keeps its secret when left blank', async () => {
     const user = userEvent.setup()
-    const { onUpdate } = renderOidc()
+    const onUpdate = vi.fn()
+    renderOidc({ onUpdate })
     await openRowAction(user, 'Okta (acme)', 'Edit')
     const dialog = await screen.findByRole('dialog', { name: 'Edit Okta (acme)' })
     expect(within(dialog).getByRole('textbox', { name: 'Name' })).toHaveValue('Okta (acme)')
@@ -238,16 +239,33 @@ describe('AccessOidc', () => {
     await user.clear(name)
     await user.type(name, 'Okta')
     await user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(onUpdate).toHaveBeenCalledTimes(1))
+    const [id, update] = onUpdate.mock.calls[0]!
+    expect(id).toBe('okta')
+    // A blank secret is left out, not sent as '', so the host keeps the current one.
+    expect(update).toEqual({
+      name: 'Okta',
+      issuer: 'https://acme.okta.com',
+      clientId: '0oa1acme',
+      scopes: ['openid', 'profile', 'email', 'groups'],
+      groupClaim: 'groups',
+      autoCreateUsers: true,
+    })
+    expect(update).not.toHaveProperty('clientSecret')
+  })
+
+  it('sends a new secret when one is typed on Edit', async () => {
+    const user = userEvent.setup()
+    const { onUpdate } = renderOidc()
+    await openRowAction(user, 'Okta (acme)', 'Edit')
+    const dialog = await screen.findByRole('dialog', { name: 'Edit Okta (acme)' })
+    await user.type(within(dialog).getByLabelText(/^Client secret/), '  n3w-secret  ')
+    await user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
     await waitFor(() =>
-      expect(onUpdate).toHaveBeenCalledWith('okta', {
-        name: 'Okta',
-        issuer: 'https://acme.okta.com',
-        clientId: '0oa1acme',
-        clientSecret: '',
-        scopes: ['openid', 'profile', 'email', 'groups'],
-        groupClaim: 'groups',
-        autoCreateUsers: true,
-      }),
+      expect(onUpdate).toHaveBeenCalledWith(
+        'okta',
+        expect.objectContaining({ clientSecret: 'n3w-secret' }),
+      ),
     )
   })
 

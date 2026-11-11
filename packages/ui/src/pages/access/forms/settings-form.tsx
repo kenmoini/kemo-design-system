@@ -1,9 +1,9 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useRef, useState } from 'react'
 import { type Control, Controller, useForm, useWatch } from 'react-hook-form'
 import { Box, Grid, HStack, Stack } from '../../../../styled-system/jsx'
-import { Button, Card, Heading, Text } from '../../../components/ui'
+import { Button, Card, Heading, Loader, Text } from '../../../components/ui'
 import type { Option } from '../../../widgets'
 import { accessSettingsSchema } from '../schemas'
 import type { AccessSettingsValues } from '../types'
@@ -15,6 +15,7 @@ import {
   SelectField,
   SwitchField,
   TextField,
+  useRefocusAfter,
 } from './form-fields'
 
 type LifetimeName =
@@ -131,6 +132,16 @@ export function AccessSettingsForm({ values, onSubmit, onSendTestEmail }: Access
   const [sendingTest, setSendingTest] = useState(false)
   // The port's number input is uncontrolled once mounted: a reset remounts it with the new value.
   const [resets, setResets] = useState(0)
+  // What the last Save or Discard did, announced politely; the next change clears it.
+  const [outcome, setOutcome] = useState('')
+  const [wasDirty, setWasDirty] = useState(isDirty)
+  if (isDirty !== wasDirty) {
+    setWasDirty(isDirty)
+    if (isDirty) setOutcome('')
+  }
+  // "Send test email" is disabled while it runs; focus comes back to it afterwards.
+  const testRef = useRef<HTMLButtonElement>(null)
+  useRefocusAfter(testRef, sendingTest)
 
   // Discard and a saved submit replace every value, edited or not (`reset` would otherwise take
   // `keepDirtyValues` from `resetOptions`, which is only for later `values`), and write them into
@@ -142,17 +153,23 @@ export function AccessSettingsForm({ values, onSubmit, onSendTestEmail }: Access
 
   const save = async (next: AccessSettingsValues) => {
     setSaveError(null)
+    setOutcome('')
     try {
       await onSubmit(next)
       resetTo(next)
+      setOutcome('Settings saved')
     } catch (cause) {
       setSaveError(errorMessage(cause))
     }
   }
 
+  // Save and Discard stay focusable when there is nothing to do (`aria-disabled`) and while a save
+  // runs (`aria-busy`), so focus never drops to the page; their handlers refuse instead.
   const discard = () => {
+    if (!isDirty || isSubmitting) return
     setSaveError(null)
     resetTo(defaultValues as AccessSettingsValues)
+    setOutcome('Changes discarded')
   }
 
   const sendTestEmail = async () => {
@@ -168,7 +185,17 @@ export function AccessSettingsForm({ values, onSubmit, onSendTestEmail }: Access
   }
 
   return (
-    <form noValidate aria-label="Access settings" onSubmit={handleSubmit(save)}>
+    <form
+      noValidate
+      aria-label="Access settings"
+      onSubmit={(event) => {
+        if (!isDirty || isSubmitting) {
+          event.preventDefault()
+          return
+        }
+        void handleSubmit(save)(event)
+      }}
+    >
       <Card.Root variant="outline">
         <Section
           title="Internal authentication"
@@ -287,6 +314,7 @@ export function AccessSettingsForm({ values, onSubmit, onSendTestEmail }: Access
           />
           <HStack>
             <Button
+              ref={testRef}
               type="button"
               variant="outline"
               size="sm"
@@ -303,15 +331,28 @@ export function AccessSettingsForm({ values, onSubmit, onSendTestEmail }: Access
             <FormError message={saveError} />
           </Box>
         ) : null}
-        <Card.Footer pt="6">
-          <HStack justify="flex-end" gap="3" flexWrap="wrap">
-            <Button type="button" variant="outline" disabled={!isDirty} onClick={discard}>
-              Discard changes
-            </Button>
-            <Button type="submit" variant="solid" disabled={!isDirty} loading={isSubmitting}>
+        <Card.Footer pt="6" alignItems="center" flexWrap="wrap">
+          <Text role="status" textStyle="sm" color="fg.muted" me="auto">
+            {outcome}
+          </Text>
+          <Button
+            type="button"
+            variant="outline"
+            aria-disabled={!isDirty || isSubmitting || undefined}
+            onClick={discard}
+          >
+            Discard changes
+          </Button>
+          <Button
+            type="submit"
+            variant="solid"
+            aria-disabled={!isDirty || undefined}
+            aria-busy={isSubmitting || undefined}
+          >
+            <Loader visible={isSubmitting} text="Saving…">
               Save settings
-            </Button>
-          </HStack>
+            </Loader>
+          </Button>
         </Card.Footer>
       </Card.Root>
     </form>

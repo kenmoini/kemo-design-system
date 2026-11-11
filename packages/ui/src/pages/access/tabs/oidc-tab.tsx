@@ -7,15 +7,20 @@ import { DateTimeText } from '../cells'
 import { ConfirmDialog } from '../confirm-dialog'
 import { EntityDialog } from '../entity-dialog'
 import { OidcProviderForm } from '../forms/oidc-provider-form'
-import { type OidcProviderValues, oidcProviderDefaults } from '../schemas'
+import {
+  type OidcProviderEditValues,
+  type OidcProviderValues,
+  oidcProviderDefaults,
+} from '../schemas'
 import type { OidcProvider } from '../types'
 
 export interface AccessOidcProps {
   providers: OidcProvider[]
   /** "Add provider": resolve to close the dialog; a rejection keeps it open with the message. */
   onCreate: (values: OidcProviderValues) => void | Promise<void>
-  /** "Edit": a blank `clientSecret` means keep the current one. Resolve or reject as `onCreate`. */
-  onUpdate: (id: string, values: OidcProviderValues) => void | Promise<void>
+  /** "Edit": `clientSecret` is present only when a new one was typed; absent, keep the current
+   * one. Resolve or reject as `onCreate`. */
+  onUpdate: (id: string, values: OidcProviderEditValues) => void | Promise<void>
   /** "Sync now" on an enabled provider that is not syncing already. */
   onSyncNow: (id: string) => void
   onSyncAll: () => void

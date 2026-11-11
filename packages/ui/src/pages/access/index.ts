@@ -57,6 +57,7 @@ export {
   type OAuthAppValues,
   oidcProviderDefaults,
   oidcProviderEditSchema,
+  type OidcProviderEditValues,
   oidcProviderSchema,
   type OidcProviderValues,
   permissionActions,

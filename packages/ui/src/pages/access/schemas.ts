@@ -126,7 +126,10 @@ function urlField(empty: string, invalid: string, protocol?: RegExp) {
 export const auditForwardingSchema = z.object({
   destination: z.enum(['splunk', 'syslog', 's3', 'webhook'], 'Choose a destination.'),
   format: z.enum(['json', 'cef'], 'Choose a format.'),
-  endpoint: urlField('Enter the endpoint URL.', 'Enter a valid URL.'),
+  endpoint: urlField('Enter the endpoint URL.', 'Enter a valid URL.').refine(
+    (url) => /^(https?|tcp|udp|tls|s3):/i.test(url),
+    'Use an http(s), tcp, udp, tls or s3 URL.',
+  ),
   token: z.string().trim().min(1, 'Enter the token.'),
   include: z
     .array(z.enum(['signins', 'admin', 'api']))
@@ -150,10 +153,19 @@ export const oidcProviderSchema = z.object({
   autoCreateUsers: z.boolean(),
 })
 
-/** `oidcProviderSchema` for Edit: a blank secret keeps the current one. */
-export const oidcProviderEditSchema = oidcProviderSchema.extend({ clientSecret: z.string().trim() })
-
 export type OidcProviderValues = z.infer<typeof oidcProviderSchema>
+
+/** What Edit submits: `clientSecret` only when a new one was typed (absent keeps the current one). */
+export type OidcProviderEditValues = Omit<OidcProviderValues, 'clientSecret'> & {
+  clientSecret?: string
+}
+
+/** `oidcProviderSchema` for Edit: the secret may stay blank, and then leaves the values. */
+export const oidcProviderEditSchema = oidcProviderSchema
+  .extend({ clientSecret: z.string().trim() })
+  .transform(({ clientSecret, ...values }): OidcProviderEditValues =>
+    clientSecret === '' ? values : { ...values, clientSecret },
+  )
 
 /** The Add provider form's starting values. */
 export const oidcProviderDefaults: OidcProviderValues = {
@@ -189,12 +201,10 @@ export const accessSettingsSchema = z
       from: z.string().trim(),
     }),
   })
-  .superRefine((values, ctx) => {
-    if (values.requireVerifiedEmail && values.smtp.from === '') {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['smtp', 'from'],
-        message: 'Enter the address emails come from.',
-      })
-    }
+  .refine((values) => !values.requireVerifiedEmail || values.smtp.from !== '', {
+    path: ['smtp', 'from'],
+    error: 'Enter the address emails come from.',
+    // Zod skips refinements once a field fails to parse (an empty port, say); this one only reads
+    // two fields that always parse, so it runs anyway and both messages show at once.
+    when: () => true,
   }) satisfies z.ZodType<AccessSettingsValues>

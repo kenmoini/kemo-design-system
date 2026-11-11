@@ -1,9 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { stubLayout } from '../../../test/layout'
-import { TagsField } from './form-fields'
+import { FormFooter, TagsField } from './form-fields'
 
 function Tags({
   onChange,
@@ -68,5 +68,37 @@ describe('TagsField', () => {
     await user.clear(input)
     await user.type(input, 'https://x{Enter}')
     expect(onChange).toHaveBeenLastCalledWith(['openid', 'https://x'])
+  })
+})
+
+describe('FormFooter', () => {
+  const footer = (submitting: boolean) => (
+    <form>
+      <input aria-label="Name" />
+      <FormFooter onCancel={() => {}} submitLabel="Save changes" submitting={submitting} />
+    </form>
+  )
+
+  it('gives focus back to the submit button when the wait took it to the page', () => {
+    const { rerender } = render(footer(false))
+    const submit = screen.getByRole('button', { name: 'Save changes' })
+    submit.focus()
+    rerender(footer(true))
+    expect(screen.getByRole('button', { name: /Save changes/ })).toBeDisabled()
+    // A browser drops focus from a button that becomes disabled; jsdom does not, so do it here.
+    act(() => submit.blur())
+    expect(document.activeElement).toBe(document.body)
+    rerender(footer(false))
+    expect(submit).toHaveFocus()
+  })
+
+  it('leaves focus alone when it moved somewhere else meanwhile', () => {
+    const { rerender } = render(footer(false))
+    screen.getByRole('button', { name: 'Save changes' }).focus()
+    rerender(footer(true))
+    const name = screen.getByRole('textbox', { name: 'Name' })
+    act(() => name.focus())
+    rerender(footer(false))
+    expect(name).toHaveFocus()
   })
 })

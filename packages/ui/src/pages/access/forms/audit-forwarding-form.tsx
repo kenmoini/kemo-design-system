@@ -1,6 +1,6 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Grid, HStack, Stack } from '../../../../styled-system/jsx'
 import { Button, Checkbox, Text } from '../../../components/ui'
@@ -15,6 +15,7 @@ import {
   SelectField,
   SwitchField,
   TextField,
+  useRefocusAfter,
 } from './form-fields'
 
 export const auditDestinationOptions: Option[] = [
@@ -75,6 +76,11 @@ export function AuditForwardingForm({
   // One message for both buttons: whichever ran last.
   const [error, setError] = useState<string | null>(null)
   const [testing, setTesting] = useState(false)
+  // Both buttons are disabled while their action runs; focus comes back to them afterwards.
+  const testRef = useRef<HTMLButtonElement>(null)
+  const saveRef = useRef<HTMLButtonElement>(null)
+  useRefocusAfter(testRef, testing)
+  useRefocusAfter(saveRef, isSubmitting)
 
   const save = async (next: AuditForwardingValues) => {
     setError(null)
@@ -195,10 +201,16 @@ export function AuditForwardingForm({
         />
         <FormError message={error} />
         <HStack gap="3" flexWrap="wrap" pt="2">
-          <Button type="button" variant="outline" loading={testing} onClick={sendTest}>
+          <Button
+            ref={testRef}
+            type="button"
+            variant="outline"
+            loading={testing}
+            onClick={sendTest}
+          >
             Send test event
           </Button>
-          <Button type="submit" variant="solid" loading={isSubmitting}>
+          <Button ref={saveRef} type="submit" variant="solid" loading={isSubmitting}>
             Save
           </Button>
           {/* Announced when it changes, so a test event's arrival is heard. */}
