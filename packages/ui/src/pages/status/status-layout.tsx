@@ -12,8 +12,8 @@ const Backdrop = styled('div', {
 })
 
 // The large decorative status code (or word) in the top-right corner, faint like the mockup's 6%
-// white. Below `md` it sits clear of the brand row, small enough for "Back soon" to fit from 320px;
-// the page root clips what overflows.
+// white. Below `md` it sits clear of the brand row. These sizes are for codes; a longer word gets
+// `wordSize` inline instead. The page root clips what overflows.
 const Watermark = styled('div', {
   base: {
     position: 'absolute',
@@ -29,6 +29,15 @@ const Watermark = styled('div', {
     whiteSpace: 'nowrap',
   },
 })
+
+/**
+ * The size for a watermark longer than a three-character code, scaled so the whole word fits the
+ * width at every breakpoint; `undefined` for a code, which keeps the styled responsive sizes.
+ */
+function wordSize(text: string): string | undefined {
+  const chars = Math.max(text.length, 3)
+  return chars > 3 ? `clamp(48px, calc(110vw / ${chars}), 240px)` : undefined
+}
 
 const Dot = styled('span', {
   base: { display: 'inline-block', w: '2', h: '2', borderRadius: 'full', flexShrink: '0' },
@@ -66,6 +75,7 @@ export function StatusLayout({
   }, [refreshIntervalMs, onRefresh])
 
   const watermarkText = watermark ?? String(code ?? '')
+  const watermarkSize = wordSize(watermarkText)
   const labelText = code !== undefined && code !== '' ? `${code} · ${label}` : label
   const footerLeft = footerNote ?? (requestId ? `Request ID ${requestId}` : null)
 
@@ -82,7 +92,11 @@ export function StatusLayout({
     >
       <Backdrop aria-hidden filter="auto" saturate="0.85" />
       {watermarkText ? (
-        <Watermark aria-hidden="true" data-part="watermark">
+        <Watermark
+          aria-hidden="true"
+          data-part="watermark"
+          style={watermarkSize ? { fontSize: watermarkSize } : undefined}
+        >
           {watermarkText}
         </Watermark>
       ) : null}

@@ -26,7 +26,10 @@ export interface StatusLayoutProps {
   description?: ReactNode
   /** Default `neutral`. */
   tone?: StatusPageTone
-  /** The large decorative text; defaults to `String(code)`. */
+  /**
+   * The large decorative text; defaults to `String(code)`. Text longer than a three-character code
+   * is sized by its length so the whole word fits the width.
+   */
   watermark?: string
   meta?: { label: string; value: string }[]
   actions?: StatusAction[]

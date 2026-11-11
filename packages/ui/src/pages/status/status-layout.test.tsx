@@ -42,6 +42,18 @@ describe('StatusLayout', () => {
     expect(container.firstElementChild).toHaveClass('ov_hidden')
   })
 
+  it('sizes a word watermark by its length inline and leaves a code to the styled sizes', () => {
+    const { container, rerender } = render(
+      <StatusLayout label="Maintenance" title="T" watermark="Back soon" />,
+    )
+    const mark = () => container.querySelector('[data-part="watermark"]') as HTMLElement
+    // `calc(110vw / 9)`, which jsdom (like browsers) may serialise as its quotient.
+    expect(mark().style.fontSize).toMatch(/^clamp\(48px, (calc\(110vw \/ 9\)|12\.2222vw), 240px\)$/)
+
+    rerender(<StatusLayout code={404} label="Not found" title="T" />)
+    expect(mark().style.fontSize).toBe('')
+  })
+
   it('omits the watermark when there is no text', () => {
     const { container } = render(<StatusLayout label="Maintenance" title="T" />)
     expect(container.querySelector('[data-part="watermark"]')).toBeNull()
