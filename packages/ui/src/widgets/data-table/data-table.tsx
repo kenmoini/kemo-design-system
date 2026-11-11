@@ -60,6 +60,13 @@ function toSelection(ids: string[]): RowSelectionState {
   return selection
 }
 
+/** The selection without ids whose rows are gone; the same object when nothing was dropped. */
+function pruneSelection(selection: RowSelectionState, rowIds: Set<string>): RowSelectionState {
+  const ids = Object.keys(selection)
+  const kept = ids.filter((id) => rowIds.has(id))
+  return kept.length === ids.length ? selection : toSelection(kept)
+}
+
 function cellContent<T>(column: DataTableColumn<T>, row: T): ReactNode {
   if (column.cell) return column.cell(row)
   const value = column.accessor?.(row)
@@ -144,6 +151,10 @@ export function DataTable<T extends { id: string }>({
     () => toColumnDefs(columns, filters ?? [], searchKeys),
     [columns, filters, searchKeys],
   )
+  // TanStack caches each row's values per column id until `data` changes; a new array whenever the
+  // definitions change makes new accessors (labels from a new lookup, say) sort and filter at once.
+  const data = useMemo(() => rows.slice(), [rows, columnDefs])
+  const rowIds = useMemo(() => new Set(rows.map((row) => row.id)), [rows])
 
   const controlledSelection = useMemo(
     () => (selectedIds ? toSelection(selectedIds) : undefined),
@@ -155,7 +166,7 @@ export function DataTable<T extends { id: string }>({
   const table = useTable({
     features: dataTableFeatures,
     columns: columnDefs,
-    data: rows,
+    data,
     getRowId: (row) => row.id,
     initialState: {
       sorting: initialSort ? [{ id: initialSort.id, desc: initialSort.desc ?? false }] : [],
@@ -163,7 +174,9 @@ export function DataTable<T extends { id: string }>({
     },
     state: { rowSelection },
     onRowSelectionChange: (updater: Updater<RowSelectionState>) => {
-      const next = functionalUpdate(updater, rowSelection)
+      const updated = functionalUpdate(updater, rowSelection)
+      // The table's own selection holds only rows that exist; a host's `selectedIds` is its own.
+      const next = controlledSelection ? updated : pruneSelection(updated, rowIds)
       if (!controlledSelection) setOwnSelection(next)
       onSelectionChange?.(Object.keys(next))
     },
@@ -177,15 +190,31 @@ export function DataTable<T extends { id: string }>({
     getColumnCanGlobalFilter: (column) => column.id === SEARCH_COLUMN_ID,
   })
 
-  const { pageIndex } = table.state.pagination
-  const pageCount = table.getPageCount()
   useEffect(() => {
-    // Rows removed from under the current page: show the last page that still has rows.
-    if (pageIndex > 0 && pageIndex >= pageCount) table.setPageIndex(Math.max(0, pageCount - 1))
-  }, [pageIndex, pageCount, table])
+    // Rows that leave `rows` leave the table's own selection too. Rows hidden by filters or on
+    // other pages are still in `rows`, so they stay selected.
+    if (controlledSelection) return
+    const kept = pruneSelection(ownSelection, rowIds)
+    if (kept === ownSelection) return
+    setOwnSelection(kept)
+    onSelectionChange?.(Object.keys(kept))
+  }, [controlledSelection, ownSelection, rowIds, onSelectionChange])
+
+  const pagination = table.state.pagination
+  // Rows can shrink under the current page (the last rows of the last page deleted): render the
+  // last page that still has rows in this very render, and move the table there after the commit.
+  const pageIndex = Math.min(pagination.pageIndex, Math.max(0, table.getPageCount() - 1))
+  useEffect(() => {
+    if (pageIndex !== pagination.pageIndex) table.setPageIndex(pageIndex)
+  }, [pageIndex, pagination.pageIndex, table])
 
   const filteredCount = table.getFilteredRowModel().rows.length
-  const pageRows = table.getRowModel().rows
+  const pageRows =
+    pageIndex === pagination.pageIndex
+      ? table.getRowModel().rows
+      : table
+          .getPrePaginatedRowModel()
+          .rows.slice(pageIndex * pagination.pageSize, (pageIndex + 1) * pagination.pageSize)
   // Every selected row, including those hidden by filters or on other pages.
   const selectedRows = selectable ? table.getSelectedRowModel().rows.map((row) => row.original) : []
   const selectedCount = selectedRows.length
@@ -215,7 +244,8 @@ export function DataTable<T extends { id: string }>({
 
   const addLabel = `+ ${addAction?.label ?? `Add ${entity.singular}`}`
   const columnCount = columns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0)
-  const allPageSelected = table.getIsAllPageRowsSelected()
+  const allPageSelected = pageRows.length > 0 && pageRows.every((row) => row.getIsSelected())
+  const somePageSelected = pageRows.some((row) => row.getIsSelected())
   const empty = rows.length === 0 ? 'data' : filteredCount === 0 ? 'filtered' : null
 
   const main = (
@@ -263,13 +293,7 @@ export function DataTable<T extends { id: string }>({
                       size="sm"
                       verticalAlign="middle"
                       disabled={pageRows.length === 0}
-                      checked={
-                        allPageSelected
-                          ? true
-                          : table.getIsSomePageRowsSelected()
-                            ? 'indeterminate'
-                            : false
-                      }
+                      checked={allPageSelected ? true : somePageSelected ? 'indeterminate' : false}
                       onCheckedChange={() => table.toggleAllPageRowsSelected(!allPageSelected)}
                     >
                       <Checkbox.Control>

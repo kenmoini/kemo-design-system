@@ -12,6 +12,10 @@ if (!('ResizeObserver' in globalThis)) {
   }
 }
 window.matchMedia = matchMediaStub
+// jsdom does not scroll elements; Ark's Select scrolls its list to the top when it opens.
+if (typeof Element.prototype.scrollTo !== 'function') {
+  Element.prototype.scrollTo = () => {}
+}
 
 // Vitest globals are off, so Testing Library cannot register its automatic cleanup.
 afterEach(() => {

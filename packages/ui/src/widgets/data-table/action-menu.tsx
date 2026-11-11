@@ -1,7 +1,7 @@
 'use client'
 import { Portal } from '@ark-ui/react/portal'
 import { ChevronDown, EllipsisVertical } from 'lucide-react'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { Button, IconButton, Menu } from '../../components/ui'
 import type { ActionItem } from './types'
 
@@ -14,6 +14,8 @@ export interface ActionMenuProps {
   trigger?: 'icon' | 'button'
   /** The button trigger's text. */
   buttonLabel?: string
+  /** Dims the trigger and keeps the menu shut; the trigger stays focusable (`aria-disabled`), so
+   * focus is not lost when the last action disables it (the bulk menu's "Clear selection"). */
   disabled?: boolean
   /** Labels the group the items sit in, e.g. "2 users". */
   groupLabel?: string
@@ -55,16 +57,27 @@ export function ActionMenu({
   groupLabel,
   footerItems,
 }: ActionMenuProps) {
+  const [open, setOpen] = useState(false)
   return (
-    <Menu.Root size="sm" positioning={{ placement: 'bottom-end' }}>
+    <Menu.Root
+      size="sm"
+      positioning={{ placement: 'bottom-end' }}
+      open={open && !disabled}
+      onOpenChange={(details) => setOpen(details.open && !disabled)}
+    >
       <Menu.Trigger asChild>
         {trigger === 'button' ? (
-          <Button variant="outline" size="sm" disabled={disabled}>
+          <Button variant="outline" size="sm" aria-disabled={disabled || undefined}>
             {buttonLabel ?? label}
             <ChevronDown />
           </Button>
         ) : (
-          <IconButton variant="plain" size="xs" aria-label={label ?? 'Actions'} disabled={disabled}>
+          <IconButton
+            variant="plain"
+            size="xs"
+            aria-label={label ?? 'Actions'}
+            aria-disabled={disabled || undefined}
+          >
             <EllipsisVertical />
           </IconButton>
         )}

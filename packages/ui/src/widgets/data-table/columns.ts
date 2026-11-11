@@ -5,7 +5,7 @@ import type { DataTableColumn, DataTableFilter } from './types'
 /** The table instance `DataTable` builds; `DataTableFilters` and `DataTablePager` read it. */
 export type DataTableInstance<T extends { id: string }> = ReactTable<DataTableFeatures, T>
 
-/** The hidden column the global filter searches: the `search.keys` text of a row, joined. */
+/** The hidden column the global filter searches: the `search.keys` texts of a row, one per line. */
 export const SEARCH_COLUMN_ID = '__search'
 
 /** Filters get their own TanStack columns, so a filter and a column may share an id. */
@@ -58,7 +58,8 @@ export function toColumnDefs<T extends { id: string }>(
   if (searchKeys) {
     defs.push({
       id: SEARCH_COLUMN_ID,
-      accessorFn: (row: T) => searchKeys.map((key) => key(row)).join(' '),
+      // A newline cannot be typed into the search box, so a query never spans two keys.
+      accessorFn: (row: T) => searchKeys.map((key) => key(row)).join('\n'),
       enableSorting: false,
       enableColumnFilter: false,
       enableGlobalFilter: true,

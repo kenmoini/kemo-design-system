@@ -12,7 +12,10 @@ export interface DataTablePagerProps<T extends { id: string }> {
 
 /** "{from}–{to} of {total}" and, when there is more than one page, Park's `Pagination`. */
 export function DataTablePager<T extends { id: string }>({ table, total }: DataTablePagerProps<T>) {
-  const { pageIndex, pageSize } = table.state.pagination
+  const { pageSize } = table.state.pagination
+  // Rows can shrink under the current page before the table moves back: show the last real page.
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  const pageIndex = Math.min(table.state.pagination.pageIndex, pageCount - 1)
   const from = total === 0 ? 0 : pageIndex * pageSize + 1
   const to = Math.min(total, pageIndex * pageSize + pageSize)
 
@@ -21,7 +24,7 @@ export function DataTablePager<T extends { id: string }>({ table, total }: DataT
       <Text textStyle="sm" color="fg.muted" fontVariantNumeric="tabular-nums">
         {`${from}–${to} of ${total}`}
       </Text>
-      {table.getPageCount() > 1 ? (
+      {pageCount > 1 ? (
         <Pagination.Root
           count={total}
           pageSize={pageSize}

@@ -46,7 +46,9 @@ export interface DataTableProps<T extends { id: string }> {
   search?: { placeholder?: string; keys: ((row: T) => string)[] }
   /** Row checkboxes; defaults to `true` when `bulkActions` is given. */
   selectable?: boolean
-  /** The selected row ids; omit it to let the table hold the selection. */
+  /** The selected row ids; omit it to let the table hold the selection (it drops ids whose rows
+   * leave `rows`). When given, reflect every `onSelectionChange` back into it, or the checkboxes'
+   * state drifts from what they show. */
   selectedIds?: string[]
   onSelectionChange?: (ids: string[]) => void
   rowActions?: (row: T) => ActionItem[]

@@ -22,12 +22,12 @@ type FilterColumn<T extends { id: string }> = NonNullable<
 const ALL = '__all__'
 
 /** The filter's options, or the values found in the rows plus any value still filtered on. */
-function optionsFor<T extends { id: string }>(
-  filter: DataTableFilter<T>,
+function optionsFor(
+  options: Option[] | undefined,
   facets: Map<unknown, number>,
   selected: string[],
 ): Option[] {
-  if (filter.options) return filter.options
+  if (options) return options
   const values = new Set<string>(selected)
   for (const key of facets.keys()) values.add(String(key))
   return [...values].sort().map((value) => ({ value, label: value }))
@@ -53,7 +53,13 @@ function CheckboxFilter<T extends { id: string }>({
   const labelId = useId()
   // Counts over the rows that pass the search and every other filter (not this one).
   const facets = column.getFacetedUniqueValues()
-  const selected = (column.getFilterValue() as string[] | undefined) ?? []
+  const filterValue = column.getFilterValue() as string[] | undefined
+  const selected = filterValue ?? []
+  // TanStack memoises the facet map, so the options are rebuilt only when rows or filters change.
+  const options = useMemo(
+    () => optionsFor(filter.options, facets, filterValue ?? []),
+    [filter.options, facets, filterValue],
+  )
   const toggle = (value: string, checked: boolean) => {
     const next = checked ? [...selected, value] : selected.filter((v) => v !== value)
     column.setFilterValue(next.length > 0 ? next : undefined)
@@ -63,7 +69,7 @@ function CheckboxFilter<T extends { id: string }>({
   return (
     <Stack gap="2" role="group" aria-labelledby={labelId}>
       <FilterLabel id={labelId}>{filter.label}</FilterLabel>
-      {optionsFor(filter, facets, selected).map((option) => (
+      {options.map((option) => (
         <Checkbox.Root
           key={option.value}
           size="sm"
@@ -96,7 +102,11 @@ function SelectFilter<T extends { id: string }>({
   filter: DataTableFilter<T>
 }) {
   const value = column.getFilterValue() as string | undefined
-  const options = optionsFor(filter, column.getFacetedUniqueValues(), value ? [value] : [])
+  const facets = column.getFacetedUniqueValues()
+  const options = useMemo(
+    () => optionsFor(filter.options, facets, value ? [value] : []),
+    [filter.options, facets, value],
+  )
   const allLabel = filter.allLabel ?? 'All'
   const collection = useMemo(
     () => createListCollection({ items: [{ value: ALL, label: allLabel }, ...options] }),

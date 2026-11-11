@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Badge } from '../../components/ui'
@@ -107,22 +107,27 @@ const bulkActions = (): ActionItem[] => [
   { id: 'delete', label: 'Delete', tone: 'danger', onSelect: () => {} },
 ]
 
-function renderTable(props: Partial<DataTableProps<User>> = {}) {
-  return render(
+const search: DataTableProps<User>['search'] = { keys: [(u) => u.name, (u) => u.email] }
+const entity = { singular: 'user', plural: 'users' }
+
+function tableElement(props: Partial<DataTableProps<User>> = {}) {
+  return (
     <DataTable
-      entity={{ singular: 'user', plural: 'users' }}
+      entity={entity}
       columns={columns}
       rows={users}
       filters={filters}
-      search={{ keys: [(u) => u.name, (u) => u.email] }}
+      search={search}
       selectable
       bulkActions={bulkActions}
       rowActions={() => [{ id: 'edit', label: 'Edit', onSelect: () => {} }]}
       addAction={{ onSelect: () => {} }}
       {...props}
-    />,
+    />
   )
 }
+
+const renderTable = (props: Partial<DataTableProps<User>> = {}) => render(tableElement(props))
 
 const bodyRows = () => within(screen.getByRole('table')).getAllByRole('row').slice(1)
 const searchBox = () => screen.getByRole('searchbox', { name: 'Search users' })
@@ -189,11 +194,13 @@ describe('DataTable', () => {
     const onSelectionChange = vi.fn()
     renderTable({ onSelectionChange })
     const bulk = screen.getByRole('button', { name: 'Bulk actions' })
-    expect(bulk).toBeDisabled()
+    expect(bulk).toHaveAttribute('aria-disabled', 'true')
+    await user.click(bulk)
+    expect(screen.queryByRole('menu')).toBeNull()
 
     await user.click(screen.getByRole('checkbox', { name: 'Select Priya Natarajan' }))
     await user.click(screen.getByRole('checkbox', { name: 'Select Marcus Lee' }))
-    expect(bulk).toBeEnabled()
+    expect(bulk).not.toHaveAttribute('aria-disabled')
     expect(screen.getByText('· 2 selected')).toBeInTheDocument()
     expect(onSelectionChange).toHaveBeenLastCalledWith(['u1', 'u2'])
 
@@ -231,7 +238,9 @@ describe('DataTable', () => {
     await user.type(searchBox(), 'marcus')
     expect(screen.queryByRole('checkbox', { name: 'Select Priya Natarajan' })).toBeNull()
     expect(screen.getByText('· 1 selected')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Bulk actions' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Bulk actions' })).not.toHaveAttribute(
+      'aria-disabled',
+    )
   })
 
   it('selection survives paging', async () => {
@@ -298,6 +307,117 @@ describe('DataTable', () => {
     expect(onAdd).toHaveBeenCalledTimes(1)
   })
 
+  it('filters by a select facet', async () => {
+    const user = userEvent.setup()
+    renderTable()
+    const role = screen.getByRole('combobox', { name: 'Role' })
+    expect(role).toHaveTextContent('All roles')
+
+    await user.click(role)
+    await user.click(await screen.findByRole('option', { name: 'Deployer' }))
+    const deployers = users.filter((u) => u.role === 'deployer')
+    expect(role).toHaveTextContent('Deployer')
+    expect(bodyRows()).toHaveLength(deployers.length)
+    for (const row of bodyRows()) expect(row).toHaveTextContent('Deployer')
+    expect(screen.getByText(`${deployers.length} users`)).toBeInTheDocument()
+  })
+
+  it('does not match a search across two keys', async () => {
+    const user = userEvent.setup()
+    renderTable()
+    // "Priya Natarajan" + "priya.natarajan@…": the boundary must not read as "natarajan priya".
+    await user.type(searchBox(), 'natarajan priya')
+    expect(screen.getByRole('cell', { name: /No users match these filters/ })).toBeInTheDocument()
+  })
+
+  it('re-reads accessors when the columns change', () => {
+    const roleColumns = (labels: Record<User['role'], string>): DataTableColumn<User>[] => [
+      { id: 'name', header: 'Name', accessor: (u) => u.name },
+      { id: 'role', header: 'Role', accessor: (u) => labels[u.role] },
+    ]
+    const props = { initialSort: { id: 'role' } }
+    const { rerender } = renderTable({
+      ...props,
+      columns: roleColumns({ admin: 'Admin', deployer: 'Deployer', viewer: 'Viewer' }),
+    })
+    expect(bodyRows()[0]).toHaveTextContent('Admin')
+
+    // New labels for the same `rows`: the sort follows them.
+    rerender(
+      tableElement({
+        ...props,
+        columns: roleColumns({ admin: 'Zulu', deployer: 'Alpha', viewer: 'Mike' }),
+      }),
+    )
+    expect(bodyRows()[0]).toHaveTextContent('Alpha')
+    expect(bodyRows().at(-1)).toHaveTextContent('Mike')
+  })
+
+  it('drops removed rows from its own selection', async () => {
+    const user = userEvent.setup()
+    const onSelectionChange = vi.fn()
+    const { rerender } = renderTable({ onSelectionChange })
+    await user.click(screen.getByRole('checkbox', { name: 'Select Priya Natarajan' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Select Marcus Lee' }))
+    expect(onSelectionChange).toHaveBeenLastCalledWith(['u1', 'u2'])
+
+    rerender(tableElement({ onSelectionChange, rows: users.filter((u) => u.id !== 'u1') }))
+    expect(screen.getByText('· 1 selected')).toBeInTheDocument()
+    expect(onSelectionChange).toHaveBeenLastCalledWith(['u2'])
+
+    // Rows merely hidden by the search stay selected.
+    await user.type(searchBox(), 'sofia')
+    expect(onSelectionChange).toHaveBeenLastCalledWith(['u2'])
+    expect(screen.getByText('· 1 selected')).toBeInTheDocument()
+  })
+
+  it('keeps focus on Bulk actions after clearing the selection', async () => {
+    const user = userEvent.setup()
+    renderTable()
+    await user.click(screen.getByRole('checkbox', { name: 'Select Priya Natarajan' }))
+    const bulk = screen.getByRole('button', { name: 'Bulk actions' })
+    await user.click(bulk)
+    const menu = await screen.findByRole('menu')
+    await user.click(within(menu).getByRole('menuitem', { name: 'Clear selection' }))
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+
+    expect(screen.queryByText('· 1 selected')).toBeNull()
+    expect(bulk).toHaveAttribute('aria-disabled', 'true')
+    expect(document.activeElement).not.toBe(document.body)
+    expect(bulk).toHaveFocus()
+  })
+
+  it('clamps the page when rows shrink under it', async () => {
+    const user = userEvent.setup()
+    const { rerender } = renderTable()
+    await user.click(screen.getByRole('button', { name: 'Next page' }))
+    await user.click(screen.getByRole('button', { name: 'Next page' }))
+    const footer = screen.getByText('21–25 of 25')
+
+    // Every text the footer shows on the way, so a transient "21–20 of 20" commit is caught.
+    const shown: string[] = []
+    const record = (records: MutationRecord[]) => {
+      for (const r of records) {
+        if (r.type === 'characterData' && r.oldValue) shown.push(r.oldValue)
+        for (const node of r.removedNodes) shown.push(node.textContent ?? '')
+      }
+    }
+    const observer = new MutationObserver(record)
+    observer.observe(footer, {
+      characterData: true,
+      characterDataOldValue: true,
+      childList: true,
+      subtree: true,
+    })
+    rerender(tableElement({ rows: users.slice(0, 20) }))
+    record(observer.takeRecords())
+    observer.disconnect()
+
+    expect(footer).toHaveTextContent('11–20 of 20')
+    expect(shown).not.toContain('21–20 of 20')
+    expect(bodyRows()).toHaveLength(10)
+  })
+
   it('moves filters into a drawer below lg', async () => {
     setMediaMatches(MEDIA_LG, false)
     const user = userEvent.setup()
@@ -308,5 +428,20 @@ describe('DataTable', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Filters' })
     expect(within(dialog).getByRole('group', { name: 'Status' })).toBeInTheDocument()
     expect(within(dialog).getByRole('searchbox', { name: 'Search users' })).toBeInTheDocument()
+  })
+
+  it('shows the active filter count on the Filters button', async () => {
+    setMediaMatches(MEDIA_LG, false)
+    const user = userEvent.setup()
+    renderTable()
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Filters' })
+    await user.click(within(dialog).getByRole('checkbox', { name: /^Disabled/ }))
+    await user.type(within(dialog).getByRole('searchbox', { name: 'Search users' }), 'a')
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+    const trigger = screen.getByRole('button', { name: 'Filters (2 active)' })
+    expect(trigger).toHaveTextContent('Filters2')
   })
 })
