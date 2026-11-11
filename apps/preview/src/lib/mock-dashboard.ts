@@ -47,7 +47,7 @@ export const navGroups: { label: string; items: MockNavItem[] }[] = [
     label: 'Manage',
     items: [
       { id: 'environments', label: 'Environments', icon: LayersIcon, href: '#environments' },
-      { id: 'access', label: 'Access', icon: KeyRoundIcon, href: '#access' },
+      { id: 'access', label: 'Access', icon: KeyRoundIcon, href: '/access' },
       { id: 'settings', label: 'Settings', icon: SettingsIcon, href: '#settings' },
       { id: 'help', label: 'Help', icon: CircleHelpIcon, href: '/faq' },
     ],

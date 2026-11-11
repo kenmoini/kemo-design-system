@@ -15,6 +15,7 @@ interface Route {
 const pageRoutes: Route[] = [
   { href: '/', label: 'Home' },
   { href: '/dashboard', label: 'Dashboard' },
+  { href: '/access', label: 'Access' },
   { href: '/faq', label: 'FAQ' },
   { href: '/blank', label: 'Blank page' },
   { href: '/login', label: 'Sign in' },

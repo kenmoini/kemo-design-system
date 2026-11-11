@@ -1,4 +1,4 @@
-import { expect, type Page, test } from '@playwright/test'
+import { expect, type Locator, type Page, test } from '@playwright/test'
 
 const ROUTES = [
   '/',
@@ -19,6 +19,16 @@ const ROUTES = [
   '/errors/404',
   '/errors/500',
   '/errors/503',
+  '/access',
+  '/access/users',
+  '/access/groups',
+  '/access/roles',
+  '/access/permissions',
+  '/access/audit',
+  '/access/oidc',
+  '/access/service-accounts',
+  '/access/oauth-apps',
+  '/access/settings',
 ]
 
 test.describe('routes', () => {
@@ -525,5 +535,197 @@ test.describe('status and console pages', () => {
     await security.click()
     await expect(security).toHaveAttribute('aria-current', 'true', { timeout: 2000 })
     await expect(page).toHaveURL(/#topic-security$/)
+  })
+})
+
+test.describe('access page', () => {
+  // Every console error and uncaught error fails these tests unless the test lists it in `expected`
+  // (a substring of `message [source url]`).
+  let errors: string[] = []
+  let expected: string[] = []
+  test.beforeEach(({ page }) => {
+    errors = []
+    expected = []
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(`${message.text()} [${message.location().url}]`)
+    })
+    page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`))
+  })
+  test.afterEach(() => {
+    expect(errors.filter((error) => !expected.some((text) => error.includes(text)))).toEqual([])
+  })
+
+  // The toolbar's "{n} users" (the live region's copy goes on: "{n} users, 0 selected, …").
+  const userCount = (page: Page) => page.getByText(/^\d+ users?$/)
+  const countOf = async (page: Page) => Number.parseInt(await userCount(page).innerText(), 10)
+  const search = (page: Page) => page.getByRole('searchbox', { name: 'Search users' })
+  const bodyRows = (page: Page) => page.locator('tbody tr')
+  // A click or keystroke in the few ms between `load` and hydration is lost, so the tests that act
+  // first wait until React owns the main landmark (it tags each DOM node it hydrates).
+  const open = async (page: Page, path: string) => {
+    await page.goto(path)
+    await page.waitForFunction(() => {
+      const main = document.querySelector('main')
+      return main !== null && Object.keys(main).some((key) => key.startsWith('__reactProps'))
+    })
+  }
+  // Park's checkbox input is visually hidden inside its label: click the label, as a pointer would.
+  const check = async (checkbox: Locator) => {
+    await checkbox.locator('xpath=..').click()
+    await expect(checkbox).toBeChecked()
+  }
+
+  test('access tabs are links', async ({ page }) => {
+    await open(page, '/access')
+    const users = page.getByRole('tab', { name: 'Users', exact: true })
+    await expect(users).toHaveAttribute('href', '/access/users')
+
+    await users.click()
+
+    await expect(page).toHaveURL(/\/access\/users$/)
+    await expect(users).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('tab', { name: 'Overview', exact: true })).toHaveAttribute(
+      'aria-selected',
+      'false',
+    )
+    await expect(search(page)).toBeVisible()
+  })
+
+  test('users table searches and filters', async ({ page }) => {
+    await open(page, '/access/users')
+    const before = await countOf(page)
+
+    await search(page).fill('priya')
+    await expect(bodyRows(page)).toHaveCount(1)
+    await expect(bodyRows(page)).toContainText('Priya Shah')
+    await expect(userCount(page)).toHaveText('1 user')
+
+    await search(page).fill('')
+    await expect(userCount(page)).toHaveText(`${before} users`)
+    await check(
+      page
+        .getByRole('complementary', { name: 'Filters' })
+        .getByRole('checkbox', { name: /^Disabled/ }),
+    )
+    await expect(userCount(page)).not.toHaveText(`${before} users`)
+    expect(await countOf(page)).toBeLessThan(before)
+    for (const badge of await bodyRows(page)
+      .getByText(/^(Active|Disabled)$/)
+      .all()) {
+      await expect(badge).toHaveText('Disabled')
+    }
+  })
+
+  test('bulk actions follow the selection', async ({ page }) => {
+    await open(page, '/access/users')
+    const bulk = page.getByRole('button', { name: 'Bulk actions' })
+    await expect(bulk).toHaveAttribute('aria-disabled', 'true')
+
+    const rowBoxes = bodyRows(page).getByRole('checkbox', { name: /^Select / })
+    await check(rowBoxes.nth(0))
+    await check(rowBoxes.nth(1))
+
+    await expect(bulk).not.toHaveAttribute('aria-disabled')
+    await expect(page.getByText('· 2 selected')).toBeVisible()
+    await bulk.click()
+    const menu = page.getByRole('menu')
+    await expect(menu.getByRole('group', { name: '2 users' })).toBeVisible()
+    await expect(menu.getByRole('menuitem', { name: 'Add to group…' })).toBeVisible()
+  })
+
+  test('add user through the dialog', async ({ page }) => {
+    await open(page, '/access/users')
+    const before = await countOf(page)
+
+    await page.getByRole('button', { name: '+ Add user' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Add user' })
+    await expect(dialog).toBeVisible()
+    await dialog.getByRole('textbox', { name: 'Full name' }).fill('Imani Okoro')
+    await dialog.getByRole('textbox', { name: 'Email' }).fill('imani.okoro@acme.dev')
+    await dialog.getByRole('combobox', { name: 'Role' }).click()
+    await page.getByRole('option', { name: 'Deployer', exact: true }).click()
+    await dialog.getByRole('button', { name: 'Add user', exact: true }).click()
+
+    await expect(dialog).toBeHidden()
+    await expect(userCount(page)).toHaveText(`${before + 1} users`)
+    await search(page).fill('imani')
+    await expect(bodyRows(page)).toHaveCount(1)
+    await expect(bodyRows(page)).toContainText('Imani Okoro')
+    await expect(bodyRows(page)).toContainText('Deployer')
+  })
+
+  test('row actions disable a user', async ({ page }) => {
+    await open(page, '/access/users')
+    await search(page).fill('priya')
+    const row = page.getByRole('row', { name: /Priya Shah/ })
+    await expect(row.getByText('Active', { exact: true })).toBeVisible()
+
+    await page.getByRole('button', { name: 'Actions for Priya Shah' }).click()
+    await page.getByRole('menuitem', { name: 'Disable' }).click()
+
+    await expect(row.getByText('Disabled', { exact: true })).toBeVisible()
+    await expect(row.getByText('Active', { exact: true })).toHaveCount(0)
+  })
+
+  test('overview shows the widgets', async ({ page }) => {
+    await open(page, '/access')
+    const stat = (label: string) =>
+      page.locator('.card__root').filter({ has: page.getByText(label, { exact: true }) })
+
+    await expect(stat('Internal users')).toContainText('231')
+    await expect(stat('Groups')).toContainText('18')
+    await expect(stat('OIDC users')).toContainText('412')
+    await expect(stat('Active sessions')).toContainText('96')
+    await expect(page.getByRole('heading', { level: 2, name: /^Sign-ins/ })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { level: 2, name: /^Authenticated API calls/ }),
+    ).toBeVisible()
+  })
+
+  test('audit layout and oidc badges', async ({ page }) => {
+    await open(page, '/access/audit')
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Forward the audit log' }),
+    ).toBeVisible()
+    await expect(page.getByRole('heading', { level: 2, name: /^API audit stream/ })).toBeVisible()
+
+    await open(page, '/access/oidc')
+    await expect(page.getByText('Synced', { exact: true })).toBeVisible()
+    await expect(page.getByText('Syncing · 61%', { exact: true })).toBeVisible()
+    await expect(page.getByText('Error · invalid client secret', { exact: true })).toBeVisible()
+  })
+
+  test('unknown access tab is a 404', async ({ page, baseURL }) => {
+    // The browser logs that the document itself came back 404: the status under test.
+    expected = [`status of 404 (Not Found) [${baseURL}/access/nope]`]
+
+    const response = await page.goto('/access/nope')
+
+    expect(response?.status()).toBe(404)
+    await expect(
+      page.getByRole('heading', { level: 1, name: "There's nothing at this address." }),
+    ).toBeVisible()
+  })
+
+  test('access at 375', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
+    const scrollWidth = () => page.evaluate(() => document.documentElement.scrollWidth)
+
+    // The strip scrolls sideways: the last tab, when current, is scrolled into view.
+    await open(page, '/access/settings')
+    const settings = page.getByRole('tab', { name: 'Settings', exact: true })
+    await expect(settings).toHaveAttribute('aria-selected', 'true')
+    await expect(settings).toBeInViewport()
+    await expect(page.getByRole('tab', { name: 'Overview', exact: true })).not.toBeInViewport()
+    expect(await scrollWidth()).toBe(375)
+
+    await open(page, '/access/users')
+    await expect(page.getByRole('complementary', { name: 'Filters' })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Filters' }).click()
+    const drawer = page.getByRole('dialog', { name: 'Filters' })
+    await expect(drawer).toBeVisible()
+    await expect(drawer.getByText('Status', { exact: true })).toBeVisible()
+    await expect(drawer.getByRole('searchbox', { name: 'Search users' })).toBeVisible()
+    expect(await scrollWidth()).toBe(375)
   })
 })

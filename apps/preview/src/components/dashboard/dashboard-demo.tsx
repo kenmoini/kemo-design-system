@@ -43,6 +43,7 @@ import {
   events,
   heatmap,
   incident,
+  liveEventRotation,
   nodeCells,
   nodeTable,
   pageContext,
@@ -202,7 +203,7 @@ function EventStreamCard() {
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
   const paused = hovered || focused
-  const live = useLiveEvents(events, { paused })
+  const live = useLiveEvents(events, { rotation: liveEventRotation, paused })
 
   return (
     <Panel
