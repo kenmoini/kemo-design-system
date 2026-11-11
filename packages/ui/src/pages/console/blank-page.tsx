@@ -15,7 +15,9 @@ export function BlankPage({
   emptyMessage,
   emptyAction,
   children,
+  linkComponent,
 }: BlankPageProps) {
+  const HostLink = linkComponent ?? Link
   return (
     <Stack gap="6">
       <PageHeader
@@ -25,7 +27,7 @@ export function BlankPage({
           action &&
           (action.href !== undefined ? (
             <Button asChild variant="solid">
-              <Link href={action.href}>{action.label}</Link>
+              <HostLink href={action.href}>{action.label}</HostLink>
             </Button>
           ) : (
             <Button variant="solid" onClick={action.onSelect}>

@@ -1,14 +1,17 @@
 import type { ReactNode } from 'react'
 import type { LinkComponent } from '../auth/types'
 
-/** One FAQ entry; `id` becomes the question heading's anchor, `q-{id}`. */
+/** One FAQ entry; `id` must be unique across the whole page, as it becomes the DOM id `q-{id}`. */
 export interface FaqQuestion {
   id: string
   question: string
   answer: ReactNode
 }
 
-/** A group of questions; `id` becomes the section anchor, `topic-{id}`. */
+/**
+ * A group of questions; `id` must be unique across the whole page, as it becomes the DOM ids
+ * `topic-{id}` and `topic-{id}-label`.
+ */
 export interface FaqTopic {
   id: string
   label: string
@@ -34,4 +37,5 @@ export interface BlankPageProps {
   emptyMessage?: string
   emptyAction?: { label: string; onSelect?: () => void }
   children?: ReactNode
+  linkComponent?: LinkComponent
 }
