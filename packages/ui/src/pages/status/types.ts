@@ -41,3 +41,6 @@ export interface StatusLayoutProps {
   refreshIntervalMs?: number
   onRefresh?: () => void
 }
+
+/** Props accepted by every named status page: any layout prop overrides the pinned copy. */
+export type StatusPageProps = Partial<StatusLayoutProps>
