@@ -117,6 +117,15 @@ describe('AccessOidc', () => {
     expect(within(gitlab).getByText('Never')).toBeInTheDocument()
   })
 
+  it('truncates a long issuer and keeps it whole in the title', () => {
+    renderOidc()
+    const issuer = screen.getByText('https://login.microsoftonline.com/acme/v2.0')
+    expect(issuer).toHaveAttribute('title', 'https://login.microsoftonline.com/acme/v2.0')
+    for (const name of ['max-w_72', 'ov_hidden', 'tov_ellipsis', 'white-space_nowrap']) {
+      expect(issuer).toHaveClass(name)
+    }
+  })
+
   it('has no filters, search or row checkboxes', () => {
     renderOidc()
     expect(screen.queryByRole('complementary', { name: 'Filters' })).not.toBeInTheDocument()

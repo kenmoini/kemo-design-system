@@ -66,7 +66,17 @@ export function AccessOverview({
               {live ? <TitleNote>live</TitleNote> : null}
             </Card.Title>
           </Card.Header>
-          <Card.Body>
+          {/* Focusable, so a keyboard can reach the calls and pause them (focus inside the card
+              pauses the stream). The ring is drawn inside the body: the card clips what overflows. */}
+          <Card.Body
+            role="region"
+            aria-label="Authenticated API calls"
+            tabIndex={0}
+            outline="none"
+            focusVisibleRing="outside"
+            focusRingOffset="-0.5"
+            borderBottomRadius="l3"
+          >
             <EventStream events={apiCalls} live={live} />
           </Card.Body>
         </Card.Root>

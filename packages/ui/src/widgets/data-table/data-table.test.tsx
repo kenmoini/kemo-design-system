@@ -418,6 +418,26 @@ describe('DataTable', () => {
     expect(bodyRows()).toHaveLength(10)
   })
 
+  it('scrolls a table wider than its card inside the card, and only the table', () => {
+    renderTable({
+      columns: [
+        ...columns,
+        { id: 'notes', header: 'Notes', accessor: (u) => u.email, width: '2000px' },
+      ],
+    })
+    const table = screen.getByRole('table')
+    const scroller = table.parentElement
+    // The card's body scrolls sideways, so the row actions at the end stay reachable; the table
+    // fills the card when it is narrower.
+    expect(scroller).toHaveClass('ov-x_auto')
+    expect(table).toHaveClass('min-w_full')
+    expect(within(table).getByRole('button', { name: 'Actions for Priya Natarajan' })).toBeVisible()
+    // The toolbar, the pager and the filter rail stay outside the scrolling part.
+    expect(scroller).not.toContainElement(screen.getByText('25 users'))
+    expect(scroller).not.toContainElement(screen.getByText('1–10 of 25'))
+    expect(scroller).not.toContainElement(screen.getByRole('complementary', { name: 'Filters' }))
+  })
+
   it('moves filters into a drawer below lg', async () => {
     setMediaMatches(MEDIA_LG, false)
     const user = userEvent.setup()

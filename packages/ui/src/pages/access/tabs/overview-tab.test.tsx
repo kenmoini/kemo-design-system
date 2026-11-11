@@ -93,6 +93,32 @@ describe('AccessOverview', () => {
     ).toBeVisible()
   })
 
+  it('lets a keyboard reach the calls and pause them', async () => {
+    const user = userEvent.setup()
+    const onStreamPauseChange = vi.fn()
+    render(
+      <>
+        <AccessOverview
+          stats={stats}
+          signIns={signIns}
+          apiCalls={apiCalls}
+          live
+          onStreamPauseChange={onStreamPauseChange}
+        />
+        <button type="button">After</button>
+      </>,
+    )
+    const region = screen.getByRole('region', { name: 'Authenticated API calls' })
+    expect(region).toContainElement(screen.getByText('POST /v1/deployments · priya · 201'))
+
+    await user.tab()
+    expect(region).toHaveFocus()
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(true)
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus()
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(false)
+  })
+
   it('asks to pause the calls only while the pointer is over their card', async () => {
     const user = userEvent.setup()
     const onStreamPauseChange = vi.fn()

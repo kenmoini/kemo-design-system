@@ -283,8 +283,10 @@ export function DataTable<T extends { id: string }>({
         {announcement}
       </Box>
       <Card.Root variant="outline">
+        {/* Only the table scrolls sideways, inside the card, when it is wider than the card: the row
+            actions at its end stay reachable, and the toolbar, pager and rail stay put. */}
         <Box overflowX="auto">
-          <Table.Root>
+          <Table.Root minW="full">
             <Table.Head>
               <Table.Row>
                 {selectable ? (

@@ -280,6 +280,20 @@ describe('AccessAudit', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'API audit stream · live' })).toBeVisible()
   })
 
+  it('lets a keyboard reach the stream and pause it', async () => {
+    const user = userEvent.setup()
+    const onStreamPauseChange = vi.fn()
+    renderAudit({ live: true, onStreamPauseChange })
+    const region = screen.getByRole('region', { name: 'API audit stream' })
+    expect(region).toContainElement(screen.getByRole('list'))
+
+    // Tab through the forwarding form until the stream's region has focus.
+    for (let i = 0; i < 30 && document.activeElement !== region; i++) await user.tab()
+    expect(region).toHaveFocus()
+    expect(onStreamPauseChange).toHaveBeenCalledTimes(1)
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(true)
+  })
+
   it('asks to pause the stream while the pointer or focus is on its card only', async () => {
     const user = userEvent.setup()
     const onStreamPauseChange = vi.fn()

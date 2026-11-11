@@ -85,7 +85,25 @@ const columns: DataTableColumn<OidcProvider>[] = [
       </Text>
     ),
   },
-  { id: 'issuer', header: 'Issuer', accessor: (provider) => provider.issuer },
+  {
+    id: 'issuer',
+    header: 'Issuer',
+    accessor: (provider) => provider.issuer,
+    // A long issuer URL would widen the table past its card: it truncates, whole in its title.
+    cell: (provider) => (
+      <Text
+        as="span"
+        display="block"
+        maxW="72"
+        overflow="hidden"
+        textOverflow="ellipsis"
+        whiteSpace="nowrap"
+        title={provider.issuer}
+      >
+        {provider.issuer}
+      </Text>
+    ),
+  },
   {
     id: 'users',
     header: 'Users',
