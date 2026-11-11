@@ -43,7 +43,7 @@ function serviceAccountColumns(roles: Option[]): DataTableColumn<ServiceAccount>
     {
       id: 'lastUsedAt',
       header: 'Last used',
-      accessor: (account) => account.lastUsedAt ?? '',
+      accessor: (account) => account.lastUsedAt,
       cell: (account) => <DateTimeText value={account.lastUsedAt} fallback="Never" />,
     },
     {

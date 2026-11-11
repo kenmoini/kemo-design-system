@@ -32,7 +32,12 @@ export const oauthTypeOptions: Option[] = [
 ]
 
 function isUrl(tag: string): boolean {
-  return URL.canParse(tag)
+  try {
+    new URL(tag)
+    return true
+  } catch {
+    return false
+  }
 }
 
 /** Add or edit an OAuth app: name, type, redirect URIs, scopes and description. */
@@ -86,6 +91,7 @@ export function OAuthAppForm({
           name="redirectUris"
           render={({ field, fieldState }) => (
             <TagsField
+              ref={field.ref}
               label="Redirect URIs"
               placeholder="https://app.example.com/callback"
               helper={

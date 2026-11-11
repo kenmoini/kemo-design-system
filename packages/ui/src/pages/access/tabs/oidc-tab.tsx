@@ -127,7 +127,7 @@ const columns: DataTableColumn<OidcProvider>[] = [
   {
     id: 'lastSyncAt',
     header: 'Last sync',
-    accessor: (provider) => provider.lastSyncAt ?? '',
+    accessor: (provider) => provider.lastSyncAt,
     cell: (provider) =>
       syncState(provider) === 'syncing' ? (
         <Text as="span" color="fg.muted">

@@ -524,15 +524,10 @@ export interface TagsFieldProps {
  * A Park `TagsInput`: type a value and press Enter (or leave the field) to add it; each tag has a
  * delete button. Bind it with react-hook-form's `Controller`.
  */
-export function TagsField({
-  label,
-  value,
-  onChange,
-  placeholder,
-  helper,
-  error,
-  validate,
-}: TagsFieldProps) {
+export const TagsField = forwardRef<HTMLInputElement, TagsFieldProps>(function TagsField(
+  { label, value, onChange, placeholder, helper, error, validate },
+  ref,
+) {
   return (
     <Field.Root invalid={!!error}>
       <TagsInput.Root
@@ -547,7 +542,11 @@ export function TagsField({
           <TagsInput.Items />
           <Field.Context>
             {(field) => (
-              <TagsInput.Input placeholder={placeholder} aria-describedby={field.ariaDescribedby} />
+              <TagsInput.Input
+                ref={ref}
+                placeholder={placeholder}
+                aria-describedby={field.ariaDescribedby}
+              />
             )}
           </Field.Context>
         </TagsInput.Control>
@@ -555,7 +554,7 @@ export function TagsField({
       <FieldMessages helper={helper} error={error} />
     </Field.Root>
   )
-}
+})
 
 /** A form-level error (a rejected submit) shown above the footer; nothing without a message. */
 export function FormError({ message }: { message?: string | null }) {

@@ -495,9 +495,7 @@ third time. The mock data, generated without randomness so the server and client
 in `apps/preview/src/lib/mock-access.ts`: 231 internal and 412 OIDC users, 18 groups, 9 roles (3
 built in), 24 permissions over 6 resources, 7 service accounts, 5 OAuth apps and 3 providers. The
 Overview and Audit streams tick while their tab shows and pause while the pointer or focus is inside
-them. Two rules in `apps/preview/src/app/globals.css` work around library issues queued for a fix: a
-`Select` opened inside a dialog or drawer must stack above it, and `NumberField` must lay out at full
-width.
+them.
 
 ## Testing
 

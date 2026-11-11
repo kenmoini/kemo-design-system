@@ -298,6 +298,9 @@ describe('AccessRolesTab', () => {
     expect(p.onSetStatus).not.toHaveBeenCalled()
     await user.click(within(dialog).getByRole('button', { name: 'Disable' }))
     expect(p.onSetStatus).toHaveBeenCalledWith(['r-custom'], 'disabled')
+    // Only the role that was acted on leaves the selection; the skipped built-in stays.
+    expect(screen.getByRole('checkbox', { name: 'Select Admin' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Select Release manager' })).not.toBeChecked()
   })
 })
 
@@ -442,6 +445,9 @@ describe('AccessOAuthAppsTab', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Add OAuth app' }))
     expect(await within(dialog).findByText('Add at least one redirect URI.')).toBeInTheDocument()
     expect(p.onCreate).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(
+      within(dialog).getByPlaceholderText('https://app.example.com/callback'),
+    )
 
     await user.click(within(dialog).getByRole('radio', { name: 'Machine' }))
     await user.click(within(dialog).getByRole('button', { name: 'Add OAuth app' }))

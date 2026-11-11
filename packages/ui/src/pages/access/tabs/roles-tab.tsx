@@ -120,7 +120,7 @@ export const AccessRolesTab = createEntityTab<AccessRole, RoleValues, AccessRole
               tone: 'default',
               onConfirm: () => {
                 onSetStatus(customIds, 'disabled')
-                ctx.clearSelection()
+                ctx.deselect(customIds)
               },
             })
           },

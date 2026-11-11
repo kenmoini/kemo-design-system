@@ -91,7 +91,8 @@ export interface EntityCtx<T extends EntityRow, V, P> {
   openCustom: (dialog: CustomDialog) => void
   openPicker: (picker: PickerDialog) => void
   closeDialog: () => void
-  clearSelection: () => void
+  /** Drop these ids from the selection (the rest stay selected). */
+  deselect: (ids: string[]) => void
 }
 
 export interface EntityTabConfig<T extends EntityRow, V extends { name: string }, P> {
@@ -253,7 +254,10 @@ export function createEntityTab<
           },
         }),
       closeDialog: close,
-      clearSelection: () => setSelectedIds([]),
+      deselect: (ids) => {
+        const dropped = new Set(ids)
+        setSelectedIds((current) => current.filter((id) => !dropped.has(id)))
+      },
     }
 
     const view = dialog.view

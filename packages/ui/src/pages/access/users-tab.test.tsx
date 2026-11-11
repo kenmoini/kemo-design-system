@@ -136,6 +136,25 @@ describe('AccessUsersTab', () => {
     expect(within(rowFor('Ken Moini')).getByText('r-legacy')).toBeInTheDocument()
   })
 
+  it('sorts users who never signed in last in both directions', async () => {
+    const user = userEvent.setup()
+    renderTab()
+    const header = screen.getByRole('columnheader', { name: /Last sign-in/ })
+    const names = () =>
+      screen
+        .getAllByRole('row')
+        .slice(1)
+        .map((row) => within(row).getAllByRole('cell')[1]?.textContent ?? '')
+    await user.click(within(header).getByRole('button'))
+    expect(header).toHaveAttribute('aria-sort', 'ascending')
+    const ascending = names()
+    expect(ascending[0]).not.toContain('Lena')
+    expect(ascending.at(-1)).toContain('Lena')
+    await user.click(within(header).getByRole('button'))
+    expect(header).toHaveAttribute('aria-sort', 'descending')
+    expect(names().at(-1)).toContain('Lena')
+  })
+
   it('filters by status, source and role', async () => {
     const user = userEvent.setup()
     renderTab()

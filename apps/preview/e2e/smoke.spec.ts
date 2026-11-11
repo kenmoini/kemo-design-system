@@ -697,11 +697,11 @@ test.describe('access page', () => {
     expect(form!.width / stream!.width).toBeLessThan(2.3)
 
     await open(page, '/access/oidc')
-    await expect(page.getByText('Synced', { exact: true })).toBeVisible()
+    await expect(page.getByText('Synced', { exact: true }).first()).toBeVisible({ timeout: 5000 })
     await expect(page.getByText('Syncing · 61%', { exact: true })).toBeVisible()
     await expect(page.getByText('Error · invalid client secret', { exact: true })).toBeVisible()
     // Google Workspace's seeded sync finishes, so its "Sync now" works.
-    await expect(page.getByText('Synced', { exact: true })).toHaveCount(2)
+    await expect(page.getByText('Synced', { exact: true })).toHaveCount(2, { timeout: 5000 })
   })
 
   test('unknown access tab is a 404', async ({ page, baseURL }) => {

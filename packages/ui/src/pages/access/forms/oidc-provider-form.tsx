@@ -104,6 +104,7 @@ export function OidcProviderForm(props: OidcProviderFormProps) {
           name="scopes"
           render={({ field, fieldState }) => (
             <TagsField
+              ref={field.ref}
               label="Scopes"
               placeholder="Add a scope"
               helper="Type a scope and press Enter."

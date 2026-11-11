@@ -61,7 +61,7 @@ function userColumns(roles: Option[]): DataTableColumn<AccessUser>[] {
     {
       id: 'lastSignIn',
       header: 'Last sign-in',
-      accessor: (user) => user.lastSignInAt ?? '',
+      accessor: (user) => user.lastSignInAt,
       cell: (user) => <DateTimeText value={user.lastSignInAt} fallback="Never" />,
     },
   ]
