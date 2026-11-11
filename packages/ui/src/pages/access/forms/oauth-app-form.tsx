@@ -105,6 +105,7 @@ export function OAuthAppForm({
           name="scopes"
           render={({ field, fieldState }) => (
             <CheckboxListField
+              ref={field.ref}
               legend="Scopes"
               sections={[{ options: scopes }]}
               value={field.value}

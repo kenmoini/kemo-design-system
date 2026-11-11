@@ -1,4 +1,6 @@
 'use client'
+import { HStack } from '../../../../styled-system/jsx'
+import { Button } from '../../../components/ui'
 import { BuiltInName, StatusBadge, statusOptions } from '../cells'
 import {
   cloneAction,
@@ -108,7 +110,34 @@ export const AccessRolesTab = createEntityTab<AccessRole, RoleValues, AccessRole
           id: 'disable',
           label: 'Disable',
           disabled: custom.every((role) => role.status === 'disabled'),
-          onSelect: () => onSetStatus(customIds, 'disabled'),
+          onSelect: () => {
+            if (skipped === 0) {
+              onSetStatus(customIds, 'disabled')
+              return
+            }
+            ctx.openCustom({
+              title: `Disable ${ctx.count(selected.length)}?`,
+              description: `${ctx.count(selected.length)} selected; ${plural(skipped, 'built-in role', 'built-in roles')} will be skipped.`,
+              size: 'sm',
+              render: (close) => (
+                <HStack justify="flex-end" gap="3">
+                  <Button variant="outline" onClick={close}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="solid"
+                    onClick={() => {
+                      onSetStatus(customIds, 'disabled')
+                      ctx.clearSelection()
+                      close()
+                    }}
+                  >
+                    Disable
+                  </Button>
+                </HStack>
+              ),
+            })
+          },
         },
       )
     }

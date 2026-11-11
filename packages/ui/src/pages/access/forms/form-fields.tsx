@@ -130,7 +130,9 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
   return (
     <Field.Root invalid={!!error} required={required}>
       <NumberInput.Root
-        value={Number.isNaN(value) ? '' : String(value)}
+        // The input's own text is the source of truth while typing (a number round trip would
+        // drop "1." or race with fast keystrokes); `value` only seeds it.
+        defaultValue={Number.isNaN(value) ? '' : String(value)}
         onValueChange={(details) => onChange(details.valueAsNumber)}
         min={min}
         max={max}
@@ -171,18 +173,26 @@ export interface RadioFieldProps {
 export function RadioField({ label, options, value, onChange, helper, error }: RadioFieldProps) {
   return (
     <Field.Root invalid={!!error}>
-      <RadioGroup.Root value={value} onValueChange={(details) => onChange(details.value ?? '')}>
-        <RadioGroup.Label>{label}</RadioGroup.Label>
-        <Stack gap="2">
-          {options.map((option) => (
-            <RadioGroup.Item key={option.value} value={option.value}>
-              <RadioGroup.ItemControl />
-              <RadioGroup.ItemText>{option.label}</RadioGroup.ItemText>
-              <RadioGroup.ItemHiddenInput />
-            </RadioGroup.Item>
-          ))}
-        </Stack>
-      </RadioGroup.Root>
+      <Field.Context>
+        {(field) => (
+          <RadioGroup.Root
+            value={value}
+            onValueChange={(details) => onChange(details.value ?? '')}
+            aria-describedby={field.ariaDescribedby}
+          >
+            <RadioGroup.Label>{label}</RadioGroup.Label>
+            <Stack gap="2">
+              {options.map((option) => (
+                <RadioGroup.Item key={option.value} value={option.value}>
+                  <RadioGroup.ItemControl />
+                  <RadioGroup.ItemText>{option.label}</RadioGroup.ItemText>
+                  <RadioGroup.ItemHiddenInput />
+                </RadioGroup.Item>
+              ))}
+            </Stack>
+          </RadioGroup.Root>
+        )}
+      </Field.Context>
       <FieldMessages helper={helper} error={error} />
     </Field.Root>
   )
@@ -205,57 +215,52 @@ export interface CheckboxListFieldProps {
 }
 
 /** A `Fieldset` of `Checkbox`es, optionally in headed sections; the value is the checked option values. */
-export function CheckboxListField({
-  legend,
-  sections,
-  value,
-  onChange,
-  helper,
-  error,
-  required,
-}: CheckboxListFieldProps) {
-  const toggle = (option: string, checked: boolean) =>
-    onChange(checked ? [...value, option] : value.filter((v) => v !== option))
-  return (
-    <Fieldset.Root invalid={!!error}>
-      <Fieldset.Legend>
-        {legend}
-        {required ? ' *' : null}
-      </Fieldset.Legend>
-      <Stack gap="4">
-        {sections.map((section) => (
-          <Stack
-            key={section.heading ?? 'all'}
-            gap="2"
-            role={section.heading ? 'group' : undefined}
-            aria-label={section.heading}
-          >
-            {section.heading ? (
-              <Text as="span" textStyle="sm" fontWeight="medium" color="fg.muted">
-                {section.heading}
-              </Text>
-            ) : null}
-            {section.options.map((option) => (
-              <Checkbox.Root
-                key={option.value}
-                checked={value.includes(option.value)}
-                onCheckedChange={(details) => toggle(option.value, details.checked === true)}
-              >
-                <Checkbox.Control>
-                  <Checkbox.Indicator />
-                </Checkbox.Control>
-                <Checkbox.Label>{option.label}</Checkbox.Label>
-                <Checkbox.HiddenInput />
-              </Checkbox.Root>
-            ))}
-          </Stack>
-        ))}
-      </Stack>
-      {helper ? <Fieldset.HelperText>{helper}</Fieldset.HelperText> : null}
-      {error ? <Fieldset.ErrorText>{error}</Fieldset.ErrorText> : null}
-    </Fieldset.Root>
-  )
-}
+export const CheckboxListField = forwardRef<HTMLFieldSetElement, CheckboxListFieldProps>(
+  function CheckboxListField({ legend, sections, value, onChange, helper, error, required }, ref) {
+    const toggle = (option: string, checked: boolean) =>
+      onChange(checked ? [...value, option] : value.filter((v) => v !== option))
+    return (
+      // Focusable, so a failed submit can move focus here (react-hook-form's `field.ref`).
+      <Fieldset.Root ref={ref} tabIndex={-1} invalid={!!error}>
+        <Fieldset.Legend>
+          {legend}
+          {required ? <span aria-hidden="true"> *</span> : null}
+        </Fieldset.Legend>
+        <Stack gap="4">
+          {sections.map((section) => (
+            <Stack
+              key={section.heading ?? 'all'}
+              gap="2"
+              role={section.heading ? 'group' : undefined}
+              aria-label={section.heading}
+            >
+              {section.heading ? (
+                <Text as="span" textStyle="sm" fontWeight="medium" color="fg.muted">
+                  {section.heading}
+                </Text>
+              ) : null}
+              {section.options.map((option) => (
+                <Checkbox.Root
+                  key={option.value}
+                  checked={value.includes(option.value)}
+                  onCheckedChange={(details) => toggle(option.value, details.checked === true)}
+                >
+                  <Checkbox.Control>
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Label>{option.label}</Checkbox.Label>
+                  <Checkbox.HiddenInput />
+                </Checkbox.Root>
+              ))}
+            </Stack>
+          ))}
+        </Stack>
+        {helper ? <Fieldset.HelperText>{helper}</Fieldset.HelperText> : null}
+        {error ? <Fieldset.ErrorText role="alert">{error}</Fieldset.ErrorText> : null}
+      </Fieldset.Root>
+    )
+  },
+)
 
 interface SelectBaseProps {
   label: string

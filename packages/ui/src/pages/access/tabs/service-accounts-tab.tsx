@@ -83,7 +83,10 @@ const ServiceAccountsTable = createEntityTab<
   entity: { singular: 'service account', plural: 'service accounts' },
   search: { keys: [(account) => account.name, (account) => account.description ?? ''] },
   initialSort: { id: 'name' },
-  // The token lifetime is form-only: the host maps it to `tokenExpiresAt`.
+  /**
+   * The token lifetime is form-only (hosts map it to `tokenExpiresAt` themselves), so Edit and
+   * Clone pre-fill it with the default.
+   */
   toValues: (account) => ({
     name: account.name,
     description: account.description ?? '',

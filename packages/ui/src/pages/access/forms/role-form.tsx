@@ -74,6 +74,7 @@ export function RoleForm({
           name="permissions"
           render={({ field, fieldState }) => (
             <CheckboxListField
+              ref={field.ref}
               legend="Permissions"
               required
               sections={sections}

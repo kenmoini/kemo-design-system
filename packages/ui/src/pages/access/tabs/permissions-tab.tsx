@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { Badge } from '../../../components/ui'
 import type { DataTableFilter } from '../../../widgets'
 import { MonoText } from '../cells'
-import { createEntityTab, deleteAction, editAction } from '../entity-tab'
+import { bulkDeleteAction, createEntityTab, deleteAction, editAction } from '../entity-tab'
 import { PermissionForm } from '../forms/permission-form'
 import { type PermissionValues, permissionActions } from '../schemas'
 import type { AccessPermission, EntityTabProps } from '../types'
@@ -84,14 +84,7 @@ const PermissionsTable = createEntityTab<
   }),
   renderForm: (form, { resources }) => <PermissionForm {...form} resources={resources} />,
   rowActions: (ctx, permission) => [editAction(ctx, permission), deleteAction(ctx, permission)],
-  bulkActions: (ctx, selected) => [
-    {
-      id: 'delete',
-      label: 'Delete',
-      tone: 'danger',
-      onSelect: () => ctx.confirmDelete(selected.map((permission) => permission.id)),
-    },
-  ],
+  bulkActions: (ctx, selected) => [bulkDeleteAction(ctx, selected)],
 })
 
 /**

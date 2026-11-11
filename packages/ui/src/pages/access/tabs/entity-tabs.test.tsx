@@ -144,12 +144,12 @@ async function openBulkAction(user: ReturnType<typeof userEvent.setup>, item: st
   await user.click(within(menu).getByRole('menuitem', { name: item }))
 }
 
-const noop = {
+const handlers = () => ({
   onCreate: vi.fn(),
   onUpdate: vi.fn(),
   onSetStatus: vi.fn(),
   onDelete: vi.fn(),
-}
+})
 
 beforeEach(() => {
   setMediaMatches(MEDIA_LG, true)
@@ -161,7 +161,7 @@ afterEach(() => {
 })
 
 describe('AccessGroupsTab', () => {
-  const props = () => ({ ...noop, rows: groups, roles: roleOptions, onAssignRole: vi.fn() })
+  const props = () => ({ ...handlers(), rows: groups, roles: roleOptions, onAssignRole: vi.fn() })
 
   it('renders the columns and opens the Add dialog', async () => {
     const user = userEvent.setup()
@@ -196,7 +196,7 @@ describe('AccessGroupsTab', () => {
 })
 
 describe('AccessRolesTab', () => {
-  const props = () => ({ ...noop, rows: roles, permissions })
+  const props = () => ({ ...handlers(), rows: roles, permissions })
 
   it('renders the columns and the Built-in badge, and opens the Add dialog', async () => {
     const user = userEvent.setup()
@@ -237,6 +237,20 @@ describe('AccessRolesTab', () => {
     )
   })
 
+  it('announces and focuses the missing-permission error', async () => {
+    const user = userEvent.setup()
+    render(<AccessRolesTab {...props()} />)
+    await user.click(screen.getByRole('button', { name: '+ Add role' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Add role' })
+    await user.type(within(dialog).getByRole('textbox', { name: 'Name' }), 'Auditor')
+    await user.click(within(dialog).getByRole('button', { name: 'Add role' }))
+    const alert = await within(dialog).findByRole('alert')
+    expect(alert).toHaveTextContent('Choose at least one permission.')
+    const fieldset = within(dialog).getByRole('group', { name: /Permissions/ })
+    await waitFor(() => expect(fieldset.contains(document.activeElement)).toBe(true))
+    expect(fieldset.getAttribute('aria-describedby') ?? '').toContain(alert.id)
+  })
+
   it('offers only Edit and Clone on a built-in role', async () => {
     const user = userEvent.setup()
     render(<AccessRolesTab {...props()} />)
@@ -272,19 +286,23 @@ describe('AccessRolesTab', () => {
     expect(p.onDelete).toHaveBeenCalledWith(['r-custom'])
   })
 
-  it('skips built-in roles in bulk disable', async () => {
+  it('confirms bulk disable with the built-in skip note', async () => {
     const user = userEvent.setup()
     const p = props()
     render(<AccessRolesTab {...p} />)
     await user.click(screen.getByRole('checkbox', { name: 'Select Admin' }))
     await user.click(screen.getByRole('checkbox', { name: 'Select Release manager' }))
     await openBulkAction(user, 'Disable')
+    const dialog = await screen.findByRole('dialog', { name: 'Disable 2 roles?' })
+    expect(dialog).toHaveAccessibleDescription(/2 roles selected; 1 built-in role will be skipped/)
+    expect(p.onSetStatus).not.toHaveBeenCalled()
+    await user.click(within(dialog).getByRole('button', { name: 'Disable' }))
     expect(p.onSetStatus).toHaveBeenCalledWith(['r-custom'], 'disabled')
   })
 })
 
 describe('AccessPermissionsTab', () => {
-  const props = () => ({ ...noop, rows: permissions, resources: ['deployments', 'users'] })
+  const props = () => ({ ...handlers(), rows: permissions, resources: ['deployments', 'users'] })
 
   it('renders the columns and opens the Add dialog', async () => {
     const user = userEvent.setup()
@@ -328,7 +346,12 @@ describe('AccessPermissionsTab', () => {
 })
 
 describe('AccessServiceAccountsTab', () => {
-  const props = () => ({ ...noop, rows: accounts, roles: roleOptions, onRotateToken: vi.fn() })
+  const props = () => ({
+    ...handlers(),
+    rows: accounts,
+    roles: roleOptions,
+    onRotateToken: vi.fn(),
+  })
 
   it('renders the columns and opens the Add dialog', async () => {
     const user = userEvent.setup()
@@ -346,7 +369,8 @@ describe('AccessServiceAccountsTab', () => {
   })
 
   it('keeps the token lifetime between 1 and 365 days', async () => {
-    const user = userEvent.setup()
+    // A pause between keys lets the number input restore its caret, or "500" can land as "005".
+    const user = userEvent.setup({ delay: 20 })
     const p = props()
     render(<AccessServiceAccountsTab {...p} />)
     await user.click(screen.getByRole('button', { name: '+ Add service account' }))
@@ -358,19 +382,23 @@ describe('AccessServiceAccountsTab', () => {
     await user.clear(days)
     await user.type(days, '500')
     await user.click(within(dialog).getByRole('button', { name: 'Add service account' }))
-    expect(await within(dialog).findByText('Use 1 to 365 days.')).toBeInTheDocument()
+    expect(
+      await within(dialog).findByText('Use 1 to 365 days.', undefined, { timeout: 4000 }),
+    ).toBeInTheDocument()
     expect(p.onCreate).not.toHaveBeenCalled()
 
     await user.clear(days)
     await user.type(days, '30')
     await user.click(within(dialog).getByRole('button', { name: 'Add service account' }))
-    await waitFor(() =>
-      expect(p.onCreate).toHaveBeenCalledWith({
-        name: 'deploy-bot',
-        description: '',
-        role: 'r-viewer',
-        tokenLifetimeDays: 30,
-      }),
+    await waitFor(
+      () =>
+        expect(p.onCreate).toHaveBeenCalledWith({
+          name: 'deploy-bot',
+          description: '',
+          role: 'r-viewer',
+          tokenLifetimeDays: 30,
+        }),
+      { timeout: 4000 },
     )
   })
 
@@ -384,7 +412,7 @@ describe('AccessServiceAccountsTab', () => {
 })
 
 describe('AccessOAuthAppsTab', () => {
-  const props = () => ({ ...noop, rows: apps, scopes: scopeOptions, onRotateSecret: vi.fn() })
+  const props = () => ({ ...handlers(), rows: apps, scopes: scopeOptions, onRotateSecret: vi.fn() })
 
   it('renders the columns and opens the Add dialog', async () => {
     const user = userEvent.setup()
