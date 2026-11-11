@@ -68,6 +68,7 @@
   "dependencies": {
     "@ark-ui/react": "^5.40.0",
     "@hookform/resolvers": "^7.0.5",
+    "@tanstack/react-table": "^9.3.1",
     "lucide-react": "^1.70.0",
     "react-hook-form": "^7.91.0",
     "recharts": "^3.10.1",

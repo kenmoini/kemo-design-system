@@ -62,6 +62,16 @@ export default defineConfig([
     },
   },
   {
+    // Park UI registry file: TagsInputItemsProps is a deliberate named extension point of ItemProps.
+    files: ['packages/ui/src/components/ui/tags-input.tsx'],
+    rules: {
+      '@typescript-eslint/no-empty-object-type': [
+        'error',
+        { allowInterfaces: 'with-single-extends' },
+      ],
+    },
+  },
+  {
     // Park UI registry file: SkeletonText forwards `gap` to Stack at runtime; Panda extracts the value
     // at the consumer's <SkeletonText gap=…> call site via the skeleton recipe's `jsx` list.
     files: ['packages/ui/src/components/ui/skeleton.tsx'],

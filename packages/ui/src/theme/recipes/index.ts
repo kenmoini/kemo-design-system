@@ -1,3 +1,8 @@
+import { radioGroup } from './radio-group'
+import { textarea } from './textarea'
+import { numberInput } from './number-input'
+import { tagsInput } from './tags-input'
+import { dialog } from './dialog'
 import { segmentGroup } from './segment-group'
 import { switchRecipe } from './switch'
 import { select } from './select'
@@ -40,23 +45,28 @@ export const recipes = {
   skeleton,
   spinner,
   text,
+  textarea,
 }
 export const slotRecipes = {
   alert,
   avatar,
   card,
   checkbox,
+  dialog,
   drawer,
   field,
   fieldset,
   inputGroup,
   menu,
+  numberInput,
   pagination,
   progress,
+  radioGroup,
   segmentGroup,
   select,
   switchRecipe,
   table,
   tabs,
+  tagsInput,
   tooltip,
 }
