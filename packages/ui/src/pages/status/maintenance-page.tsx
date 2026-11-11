@@ -1,5 +1,5 @@
 import { StatusLayout } from './status-layout'
-import { mergeActions, statusCopy } from './status-copy'
+import { mergeActions, statusCopy, withDefaults } from './status-copy'
 import type { StatusPageProps } from './types'
 
 const copy = statusCopy.maintenance
@@ -12,20 +12,20 @@ export interface MaintenancePageProps extends StatusPageProps {
 }
 
 export function MaintenancePage({ startedAt, expectedBackAt, ...props }: MaintenancePageProps) {
+  const merged = withDefaults(copy, props)
   const meta =
-    props.meta ??
+    merged.meta ??
     [
       startedAt ? { label: 'Started', value: startedAt } : null,
       expectedBackAt ? { label: 'Expected back', value: expectedBackAt } : null,
     ].filter((item) => item !== null)
   return (
     <StatusLayout
-      {...copy}
-      {...props}
+      {...merged}
       meta={meta}
       footerNote={
-        props.footerNote ??
-        (props.refreshIntervalMs ? 'This page refreshes itself every minute' : undefined)
+        merged.footerNote ??
+        (merged.refreshIntervalMs ? 'This page refreshes itself every minute' : undefined)
       }
       actions={mergeActions(copy.actions, props.actions)}
     />

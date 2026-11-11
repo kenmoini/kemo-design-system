@@ -1,4 +1,4 @@
-import type { StatusAction, StatusPageTone } from './types'
+import type { StatusAction, StatusLayoutProps, StatusPageProps, StatusPageTone } from './types'
 
 export interface StatusCopy {
   code?: number
@@ -100,4 +100,13 @@ export function mergeActions(
   })
   const known = new Set(defaults.map((d) => d.label))
   return [...merged, ...overrides.filter((o) => !known.has(o.label))]
+}
+
+/**
+ * The pinned copy with the host's props over it, skipping props whose value is `undefined`: an unset
+ * optional prop (`title={maybeTitle}`) keeps the default instead of blanking it.
+ */
+export function withDefaults(copy: StatusCopy, props: StatusPageProps): StatusLayoutProps {
+  const defined = Object.entries(props).filter(([, value]) => value !== undefined)
+  return { ...copy, ...Object.fromEntries(defined) }
 }

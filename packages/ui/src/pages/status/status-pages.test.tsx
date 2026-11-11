@@ -29,6 +29,28 @@ describe('named status pages', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Custom' })).toBeInTheDocument()
   })
 
+  it.each([
+    [NotFoundPage, "There's nothing at this address."],
+    [UnauthorizedPage, 'You need to sign in to see this.'],
+    [ForbiddenPage, "You don't have access to this page."],
+    [ServerErrorPage, 'Something went wrong on our side.'],
+    [UnavailablePage, "We're temporarily unavailable."],
+    [MaintenancePage, "We're making improvements."],
+  ])('keeps the default heading when the title is explicitly undefined', (Page, heading) => {
+    render(<Page title={undefined} />)
+    expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+  })
+
+  it('keeps the default description when it is explicitly undefined', () => {
+    render(<NotFoundPage description={undefined} />)
+    expect(screen.getByText(/It may have been moved or removed\./)).toBeInTheDocument()
+  })
+
+  it('still applies a defined override over the pinned tone', () => {
+    render(<ServerErrorPage tone="neutral" />)
+    expect(screen.queryByTestId('status-dot')).toBeNull()
+  })
+
   it('ServerErrorPage shows the dot and three actions in order', () => {
     render(<ServerErrorPage />)
     expect(screen.getByTestId('status-dot')).toBeInTheDocument()

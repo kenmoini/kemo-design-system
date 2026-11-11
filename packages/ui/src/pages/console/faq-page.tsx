@@ -13,7 +13,8 @@ import { useCurrentSection } from './use-current-section'
 export function FaqPage({ title, description, topics, action, linkComponent }: FaqPageProps) {
   const currentSection = useCurrentSection(topics.map((topic) => `topic-${topic.id}`))
   const currentId = topics.find((topic) => `topic-${topic.id}` === currentSection)?.id
-  const HostLink = linkComponent ?? Link
+  // Without a host link the action is a bare anchor: Park's `Link` recipe would override the button's.
+  const HostLink = linkComponent
 
   return (
     <Stack gap="6">
@@ -24,7 +25,11 @@ export function FaqPage({ title, description, topics, action, linkComponent }: F
           action &&
           (action.href !== undefined ? (
             <Button asChild variant="outline">
-              <HostLink href={action.href}>{action.label}</HostLink>
+              {HostLink ? (
+                <HostLink href={action.href}>{action.label}</HostLink>
+              ) : (
+                <a href={action.href}>{action.label}</a>
+              )}
             </Button>
           ) : (
             <Button variant="outline" onClick={action.onSelect}>

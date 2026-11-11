@@ -1,5 +1,5 @@
 'use client'
-import { Button, Link } from '../../components/ui'
+import { Button } from '../../components/ui'
 import type { LinkComponent } from '../auth/types'
 import type { StatusAction } from './types'
 
@@ -13,10 +13,16 @@ export interface StatusActionButtonProps {
 export function StatusActionButton({ action, index, linkComponent }: StatusActionButtonProps) {
   const variant = action.variant ?? (index === 0 ? 'solid' : 'plain')
   if (action.href !== undefined) {
-    const HostLink = linkComponent ?? Link
+    // Without a host link, a bare anchor: Park's `Link` would add its own recipe classes, which
+    // override the button's (underline, radius, weight).
+    const HostLink = linkComponent
     return (
       <Button asChild variant={variant}>
-        <HostLink href={action.href}>{action.label}</HostLink>
+        {HostLink ? (
+          <HostLink href={action.href}>{action.label}</HostLink>
+        ) : (
+          <a href={action.href}>{action.label}</a>
+        )}
       </Button>
     )
   }

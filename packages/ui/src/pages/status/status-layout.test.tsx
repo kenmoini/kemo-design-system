@@ -79,15 +79,35 @@ describe('StatusLayout', () => {
         ]}
       />,
     )
-    expect(screen.getByRole('link', { name: 'Go to dashboard' })).toHaveAttribute(
-      'href',
-      '/host/dashboard',
-    )
+    const link = screen.getByRole('link', { name: 'Go to dashboard' })
+    expect(link).toHaveAttribute('href', '/host/dashboard')
+    // The host link receives the Button's recipe classes through `asChild`.
+    expect(link).toHaveClass(/button/)
     await user.click(screen.getByRole('button', { name: 'Retry' }))
     expect(onSelect).toHaveBeenCalledOnce()
     const inert = screen.getByRole('button', { name: 'Nothing' })
     expect(inert).toBeEnabled()
     await user.click(inert)
+  })
+
+  it('renders an href action as a bare anchor styled as the button without a link component', () => {
+    render(
+      <StatusLayout
+        label="Not found"
+        title="T"
+        actions={[
+          { label: 'Go to dashboard', href: '/dashboard' },
+          { label: 'Go back', href: '/back' },
+        ]}
+      />,
+    )
+    const link = screen.getByRole('link', { name: 'Go to dashboard' })
+    expect(link).toHaveAttribute('href', '/dashboard')
+    expect(link).toHaveClass(/button/)
+    // No link recipe: its underline, radius and weight would override the button's.
+    expect(link).not.toHaveClass(/^link/)
+    expect(link).toHaveClass('button--variant_solid')
+    expect(screen.getByRole('link', { name: 'Go back' })).not.toHaveClass(/^link/)
   })
 
   it('renders the footer with request id and version, and footerNote replaces the request id', () => {
@@ -137,6 +157,37 @@ describe('StatusLayout', () => {
       unmount()
       vi.advanceTimersByTime(2000)
       expect(onRefresh).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('keeps the refresh cadence when an inline onRefresh changes identity', () => {
+    vi.useFakeTimers()
+    try {
+      const onRefresh = vi.fn()
+      const page = (tag: string) => (
+        <StatusLayout
+          label="L"
+          title="T"
+          refreshIntervalMs={1000}
+          onRefresh={() => onRefresh(tag)}
+        />
+      )
+      const { rerender, unmount } = render(page('first'))
+      vi.advanceTimersByTime(400)
+      rerender(page('second'))
+      vi.advanceTimersByTime(400)
+      rerender(page('third'))
+      vi.advanceTimersByTime(199)
+      expect(onRefresh).not.toHaveBeenCalled()
+      // Still on the first render's cadence, calling the latest callback.
+      vi.advanceTimersByTime(1)
+      expect(onRefresh).toHaveBeenCalledOnce()
+      expect(onRefresh).toHaveBeenLastCalledWith('third')
+      unmount()
+      vi.advanceTimersByTime(3000)
+      expect(onRefresh).toHaveBeenCalledOnce()
     } finally {
       vi.useRealTimers()
     }

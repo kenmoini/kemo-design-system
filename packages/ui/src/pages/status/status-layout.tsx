@@ -1,5 +1,5 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Box, HStack, Stack, styled } from '../../../styled-system/jsx'
 import { Heading, Text } from '../../components/ui'
 import { StatusActionButton } from './status-action'
@@ -65,26 +65,38 @@ export function StatusLayout({
   refreshIntervalMs,
   onRefresh,
 }: StatusLayoutProps) {
+  // The latest callback, read when the interval fires: an inline `onRefresh` from a parent that
+  // re-renders (a live clock, say) must not restart the timer.
+  const onRefreshRef = useRef(onRefresh)
+  useEffect(() => {
+    onRefreshRef.current = onRefresh
+  })
   useEffect(() => {
     if (typeof refreshIntervalMs !== 'number' || !(refreshIntervalMs > 0)) return
     const id = setInterval(
-      () => (onRefresh ?? (() => window.location.reload()))(),
+      () => (onRefreshRef.current ?? (() => window.location.reload()))(),
       refreshIntervalMs,
     )
     return () => clearInterval(id)
-  }, [refreshIntervalMs, onRefresh])
+  }, [refreshIntervalMs])
 
   const watermarkText = watermark ?? String(code ?? '')
   const watermarkSize = wordSize(watermarkText)
   const labelText = code !== undefined && code !== '' ? `${code} · ${label}` : label
   const footerLeft = footerNote ?? (requestId ? `Request ID ${requestId}` : null)
+  const hasFooter = Boolean(footerLeft || version)
 
+  // A flex column, every row in flow. The message's auto margin anchors it bottom-left on `md`+ (top
+  // margin) and keeps the footer at the bottom below `md` (bottom margin) when there is room; on a
+  // short viewport the page grows and scrolls instead of clipping it.
   return (
     <Box
       className="dark"
       colorScheme="dark"
       position="relative"
       isolation="isolate"
+      display="flex"
+      flexDirection="column"
       minH="100dvh"
       overflow="hidden"
       bg="canvas"
@@ -108,14 +120,15 @@ export function StatusLayout({
           </Text>
         ) : null}
       </HStack>
+      {/* `relative` keeps the message (and the footer) painted above the absolute watermark. */}
       <Box
         as="main"
-        position={{ base: 'static', md: 'absolute' }}
-        bottom={{ md: '16' }}
-        left={{ md: '8' }}
-        px={{ base: '8', md: '0' }}
-        pt={{ base: '24', md: '0' }}
-        pb={{ base: '16', md: '0' }}
+        position="relative"
+        mt={{ md: 'auto' }}
+        mb={{ base: 'auto', md: '0' }}
+        px="8"
+        pt={{ base: '24', md: '16' }}
+        pb={hasFooter ? '4' : '16'}
       >
         <Stack maxW="32rem" gap="4">
           <HStack gap="3">
@@ -166,14 +179,15 @@ export function StatusLayout({
           ) : null}
         </Stack>
       </Box>
-      {footerLeft || version ? (
+      {hasFooter ? (
         <HStack
-          position="absolute"
-          insetX="8"
-          bottom="4"
+          position="relative"
+          mt="4"
+          px="8"
+          pb="4"
           justify="space-between"
           textStyle="xs"
-          color="fg.subtle"
+          color="fg.muted"
         >
           <Box fontVariantNumeric="tabular-nums">{footerLeft}</Box>
           <Box>{version}</Box>

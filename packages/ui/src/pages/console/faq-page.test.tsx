@@ -107,10 +107,17 @@ describe('FaqPage', () => {
         linkComponent={HostLink}
       />,
     )
-    expect(screen.getByRole('link', { name: 'Contact support' })).toHaveAttribute(
-      'href',
-      '/host/support',
-    )
+    const link = screen.getByRole('link', { name: 'Contact support' })
+    expect(link).toHaveAttribute('href', '/host/support')
+    expect(link).toHaveClass(/button/)
+  })
+
+  it('renders an href action as a bare anchor styled as the button without a link component', () => {
+    render(<FaqPage topics={topics} action={{ label: 'Contact support', href: '/support' }} />)
+    const link = screen.getByRole('link', { name: 'Contact support' })
+    expect(link).toHaveAttribute('href', '/support')
+    expect(link).toHaveClass(/button/)
+    expect(link).not.toHaveClass(/^link/)
   })
 
   it('renders the header and an empty index with no topics', () => {

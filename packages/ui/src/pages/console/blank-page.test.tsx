@@ -36,10 +36,17 @@ describe('BlankPage', () => {
         linkComponent={HostLink}
       />,
     )
-    expect(screen.getByRole('link', { name: 'Primary action' })).toHaveAttribute(
-      'href',
-      '/host/new',
-    )
+    const link = screen.getByRole('link', { name: 'Primary action' })
+    expect(link).toHaveAttribute('href', '/host/new')
+    expect(link).toHaveClass(/button/)
+  })
+
+  it('renders an href action as a bare anchor styled as the button without a link component', () => {
+    render(<BlankPage title="Page title" action={{ label: 'Primary action', href: '/new' }} />)
+    const link = screen.getByRole('link', { name: 'Primary action' })
+    expect(link).toHaveAttribute('href', '/new')
+    expect(link).toHaveClass(/button/)
+    expect(link).not.toHaveClass(/^link/)
   })
 
   it('renders the default empty message and the empty action', async () => {
