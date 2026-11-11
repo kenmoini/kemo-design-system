@@ -1,6 +1,4 @@
 'use client'
-import { HStack } from '../../../../styled-system/jsx'
-import { Button } from '../../../components/ui'
 import { BuiltInName, StatusBadge, statusOptions } from '../cells'
 import {
   cloneAction,
@@ -115,27 +113,15 @@ export const AccessRolesTab = createEntityTab<AccessRole, RoleValues, AccessRole
               onSetStatus(customIds, 'disabled')
               return
             }
-            ctx.openCustom({
+            ctx.confirm({
               title: `Disable ${ctx.count(selected.length)}?`,
               description: `${ctx.count(selected.length)} selected; ${plural(skipped, 'built-in role', 'built-in roles')} will be skipped.`,
-              size: 'sm',
-              render: (close) => (
-                <HStack justify="flex-end" gap="3">
-                  <Button variant="outline" onClick={close}>
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="solid"
-                    onClick={() => {
-                      onSetStatus(customIds, 'disabled')
-                      ctx.clearSelection()
-                      close()
-                    }}
-                  >
-                    Disable
-                  </Button>
-                </HStack>
-              ),
+              confirmLabel: 'Disable',
+              tone: 'default',
+              onConfirm: () => {
+                onSetStatus(customIds, 'disabled')
+                ctx.clearSelection()
+              },
             })
           },
         },

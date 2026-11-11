@@ -80,6 +80,14 @@ export interface EntityCtx<T extends EntityRow, V, P> {
   openClone: (row: T) => void
   /** Asks first; on confirm calls `onDelete(ids)` and drops the ids from the selection. */
   confirmDelete: (ids: string[], copy?: DeleteCopy) => void
+  /** Asks first, in the delete confirmation's dialog; `tone` defaults to `danger`. */
+  confirm: (confirmation: {
+    title: string
+    description: ReactNode
+    confirmLabel: string
+    tone?: 'danger' | 'default'
+    onConfirm: () => void
+  }) => void
   openCustom: (dialog: CustomDialog) => void
   openPicker: (picker: PickerDialog) => void
   closeDialog: () => void
@@ -123,7 +131,14 @@ export interface EntityTabTableProps<T> {
 type View<T, V> =
   | { kind: 'add'; values?: Partial<V> }
   | { kind: 'edit'; row: T }
-  | { kind: 'delete'; ids: string[]; title: string; description: ReactNode }
+  | {
+      kind: 'confirm'
+      title: string
+      description: ReactNode
+      confirmLabel: string
+      tone: 'danger' | 'default'
+      onConfirm: () => void
+    }
   | { kind: 'custom'; dialog: CustomDialog }
 
 interface DialogState<T, V> {
@@ -199,13 +214,20 @@ export function createEntityTab<
           (ids.length === 1
             ? `Delete ${only ? rowLabel(only) : ids[0]}?`
             : `Delete ${count(ids.length)}?`)
-        show({
-          kind: 'delete',
-          ids,
+        ctx.confirm({
           title,
           description: copy?.description ?? "This can't be undone.",
+          confirmLabel: 'Delete',
+          tone: 'danger',
+          onConfirm: () => {
+            const deleted = new Set(ids)
+            props.onDelete(ids)
+            setSelectedIds((current) => current.filter((id) => !deleted.has(id)))
+          },
         })
       },
+      confirm: (confirmation) =>
+        show({ kind: 'confirm', ...confirmation, tone: confirmation.tone ?? 'danger' }),
       openCustom: (custom) => show({ kind: 'custom', dialog: custom }),
       openPicker: (picker) =>
         show({
@@ -312,7 +334,7 @@ export function createEntityTab<
           />
         </Box>
         <EntityDialog
-          open={dialog.open && view !== null && view.kind !== 'delete'}
+          open={dialog.open && view !== null && view.kind !== 'confirm'}
           onOpenChange={(open) => {
             if (!open) close()
           }}
@@ -324,19 +346,17 @@ export function createEntityTab<
           <Fragment key={dialog.key}>{body}</Fragment>
         </EntityDialog>
         <ConfirmDialog
-          open={dialog.open && view?.kind === 'delete'}
+          open={dialog.open && view?.kind === 'confirm'}
           onOpenChange={(open) => {
             if (!open) close()
           }}
-          title={view?.kind === 'delete' ? view.title : ''}
-          description={view?.kind === 'delete' ? view.description : ''}
-          confirmLabel="Delete"
+          title={view?.kind === 'confirm' ? view.title : ''}
+          description={view?.kind === 'confirm' ? view.description : ''}
+          confirmLabel={view?.kind === 'confirm' ? view.confirmLabel : ''}
+          tone={view?.kind === 'confirm' ? view.tone : 'danger'}
           finalFocusEl={returnFocus}
           onConfirm={() => {
-            if (view?.kind !== 'delete') return
-            const deleted = new Set(view.ids)
-            props.onDelete(view.ids)
-            setSelectedIds((ids) => ids.filter((id) => !deleted.has(id)))
+            if (view?.kind === 'confirm') view.onConfirm()
           }}
         />
       </>

@@ -122,6 +122,8 @@ export interface NumberFieldProps {
 /**
  * A labelled Park `NumberInput` with steppers. It does not clamp on blur, so an out-of-range value
  * reaches the form's validation and its message. Bind it with react-hook-form's `Controller`.
+ * `value` only seeds the input on mount; the field is uncontrolled afterwards (changes still flow
+ * out through `onChange`), so a form that must change the value later has to remount the field.
  */
 export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(function NumberField(
   { label, value, onChange, min, max, helper, error, required, onBlur },
