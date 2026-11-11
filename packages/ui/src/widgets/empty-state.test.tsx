@@ -17,4 +17,17 @@ describe('EmptyState', () => {
     render(<EmptyState message="Empty" />)
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
+
+  it('passes minH through as a style prop', () => {
+    const { container } = render(<EmptyState message="Empty" minH="60" />)
+    expect(container.firstElementChild).toHaveClass('min-h_60')
+  })
+
+  it('renders an enabled, inert button for an action without onSelect', async () => {
+    const user = userEvent.setup()
+    render(<EmptyState message="Empty" action={{ label: 'Add content' }} />)
+    const button = screen.getByRole('button', { name: 'Add content' })
+    expect(button).toBeEnabled()
+    await user.click(button)
+  })
 })
