@@ -97,10 +97,20 @@ describe('StatusLayout', () => {
     expect(screen.getByText('This page refreshes.')).toBeInTheDocument()
   })
 
-  it('renders the meta row', () => {
-    render(<StatusLayout label="L" title="T" meta={[{ label: 'Started', value: '02:00 UTC' }]} />)
-    expect(screen.getByText('Started')).toBeInTheDocument()
+  it('renders the meta row inline, each label and its value on one line', () => {
+    render(
+      <StatusLayout
+        label="L"
+        title="T"
+        meta={[
+          { label: 'Started', value: '02:00 UTC' },
+          { label: 'Expected back', value: '03:30 UTC' },
+        ]}
+      />,
+    )
     expect(screen.getByText('02:00 UTC')).toBeInTheDocument()
+    expect(screen.getByText(/Started/).textContent).toBe('Started 02:00 UTC')
+    expect(screen.getByText(/Expected back/).textContent).toBe('Expected back 03:30 UTC')
   })
 
   it('calls onRefresh on the interval and clears it on unmount', () => {

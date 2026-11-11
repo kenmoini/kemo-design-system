@@ -11,17 +11,19 @@ const Backdrop = styled('div', {
   base: { position: 'fixed', inset: '0', zIndex: '-1', bgGradient: 'status' },
 })
 
-// The large decorative status code in the top-right corner.
+// The large decorative status code (or word) in the top-right corner, faint like the mockup's 6%
+// white. Below `md` it sits clear of the brand row, small enough for "Back soon" to fit from 320px;
+// the page root clips what overflows.
 const Watermark = styled('div', {
   base: {
     position: 'absolute',
-    top: '-0.12em',
-    right: '-0.04em',
-    fontSize: 'clamp(160px, 28vw, 320px)',
+    top: { base: '12', md: '-0.12em' },
+    right: { base: '-0.08em', md: '-0.04em' },
+    fontSize: { base: 'clamp(64px, 20vw, 140px)', md: 'clamp(160px, 28vw, 320px)' },
     fontWeight: 'bold',
     letterSpacing: '-0.06em',
     lineHeight: '1',
-    color: 'white.a3',
+    color: 'white.a1',
     userSelect: 'none',
     pointerEvents: 'none',
     whiteSpace: 'nowrap',
@@ -125,16 +127,14 @@ export function StatusLayout({
           </Heading>
           {description ? <Text color="fg.muted">{description}</Text> : null}
           {meta && meta.length > 0 ? (
-            <HStack gap="6" textStyle="sm">
+            <HStack columnGap="6" rowGap="1" flexWrap="wrap" textStyle="sm">
               {meta.map((item) => (
-                <Stack key={item.label} gap="0">
-                  <Text as="span" color="fg.muted">
-                    {item.label}
-                  </Text>
+                <Text as="span" key={item.label} color="fg.muted">
+                  {item.label}{' '}
                   <Text as="span" color="fg.default" fontWeight="medium">
                     {item.value}
                   </Text>
-                </Stack>
+                </Text>
               ))}
             </HStack>
           ) : null}

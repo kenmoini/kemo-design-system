@@ -505,10 +505,25 @@ test.describe('status and console pages', () => {
 
     await billing.click()
     await expect(billing).toHaveAttribute('aria-current', 'true', { timeout: 2000 })
-    expect(page.url()).toMatch(/#topic-billing$/)
+    await expect(page).toHaveURL(/#topic-billing$/)
     await expect(page.getByRole('heading', { level: 2, name: 'Billing' })).toBeInViewport()
 
     await page.getByRole('link', { name: 'Link to this question' }).first().click()
     await expect.poll(() => new URL(page.url()).hash).toMatch(/^#q-/)
+  })
+
+  test('faq index marks the last topic current when the page cannot scroll it to the top', async ({
+    page,
+  }) => {
+    // A tall viewport: the page ends before "Security" reaches the top, so "Billing" stays in view.
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('/faq')
+    const security = page.getByRole('navigation', { name: 'Topics' }).getByRole('link', {
+      name: 'Security',
+    })
+
+    await security.click()
+    await expect(security).toHaveAttribute('aria-current', 'true', { timeout: 2000 })
+    await expect(page).toHaveURL(/#topic-security$/)
   })
 })

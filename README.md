@@ -297,11 +297,12 @@ its `ref` to the `<a>`; Next.js's `Link` does. Mark the current page with `activ
 item.
 
 The preview's `/dashboard` is the full example: a 12-column grid with every widget, built only
-from these parts. The demo is in `apps/preview/src/components/dashboard/`, its shell (`ConsoleFrame`, shared with the
-FAQ and Blank page demos) in `apps/preview/src/components/console/console-frame.tsx` and its mock
-data in `apps/preview/src/lib/mock-dashboard.ts`. `apps/preview/src/lib/use-live-events.ts` prepends a
-mock event to the stream every 4 seconds (keeping the newest 20) and takes a `paused` option; the
-demo pauses it while the pointer is over the Event stream card or focus is inside it, so its live
+from these parts. The demo is in `apps/preview/src/components/dashboard/`, its shell
+(`ConsoleFrame`, shared with the FAQ and Blank page demos) in
+`apps/preview/src/components/console/console-frame.tsx` and its mock data in
+`apps/preview/src/lib/mock-dashboard.ts`. `apps/preview/src/lib/use-live-events.ts` prepends a mock
+event to the stream every 4 seconds (keeping the newest 20) and takes a `paused` option; the demo
+pauses it while the pointer is over the Event stream card or focus is inside it, so its live
 announcements can be stopped. The controls are inert: the selects (environment, workspace, time
 range, service), the table tabs and the pager hold local state, and the buttons do nothing. The
 demo builds its selects from Park's `Select` with `createListCollection` and `Portal`, which
@@ -313,10 +314,12 @@ Two more page families, presentational like the auth pages (the host supplies ac
 
 - Status pages, shown bare (no shell): `UnauthorizedPage` (401), `ForbiddenPage` (403),
   `NotFoundPage` (404), `ServerErrorPage` (500), `UnavailablePage` (503) and `MaintenancePage`, all
-  thin wrappers over `StatusLayout`, plus `statusCopy` (the pinned copy), `mergeActions` and the
-  types `StatusAction`, `StatusLayoutProps`, `StatusPageProps` and `StatusPageTone`. Each is the
-  Nightfall gradient muted by the `gradients.status` token, in forced dark mode, with a decorative
-  watermark, the message bottom-left and the request id and version in the footer.
+  thin wrappers over `StatusLayout`, plus `statusCopy` (the pinned copy), `mergeActions`,
+  `StatusActionButton` (one action as a link or button) and the types `StatusAction`,
+  `StatusActionButtonProps`, `StatusLayoutProps`, `StatusPageProps`, `StatusPageTone` and
+  `MaintenancePageProps`. Each is the Nightfall gradient muted by the `gradients.status` token, in
+  forced dark mode, with a decorative watermark, the message bottom-left and the request id and
+  version in the footer.
 - Console pages, rendered inside your `AppShell`: `FaqPage` (a topic index beside always-open,
   linkable answers), `BlankPage`, the `useCurrentSection` hook behind the index, and the types
   `FaqTopic`, `FaqQuestion`, `FaqPageProps` and `BlankPageProps`.
@@ -347,11 +350,12 @@ export default function ErrorBoundary({ error, reset }: Props) {
 }
 ```
 
-`app/not-found.tsx` stays a server component, so Next answers unmatched URLs with a 404 status.
-Render `NotFoundPage` from a small `'use client'` component when you pass
-`linkComponent={NextLink}`: a server component can't hand a function to a client component. Only
-server errors carry `error.digest`; without one the footer shows no request id. Next 16.3 and
-later also pass `retry`, which re-fetches the segment before rendering it again.
+`app/not-found.tsx` stays a server component because only server files can export `metadata`; Next
+answers unmatched URLs with a 404 status either way. Render `NotFoundPage` from a small
+`'use client'` component when you pass `linkComponent={NextLink}`: a server component can't hand a
+function to a client component. Only server errors carry `error.digest`; without one the footer
+shows no request id. Next 16.3 and later also pass `retry`, which re-fetches the segment before
+rendering it again.
 
 The FAQ takes its questions as data:
 
@@ -370,7 +374,9 @@ interface FaqQuestion {
 
 Topic and question ids must be unique across the page, because they become DOM ids. `FaqPage` also
 takes `title` (default "Frequently asked questions"), `description`, one outline `action` and
-`linkComponent`. The index is a sticky column from `lg` and a scrollable row below it.
+`linkComponent`. The index is a sticky column from `lg` and a scrollable row below it. It marks the
+topic in view, or the one the URL hash names until the reader scrolls, so a clicked topic is marked
+even when the page is too short to bring it to the top.
 
 `BlankPage` is the starter for a new screen: a `PageHeader` (`title`, `context`, one solid `action`)
 over a dashed `EmptyState` (`emptyMessage`, `emptyAction`) that your `children` replace. Copy
@@ -394,20 +400,21 @@ current on the FAQ, and the questions are in `apps/preview/src/lib/mock-faq.ts`.
 | `make check`                 | Lint, format check, typecheck and unit tests                       |
 
 The e2e suite loads every route (landing page, auth pages, component pages, dashboard, FAQ, Blank
-page and status pages) and fails on any console error or uncaught page error. It also checks the theme (font, radii), dark mode through the
-preview panel's theme toggle, and that the panel navigates, closes and marks the current page. On
-the auth pages, where any uncaught page error (such as an escaped `onSubmit` rejection) fails the
-test, it checks validation and the mock error on every form, the sent state and that its heading
-takes focus, the read-only email, that a click on the terms link leaves the checkbox alone, and
-that the drawer stays dark in a light host, ignores Escape, fills a 375px viewport with the paired
-fields stacked, and leaves the preview panel usable. On the dashboard it checks the shell's
-landmarks and the nine card titles, the chart's table toggle, that dark mode changes the series
-colours, the icon rail just below `lg` (1023px), the navigation drawer and no horizontal overflow
-at 375px, and that the live event stream grows. On the status and console pages it checks that
-the 404 heading is light on the gradient with both actions and no overflow at 375px, that an
-unknown URL answers 404 with the status page, that the error boundary shows the 500 page and "Try
-again" renders the route again, the maintenance window, and that the FAQ index jumps to a topic and
-marks it current and a question's anchor sets the hash. It runs against a built preview, so build
+page and status pages) and fails on any console error or uncaught page error. It also checks the
+theme (font, radii), dark mode through the preview panel's theme toggle, and that the panel
+navigates, closes and marks the current page. On the auth pages, where any uncaught page error (such
+as an escaped `onSubmit` rejection) fails the test, it checks validation and the mock error on every
+form, the sent state and that its heading takes focus, the read-only email, that a click on the
+terms link leaves the checkbox alone, and that the drawer stays dark in a light host, ignores
+Escape, fills a 375px viewport with the paired fields stacked, and leaves the preview panel usable.
+On the dashboard it checks the shell's landmarks and the nine card titles, the chart's table toggle,
+that dark mode changes the series colours, the icon rail just below `lg` (1023px), the navigation
+drawer and no horizontal overflow at 375px, and that the live event stream grows. On the status and
+console pages it checks that the 404 heading is light on the gradient with both actions and no
+overflow at 375px, that an unknown URL answers 404 with the status page, that the error boundary
+shows the 500 page and "Try again" renders the route again, the maintenance window, and that the FAQ
+index jumps to a topic and marks it current (also the last topic at 1440×900, which the page cannot
+scroll to the top) and a question's anchor sets the hash. It runs against a built preview, so build
 first (`make e2e` does).
 
 ## CI
