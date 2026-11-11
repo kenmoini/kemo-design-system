@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Stack, styled } from '../../../styled-system/jsx'
+import { HStack, Stack, styled } from '../../../styled-system/jsx'
 import { Badge, Text } from '../../components/ui'
 import type { EntityStatus, Option } from './types'
 
@@ -81,5 +81,30 @@ export function DateTimeText({ value, fallback = '—' }: { value?: string; fall
     <styled.time dateTime={value} whiteSpace="nowrap">
       {`${dateTimeFormat.format(time)} UTC`}
     </styled.time>
+  )
+}
+
+/** A value in the mono face (a permission name, a client id). */
+export function MonoText({ children }: { children: ReactNode }) {
+  return (
+    <Text as="span" fontFamily="mono" textStyle="sm">
+      {children}
+    </Text>
+  )
+}
+
+/** A name with the "Built-in" badge beside it. */
+export function BuiltInName({ name, builtIn }: { name: string; builtIn: boolean }) {
+  return (
+    <HStack gap="2">
+      <Text as="span" color="fg.default" fontWeight="medium">
+        {name}
+      </Text>
+      {builtIn ? (
+        <Badge variant="outline" colorPalette="gray">
+          Built-in
+        </Badge>
+      ) : null}
+    </HStack>
   )
 }

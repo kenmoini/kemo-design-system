@@ -2,16 +2,23 @@
 import { Portal } from '@ark-ui/react/portal'
 import { createListCollection } from '@ark-ui/react/select'
 import { forwardRef, type ReactNode, useCallback, useMemo, useState } from 'react'
-import { HStack } from '../../../../styled-system/jsx'
+import { HStack, Stack } from '../../../../styled-system/jsx'
 import {
   Badge,
   Button,
+  Checkbox,
   Field,
+  Fieldset,
   Input,
   type InputProps,
+  NumberInput,
+  RadioGroup,
   Select,
   Switch,
   TagsInput,
+  Text,
+  Textarea,
+  type TextareaProps,
 } from '../../../components/ui'
 import type { Option } from '../../../widgets'
 import { FormAlert } from '../../auth/form-alert'
@@ -75,6 +82,180 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
     </Field.Root>
   )
 })
+
+export type TextareaFieldProps = Omit<TextareaProps, 'ref' | 'children'> & {
+  label: string
+  error?: string
+  helper?: ReactNode
+  required?: boolean
+}
+
+/** `TextField` for longer text: a labelled `Textarea`; spread react-hook-form's `register()` on it. */
+export const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>(
+  function TextareaField({ label, error, helper, required, ...textareaProps }, ref) {
+    return (
+      <Field.Root invalid={!!error} required={required}>
+        <Field.Label>
+          {label}
+          <Field.RequiredIndicator />
+        </Field.Label>
+        <Textarea ref={ref} rows={3} {...textareaProps} />
+        <FieldMessages helper={helper} error={error} />
+      </Field.Root>
+    )
+  },
+)
+
+export interface NumberFieldProps {
+  label: string
+  /** `NaN` while the input is empty. */
+  value: number
+  onChange: (value: number) => void
+  min?: number
+  max?: number
+  helper?: ReactNode
+  error?: string
+  required?: boolean
+  onBlur?: () => void
+}
+
+/**
+ * A labelled Park `NumberInput` with steppers. It does not clamp on blur, so an out-of-range value
+ * reaches the form's validation and its message. Bind it with react-hook-form's `Controller`.
+ */
+export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(function NumberField(
+  { label, value, onChange, min, max, helper, error, required, onBlur },
+  ref,
+) {
+  return (
+    <Field.Root invalid={!!error} required={required}>
+      <NumberInput.Root
+        value={Number.isNaN(value) ? '' : String(value)}
+        onValueChange={(details) => onChange(details.valueAsNumber)}
+        min={min}
+        max={max}
+        clampValueOnBlur={false}
+        allowOverflow
+      >
+        <NumberInput.Label>
+          {label}
+          <Field.RequiredIndicator />
+        </NumberInput.Label>
+        <NumberInput.Control>
+          <Field.Context>
+            {(field) => (
+              <NumberInput.Input
+                ref={ref}
+                onBlur={onBlur}
+                aria-describedby={field.ariaDescribedby}
+              />
+            )}
+          </Field.Context>
+        </NumberInput.Control>
+      </NumberInput.Root>
+      <FieldMessages helper={helper} error={error} />
+    </Field.Root>
+  )
+})
+
+export interface RadioFieldProps {
+  label: string
+  options: Option[]
+  value: string
+  onChange: (value: string) => void
+  helper?: ReactNode
+  error?: string
+}
+
+/** A labelled Park `RadioGroup`, one radio per option. Bind it with `Controller`. */
+export function RadioField({ label, options, value, onChange, helper, error }: RadioFieldProps) {
+  return (
+    <Field.Root invalid={!!error}>
+      <RadioGroup.Root value={value} onValueChange={(details) => onChange(details.value ?? '')}>
+        <RadioGroup.Label>{label}</RadioGroup.Label>
+        <Stack gap="2">
+          {options.map((option) => (
+            <RadioGroup.Item key={option.value} value={option.value}>
+              <RadioGroup.ItemControl />
+              <RadioGroup.ItemText>{option.label}</RadioGroup.ItemText>
+              <RadioGroup.ItemHiddenInput />
+            </RadioGroup.Item>
+          ))}
+        </Stack>
+      </RadioGroup.Root>
+      <FieldMessages helper={helper} error={error} />
+    </Field.Root>
+  )
+}
+
+export interface CheckboxGroupSection {
+  /** A heading above the section's options; omitted for a single flat list. */
+  heading?: string
+  options: Option[]
+}
+
+export interface CheckboxListFieldProps {
+  legend: string
+  sections: CheckboxGroupSection[]
+  value: string[]
+  onChange: (value: string[]) => void
+  helper?: ReactNode
+  error?: string
+  required?: boolean
+}
+
+/** A `Fieldset` of `Checkbox`es, optionally in headed sections; the value is the checked option values. */
+export function CheckboxListField({
+  legend,
+  sections,
+  value,
+  onChange,
+  helper,
+  error,
+  required,
+}: CheckboxListFieldProps) {
+  const toggle = (option: string, checked: boolean) =>
+    onChange(checked ? [...value, option] : value.filter((v) => v !== option))
+  return (
+    <Fieldset.Root invalid={!!error}>
+      <Fieldset.Legend>
+        {legend}
+        {required ? ' *' : null}
+      </Fieldset.Legend>
+      <Stack gap="4">
+        {sections.map((section) => (
+          <Stack
+            key={section.heading ?? 'all'}
+            gap="2"
+            role={section.heading ? 'group' : undefined}
+            aria-label={section.heading}
+          >
+            {section.heading ? (
+              <Text as="span" textStyle="sm" fontWeight="medium" color="fg.muted">
+                {section.heading}
+              </Text>
+            ) : null}
+            {section.options.map((option) => (
+              <Checkbox.Root
+                key={option.value}
+                checked={value.includes(option.value)}
+                onCheckedChange={(details) => toggle(option.value, details.checked === true)}
+              >
+                <Checkbox.Control>
+                  <Checkbox.Indicator />
+                </Checkbox.Control>
+                <Checkbox.Label>{option.label}</Checkbox.Label>
+                <Checkbox.HiddenInput />
+              </Checkbox.Root>
+            ))}
+          </Stack>
+        ))}
+      </Stack>
+      {helper ? <Fieldset.HelperText>{helper}</Fieldset.HelperText> : null}
+      {error ? <Fieldset.ErrorText>{error}</Fieldset.ErrorText> : null}
+    </Fieldset.Root>
+  )
+}
 
 interface SelectBaseProps {
   label: string
