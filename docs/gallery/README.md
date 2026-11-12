@@ -2,9 +2,9 @@
 
 # Gallery
 
-Screenshots of every page the preview renders, one family per guide. Each is the full page at a
-1440×900 viewport in the light host theme; a `(dark)` entry is the same page under the dark theme.
-Click a thumbnail for the full-size PNG.
+Screenshots of every page the preview renders, one family per guide: the full page at a 1440×900
+viewport in the light host theme and, beside it, the same page in the dark theme. The auth and
+status pages force dark mode, so they appear once. Click a thumbnail for the full-size PNG.
 
 To add a page or component, add it to `apps/preview/gallery/manifest.ts` and run `pnpm gallery`
 (`GALLERY_ONLY=<family>` captures one family and still rewrites this index); see
@@ -14,11 +14,11 @@ To add a page or component, add it to `apps/preview/gallery/manifest.ts` and run
 | --- | --- | --- |
 | [Auth pages](#auth-pages) | 4 | [Auth pages](../auth-pages.md) |
 | [Dashboard](#dashboard) | 2 | [Dashboard](../dashboard.md) |
-| [Status pages and console pages](#status-pages-and-console-pages) | 9 | [Status pages and console pages](../status-pages.md) |
-| [Access page](#access-page) | 11 | [Access page](../access-page.md) |
-| [Deployments pages](#deployments-pages) | 7 | [Deployments pages](../deployments-pages.md) |
-| [Blog pages](#blog-pages) | 7 | [Blog pages](../blog-pages.md) |
-| [Component pages](#component-pages) | 5 | [README](../../README.md#quickstart) |
+| [Status pages and console pages](#status-pages-and-console-pages) | 10 | [Status pages and console pages](../status-pages.md) |
+| [Access page](#access-page) | 20 | [Access page](../access-page.md) |
+| [Deployments pages](#deployments-pages) | 10 | [Deployments pages](../deployments-pages.md) |
+| [Blog pages](#blog-pages) | 12 | [Blog pages](../blog-pages.md) |
+| [Component pages](#component-pages) | 8 | [README](../../README.md#quickstart) |
 
 ## Auth pages
 
@@ -48,7 +48,7 @@ The application shell (top bar, side navigation, page header and footer) around 
 
 ## Status pages and console pages
 
-The bare status pages (401, 403, 404, 500, 503 and Maintenance, forced dark on the muted gradient) and the console pages rendered inside the shell (FAQ and the Blank page). Guide: [Status pages and console pages](../status-pages.md).
+The bare status pages (401, 403, 404, 500, 503 and Maintenance, forced dark on the muted gradient, so captured once) and the console pages rendered inside the shell (FAQ and the Blank page). Guide: [Status pages and console pages](../status-pages.md).
 
 <table>
 <tr>
@@ -69,6 +69,7 @@ The bare status pages (401, 403, 404, 500, 503 and Maintenance, forced dark on t
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="status/blank.png"><img src="status/blank.png" width="420" alt="Blank page"></a><br><strong>Blank page</strong> · <code>/blank</code></td>
+<td width="50%" valign="top"><a href="status/blank.dark.png"><img src="status/blank.dark.png" width="420" alt="Blank page (dark)"></a><br><strong>Blank page (dark)</strong> · <code>/blank</code></td>
 </tr>
 </table>
 
@@ -83,22 +84,39 @@ The ten-tab Access page: Overview, the six object tables on DataTable (users, gr
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="access/users.png"><img src="access/users.png" width="420" alt="Users"></a><br><strong>Users</strong> · <code>/access/users</code></td>
+<td width="50%" valign="top"><a href="access/users.dark.png"><img src="access/users.dark.png" width="420" alt="Users (dark)"></a><br><strong>Users (dark)</strong> · <code>/access/users</code></td>
+</tr>
+<tr>
 <td width="50%" valign="top"><a href="access/groups.png"><img src="access/groups.png" width="420" alt="Groups"></a><br><strong>Groups</strong> · <code>/access/groups</code></td>
+<td width="50%" valign="top"><a href="access/groups.dark.png"><img src="access/groups.dark.png" width="420" alt="Groups (dark)"></a><br><strong>Groups (dark)</strong> · <code>/access/groups</code></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="access/roles.png"><img src="access/roles.png" width="420" alt="Roles"></a><br><strong>Roles</strong> · <code>/access/roles</code></td>
+<td width="50%" valign="top"><a href="access/roles.dark.png"><img src="access/roles.dark.png" width="420" alt="Roles (dark)"></a><br><strong>Roles (dark)</strong> · <code>/access/roles</code></td>
+</tr>
+<tr>
 <td width="50%" valign="top"><a href="access/permissions.png"><img src="access/permissions.png" width="420" alt="Permissions"></a><br><strong>Permissions</strong> · <code>/access/permissions</code></td>
+<td width="50%" valign="top"><a href="access/permissions.dark.png"><img src="access/permissions.dark.png" width="420" alt="Permissions (dark)"></a><br><strong>Permissions (dark)</strong> · <code>/access/permissions</code></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="access/audit.png"><img src="access/audit.png" width="420" alt="Audit"></a><br><strong>Audit</strong> · <code>/access/audit</code></td>
+<td width="50%" valign="top"><a href="access/audit.dark.png"><img src="access/audit.dark.png" width="420" alt="Audit (dark)"></a><br><strong>Audit (dark)</strong> · <code>/access/audit</code></td>
+</tr>
+<tr>
 <td width="50%" valign="top"><a href="access/oidc.png"><img src="access/oidc.png" width="420" alt="OIDC"></a><br><strong>OIDC</strong> · <code>/access/oidc</code></td>
+<td width="50%" valign="top"><a href="access/oidc.dark.png"><img src="access/oidc.dark.png" width="420" alt="OIDC (dark)"></a><br><strong>OIDC (dark)</strong> · <code>/access/oidc</code></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="access/service-accounts.png"><img src="access/service-accounts.png" width="420" alt="Service accounts"></a><br><strong>Service accounts</strong> · <code>/access/service-accounts</code></td>
+<td width="50%" valign="top"><a href="access/service-accounts.dark.png"><img src="access/service-accounts.dark.png" width="420" alt="Service accounts (dark)"></a><br><strong>Service accounts (dark)</strong> · <code>/access/service-accounts</code></td>
+</tr>
+<tr>
 <td width="50%" valign="top"><a href="access/oauth-apps.png"><img src="access/oauth-apps.png" width="420" alt="OAuth apps"></a><br><strong>OAuth apps</strong> · <code>/access/oauth-apps</code></td>
+<td width="50%" valign="top"><a href="access/oauth-apps.dark.png"><img src="access/oauth-apps.dark.png" width="420" alt="OAuth apps (dark)"></a><br><strong>OAuth apps (dark)</strong> · <code>/access/oauth-apps</code></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="access/settings.png"><img src="access/settings.png" width="420" alt="Settings"></a><br><strong>Settings</strong> · <code>/access/settings</code></td>
+<td width="50%" valign="top"><a href="access/settings.dark.png"><img src="access/settings.dark.png" width="420" alt="Settings (dark)"></a><br><strong>Settings (dark)</strong> · <code>/access/settings</code></td>
 </tr>
 </table>
 
@@ -113,7 +131,11 @@ The Deployments list with its cluster and namespace scope, the create page, and 
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="deployments/new.png"><img src="deployments/new.png" width="420" alt="Create deployment"></a><br><strong>Create deployment</strong> · <code>/deployments/new</code></td>
+<td width="50%" valign="top"><a href="deployments/new.dark.png"><img src="deployments/new.dark.png" width="420" alt="Create deployment (dark)"></a><br><strong>Create deployment (dark)</strong> · <code>/deployments/new</code></td>
+</tr>
+<tr>
 <td width="50%" valign="top"><a href="deployments/overview.png"><img src="deployments/overview.png" width="420" alt="Deployment: Overview"></a><br><strong>Deployment: Overview</strong> · <code>/deployments/prod-us-east/checkout/checkout-api</code></td>
+<td width="50%" valign="top"><a href="deployments/overview.dark.png"><img src="deployments/overview.dark.png" width="420" alt="Deployment: Overview (dark)"></a><br><strong>Deployment: Overview (dark)</strong> · <code>/deployments/prod-us-east/checkout/checkout-api</code></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="deployments/yaml.png"><img src="deployments/yaml.png" width="420" alt="Deployment: YAML"></a><br><strong>Deployment: YAML</strong> · <code>/deployments/prod-us-east/checkout/checkout-api/yaml</code><br><em>With the schema browser open.</em></td>
@@ -121,6 +143,7 @@ The Deployments list with its cluster and namespace scope, the create page, and 
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="deployments/events.png"><img src="deployments/events.png" width="420" alt="Deployment: Events"></a><br><strong>Deployment: Events</strong> · <code>/deployments/prod-us-east/checkout/checkout-api/events</code></td>
+<td width="50%" valign="top"><a href="deployments/events.dark.png"><img src="deployments/events.dark.png" width="420" alt="Deployment: Events (dark)"></a><br><strong>Deployment: Events (dark)</strong> · <code>/deployments/prod-us-east/checkout/checkout-api/events</code></td>
 </tr>
 </table>
 
@@ -135,14 +158,23 @@ The three blog variations, each an index and a post page with comments: Editoria
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="blog/editorial-list-post.png"><img src="blog/editorial-list-post.png" width="420" alt="Editorial list: post"></a><br><strong>Editorial list: post</strong> · <code>/blog/editorial-list/cold-start-62</code></td>
+<td width="50%" valign="top"><a href="blog/editorial-list-post.dark.png"><img src="blog/editorial-list-post.dark.png" width="420" alt="Editorial list: post (dark)"></a><br><strong>Editorial list: post (dark)</strong> · <code>/blog/editorial-list/cold-start-62</code></td>
+</tr>
+<tr>
 <td width="50%" valign="top"><a href="blog/magazine-grid.png"><img src="blog/magazine-grid.png" width="420" alt="Magazine grid"></a><br><strong>Magazine grid</strong> · <code>/blog/magazine-grid</code></td>
+<td width="50%" valign="top"><a href="blog/magazine-grid.dark.png"><img src="blog/magazine-grid.dark.png" width="420" alt="Magazine grid (dark)"></a><br><strong>Magazine grid (dark)</strong> · <code>/blog/magazine-grid</code></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="blog/magazine-grid-post.png"><img src="blog/magazine-grid-post.png" width="420" alt="Magazine grid: post"></a><br><strong>Magazine grid: post</strong> · <code>/blog/magazine-grid/cold-start-62</code></td>
+<td width="50%" valign="top"><a href="blog/magazine-grid-post.dark.png"><img src="blog/magazine-grid-post.dark.png" width="420" alt="Magazine grid: post (dark)"></a><br><strong>Magazine grid: post (dark)</strong> · <code>/blog/magazine-grid/cold-start-62</code></td>
+</tr>
+<tr>
 <td width="50%" valign="top"><a href="blog/journal-rail.png"><img src="blog/journal-rail.png" width="420" alt="Journal with a rail"></a><br><strong>Journal with a rail</strong> · <code>/blog/journal-rail</code></td>
+<td width="50%" valign="top"><a href="blog/journal-rail.dark.png"><img src="blog/journal-rail.dark.png" width="420" alt="Journal with a rail (dark)"></a><br><strong>Journal with a rail (dark)</strong> · <code>/blog/journal-rail</code></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="blog/journal-rail-post.png"><img src="blog/journal-rail-post.png" width="420" alt="Journal with a rail: post"></a><br><strong>Journal with a rail: post</strong> · <code>/blog/journal-rail/cold-start-62</code></td>
+<td width="50%" valign="top"><a href="blog/journal-rail-post.dark.png"><img src="blog/journal-rail-post.dark.png" width="420" alt="Journal with a rail: post (dark)"></a><br><strong>Journal with a rail: post (dark)</strong> · <code>/blog/journal-rail/cold-start-62</code></td>
 </tr>
 </table>
 
@@ -157,9 +189,14 @@ The preview pages that render every variant of the Park UI components: buttons, 
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="components/forms.png"><img src="components/forms.png" width="420" alt="Forms"></a><br><strong>Forms</strong> · <code>/components/forms</code></td>
+<td width="50%" valign="top"><a href="components/forms.dark.png"><img src="components/forms.dark.png" width="420" alt="Forms (dark)"></a><br><strong>Forms (dark)</strong> · <code>/components/forms</code></td>
+</tr>
+<tr>
 <td width="50%" valign="top"><a href="components/surfaces.png"><img src="components/surfaces.png" width="420" alt="Surfaces"></a><br><strong>Surfaces</strong> · <code>/components/surfaces</code></td>
+<td width="50%" valign="top"><a href="components/surfaces.dark.png"><img src="components/surfaces.dark.png" width="420" alt="Surfaces (dark)"></a><br><strong>Surfaces (dark)</strong> · <code>/components/surfaces</code></td>
 </tr>
 <tr>
 <td width="50%" valign="top"><a href="components/typography.png"><img src="components/typography.png" width="420" alt="Typography"></a><br><strong>Typography</strong> · <code>/components/typography</code></td>
+<td width="50%" valign="top"><a href="components/typography.dark.png"><img src="components/typography.dark.png" width="420" alt="Typography (dark)"></a><br><strong>Typography (dark)</strong> · <code>/components/typography</code></td>
 </tr>
 </table>
