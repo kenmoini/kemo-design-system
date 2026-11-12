@@ -437,6 +437,25 @@ a built preview on :3100 with a scratch Playwright config, never the owner's dev
 14. Comments: name-and-text form with no sign-in, one level of replies, oldest first, plain-text bodies,
     placement per variation as described under "Comments", and a working mock in the preview.
 
+## Changes made during the build (they override the text above)
+
+- **Journal with a rail, small screens first.** The page's source order is the small-screen reading order,
+  and the two columns are placed with the grid from `lg`, so keyboard order follows what is on screen. As a
+  result the index's left column (title, topics, subscribe) is not sticky, and on the post "Copy link" sits
+  in the left column level with the end of the article (beside the comments) instead of under "Details";
+  the post's rail (back link, "On this page", "Details") is still sticky.
+- **Topic filter.** It is controlled whenever the host passes the `topic` prop, with or without
+  `onTopicChange`.
+- **Back link.** Only the Journal post uses `indexTitle`; the Editorial list post says "All posts" and the
+  Magazine grid post has no back link.
+- **Footer.** `BlogLayout` takes an optional `year`. On the Journal post a host `footer` replaces the
+  older-post link.
+- **Subscribe form.** One layout only (stacked); the `layout` prop was removed.
+- **Token names.** The surface and border names used above (`bg.canvas`, `bg.default`, `border.subtle`) are
+  not in the theme; the build uses `canvas`, `gray.surface.bg` and `border`. A `code` font token was added
+  so inline code renders in monospace.
+- **Dates.** Editorial list rows show the long date ("04 Nov 2026").
+
 ## Left to the builder
 
 File split inside `pages/blog/`; exact token choices where the mockup gives pixels; the pull-quote rule's
