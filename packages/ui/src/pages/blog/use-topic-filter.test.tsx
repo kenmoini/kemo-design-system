@@ -38,13 +38,33 @@ describe('useTopicFilter', () => {
     expect(result.current.topics.map((t) => t.id)).toEqual(['design', 'releases'])
   })
 
-  it('filters and reports the label', () => {
+  it('is uncontrolled with only onTopicChange: filters, reports the label and calls it', () => {
     const onTopicChange = vi.fn()
     const { result } = renderHook(() => useTopicFilter(posts, { onTopicChange }))
     act(() => result.current.setTopic('releases'))
+    expect(result.current.topic).toBe('releases')
     expect(result.current.visible.map((p) => p.slug)).toEqual(['c', 'a'])
     expect(result.current.topicLabel).toBe('Releases')
     expect(onTopicChange).toHaveBeenCalledWith('releases')
+  })
+
+  it('is controlled by a present topic key without onTopicChange', () => {
+    const { result } = renderHook(() => useTopicFilter(posts, { topic: 'design' }))
+    expect(result.current.visible.map((p) => p.slug)).toEqual(['b'])
+    act(() => result.current.setTopic('releases'))
+    expect(result.current.topic).toBe('design')
+    expect(result.current.visible.map((p) => p.slug)).toEqual(['b'])
+  })
+
+  it('holds all posts for a present but undefined topic, over defaultTopic', () => {
+    const { result } = renderHook(() =>
+      useTopicFilter(posts, { topic: undefined, defaultTopic: 'design' }),
+    )
+    expect(result.current.topic).toBeUndefined()
+    expect(result.current.visible).toHaveLength(3)
+    act(() => result.current.setTopic('design'))
+    expect(result.current.topic).toBeUndefined()
+    expect(result.current.visible).toHaveLength(3)
   })
 
   it('is controlled when topic and onTopicChange are passed', () => {

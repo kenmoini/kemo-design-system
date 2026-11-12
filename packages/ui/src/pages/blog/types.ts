@@ -73,8 +73,15 @@ export interface BlogIndexPageProps extends BlogChromeProps {
   title: string
   description?: ReactNode
   posts: BlogPost[]
-  topic?: string // topic id; controlled
+  /**
+   * The selected topic id; `undefined` means all posts. Passing the key, even as `undefined`, makes
+   * the filter controlled: it shows this topic until the prop changes, so pair it with
+   * `onTopicChange`. Leave the key out for an uncontrolled filter that starts at `defaultTopic`.
+   */
+  topic?: string
+  /** The starting topic of an uncontrolled filter (no `topic` key). */
   defaultTopic?: string
+  /** Called with the topic id (or `undefined` for all) on every change asked for, in both modes. */
   onTopicChange?: (topicId: string | undefined) => void
 }
 

@@ -10,13 +10,14 @@ interface TopicFilterOptions {
 }
 
 /**
- * Sorts posts, lists their topics and filters by one. Controlled exactly when `onTopicChange` is
- * passed and the `topic` key is present (even as `undefined`, meaning "all"); otherwise it keeps
- * its own state, starting at `defaultTopic`.
+ * Sorts posts, lists their topics and filters by one. Controlled exactly when the `topic` key is
+ * present (even as `undefined`, meaning "all"), with or without `onTopicChange`; otherwise it keeps
+ * its own state, starting at `defaultTopic`. `onTopicChange`, when given, hears every change asked
+ * for, in either mode.
  */
 export function useTopicFilter(posts: BlogPost[], opts: TopicFilterOptions) {
   const { onTopicChange, defaultTopic } = opts
-  const controlled = onTopicChange !== undefined && 'topic' in opts
+  const controlled = 'topic' in opts
   const [inner, setInner] = useState<string | undefined>(defaultTopic)
   const topic = controlled ? opts.topic : inner
 
