@@ -30,7 +30,7 @@ export type BlogBlock =
 /** `replies` is one level deep; replies of replies are ignored. `body` is plain text. */
 export interface BlogComment {
   id: string
-  author: { name: string; avatarSrc?: string }
+  author: { name: string; avatarSrc?: string; isAuthor?: boolean }
   postedAt: string // ISO 8601
   body: string
   replies?: BlogComment[]
