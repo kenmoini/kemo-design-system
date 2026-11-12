@@ -49,10 +49,16 @@ export function JournalRailIndex(props: BlogIndexPageProps) {
   const { shown, hasMore, more } = useReveal(visible.length, 5, topic)
   const groups = groupByMonth(visible.slice(0, shown))
   const idPrefix = useId()
+  const subscribeHeadingId = `${idPrefix}-subscribe`
   const countOf = (id: string) => sorted.filter((p) => p.topic.id === id).length
 
   return (
     <BlogLayout {...props} hideSubscribe>
+      {/* The DOM is the small-screen reading order, so Tab follows the page at every width: title,
+          topics, feed, subscribe card. From `lg` the title, topics and card are placed in the
+          14rem left column (auto-placed down its rows in that order) and the feed spans every row
+          of the right one, its height going to the last, flexible row. The left column does not
+          stick: the card comes after the feed in the DOM, so no one box can hold all three. */}
       <Box
         maxW="72rem"
         mx="auto"
@@ -60,93 +66,74 @@ export function JournalRailIndex(props: BlogIndexPageProps) {
         py={{ base: '6', lg: '8' }}
         display="flex"
         flexDirection="column"
-        gap="6"
-        lg={{ display: 'grid', gridTemplateColumns: '14rem 1fr', gap: '10', alignItems: 'start' }}
+        rowGap={{ base: '6', lg: '5' }}
+        columnGap="10"
+        lg={{
+          display: 'grid',
+          gridTemplateColumns: '14rem minmax(0, 1fr)',
+          gridTemplateRows: 'auto auto auto 1fr',
+          alignItems: 'start',
+        }}
       >
-        {/* Below lg the rail dissolves into the column: the card is ordered after the feed. */}
-        <Box
-          as="aside"
-          display={{ base: 'contents', lg: 'flex' }}
-          flexDirection="column"
-          gap="5"
-          lg={{ position: 'sticky', top: '6' }}
-        >
-          <Stack gap="2">
-            <styled.h1
-              textStyle={{ base: 'xl', lg: '2xl' }}
-              fontWeight="semibold"
-              letterSpacing="-0.02em"
+        <Stack gap="2" lg={{ gridColumn: '1' }}>
+          <styled.h1
+            textStyle={{ base: 'xl', lg: '2xl' }}
+            fontWeight="semibold"
+            letterSpacing="-0.02em"
+          >
+            {title}
+          </styled.h1>
+          {description ? (
+            <Text color="fg.muted" textStyle="sm">
+              {description}
+            </Text>
+          ) : null}
+        </Stack>
+        {posts.length > 0 ? (
+          <Box as="nav" aria-label="Topics" lg={{ gridColumn: '1' }}>
+            <styled.p
+              textStyle="xs"
+              color="fg.subtle"
+              mb="1.5"
+              display={{ base: 'none', lg: 'block' }}
             >
-              {title}
-            </styled.h1>
-            {description ? (
-              <Text color="fg.muted" textStyle="sm">
-                {description}
-              </Text>
-            ) : null}
-          </Stack>
-          {posts.length > 0 ? (
-            <Box as="nav" aria-label="Topics">
-              <styled.p
-                textStyle="xs"
-                color="fg.subtle"
-                mb="1.5"
-                display={{ base: 'none', lg: 'block' }}
-              >
-                Topics
-              </styled.p>
-              <styled.ul
-                m="0"
-                p="0"
-                listStyle="none"
-                display="flex"
-                flexWrap="wrap"
-                gap="2"
-                lg={{ flexDirection: 'column', gap: '0.5' }}
-              >
-                <li>
+              Topics
+            </styled.p>
+            <styled.ul
+              m="0"
+              p="0"
+              listStyle="none"
+              display="flex"
+              flexWrap="wrap"
+              gap="2"
+              lg={{ flexDirection: 'column', gap: '0.5' }}
+            >
+              <li>
+                <button
+                  type="button"
+                  className={topicButton}
+                  aria-pressed={topic === undefined}
+                  onClick={() => setTopic(undefined)}
+                >
+                  All posts <span>{sorted.length}</span>
+                </button>
+              </li>
+              {topics.map((t) => (
+                <li key={t.id}>
                   <button
                     type="button"
                     className={topicButton}
-                    aria-pressed={topic === undefined}
-                    onClick={() => setTopic(undefined)}
+                    aria-pressed={topic === t.id}
+                    onClick={() => setTopic(t.id)}
                   >
-                    All posts <span>{sorted.length}</span>
+                    {t.label} <span>{countOf(t.id)}</span>
                   </button>
                 </li>
-                {topics.map((t) => (
-                  <li key={t.id}>
-                    <button
-                      type="button"
-                      className={topicButton}
-                      aria-pressed={topic === t.id}
-                      onClick={() => setTopic(t.id)}
-                    >
-                      {t.label} <span>{countOf(t.id)}</span>
-                    </button>
-                  </li>
-                ))}
-              </styled.ul>
-            </Box>
-          ) : null}
-          {onSubscribe ? (
-            <Stack
-              gap="2"
-              p="3"
-              borderWidth="1px"
-              borderColor="border"
-              bg="gray.surface.bg"
-              rounded="l2"
-              order={{ base: 2, lg: 0 }}
-            >
-              <Heading as="h2" textStyle="sm">
-                Get new posts by email
-              </Heading>
-              <SubscribeForm onSubscribe={onSubscribe} layout="stacked" idPrefix={idPrefix} />
-            </Stack>
-          ) : null}
-        </Box>
-        <Box order={{ base: 1, lg: 0 }} minW="0">
+              ))}
+            </styled.ul>
+          </Box>
+        ) : null}
+        <Box minW="0" lg={{ gridColumn: '2', gridRow: '1 / -1' }}>
           {posts.length === 0 ? (
             <EmptyState message="No posts yet." />
           ) : visible.length === 0 ? (
@@ -257,6 +244,24 @@ export function JournalRailIndex(props: BlogIndexPageProps) {
           )}
           <PostCountStatus count={visible.length} topic={topic} topicLabel={topicLabel} />
         </Box>
+        {onSubscribe ? (
+          <Stack
+            as="aside"
+            aria-labelledby={subscribeHeadingId}
+            gap="2"
+            p="3"
+            borderWidth="1px"
+            borderColor="border"
+            bg="gray.surface.bg"
+            rounded="l2"
+            lg={{ gridColumn: '1' }}
+          >
+            <Heading as="h2" id={subscribeHeadingId} textStyle="sm">
+              Get new posts by email
+            </Heading>
+            <SubscribeForm onSubscribe={onSubscribe} idPrefix={idPrefix} />
+          </Stack>
+        ) : null}
       </Box>
     </BlogLayout>
   )

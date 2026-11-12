@@ -12,7 +12,30 @@ const props = {
   posts: testPosts,
 }
 
+/** The keys of `named`, sorted by where their elements sit in the document. */
+const documentOrder = (named: Record<string, Element>) =>
+  Object.entries(named)
+    .sort(([, a], [, b]) =>
+      a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1,
+    )
+    .map(([name]) => name)
+
 describe('JournalRailIndex', () => {
+  it('puts the page in reading order: title, topics, the feed, then the subscribe card', () => {
+    render(<JournalRailIndex {...props} onSubscribe={vi.fn().mockResolvedValue(undefined)} />)
+    const title = screen.getByRole('heading', { level: 1 })
+    expect(screen.getAllByRole('heading')[0]).toBe(title)
+    expect(
+      documentOrder({
+        title,
+        topics: screen.getByRole('navigation', { name: 'Topics' }),
+        feed: screen.getAllByRole('article')[0]!,
+        more: screen.getByRole('button', { name: 'Load older posts' }),
+        subscribe: screen.getByRole('complementary', { name: 'Get new posts by email' }),
+      }),
+    ).toEqual(['title', 'topics', 'feed', 'more', 'subscribe'])
+  })
+
   it('groups the first five posts by month with counts', () => {
     render(<JournalRailIndex {...props} />)
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
@@ -74,6 +97,18 @@ describe('JournalRailIndex', () => {
     expect(screen.getByText('No posts in this topic.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Show all posts' }))
     expect(onTopicChange).toHaveBeenCalledWith(undefined)
+  })
+
+  it('holds a topic passed without onTopicChange', async () => {
+    const user = userEvent.setup()
+    render(<JournalRailIndex {...props} topic="releases" />)
+    expect(screen.getAllByRole('article')).toHaveLength(2)
+    await user.click(screen.getByRole('button', { name: 'Engineering 4' }))
+    expect(screen.getByRole('button', { name: 'Releases 2' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(screen.getAllByRole('article')).toHaveLength(2)
   })
 
   it('shows a thumbnail only for posts with an explicit cover', async () => {

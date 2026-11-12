@@ -20,6 +20,18 @@ const link = css({
   _hover: { color: 'fg.default' },
   _focusVisible: { outline: '2px solid', outlineOffset: '2px' },
 })
+// One band of the page: a column below `lg`; from `lg` the 14rem rail column and the main one.
+const band = css({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '6',
+  lg: {
+    display: 'grid',
+    gridTemplateColumns: '14rem minmax(0, 1fr)',
+    columnGap: '10',
+    alignItems: 'start',
+  },
+})
 
 export function JournalRailPost({
   post,
@@ -61,6 +73,11 @@ export function JournalRailPost({
 
   return (
     <BlogLayout {...chrome} footer={footer} hideSubscribe>
+      {/* The DOM is the small-screen reading order, so Tab follows the page at every width: back
+          link and details, the post, Copy link, comments. From `lg` two bands place them in the
+          rail and main columns: the rail beside the post, then Copy link beside the comments. A
+          sticky box stays inside its parent, so the rail follows the post down its band and comes
+          to rest above Copy link where the post ends, rather than sliding over it. */}
       <Box
         maxW="72rem"
         mx="auto"
@@ -69,72 +86,78 @@ export function JournalRailPost({
         display="flex"
         flexDirection="column"
         gap="6"
-        lg={{ display: 'grid', gridTemplateColumns: '14rem 1fr', gap: '10', alignItems: 'start' }}
       >
-        {/* Below lg the rail dissolves into the column: details above the title, Copy link after. */}
-        <Box
-          as="aside"
-          display={{ base: 'contents', lg: 'flex' }}
-          flexDirection="column"
-          gap="6"
-          lg={{ position: 'sticky', top: '6' }}
-        >
-          <Box>
-            <HostLink as={linkComponent} href={indexHref} className={link}>
-              ← {indexTitle ?? 'All posts'}
-            </HostLink>
-          </Box>
-          {items.length > 0 ? (
-            <Box display={{ base: 'none', lg: 'block' }}>
-              <OnThisPage items={items} />
+        <div className={band}>
+          <Box
+            as="aside"
+            display="flex"
+            flexDirection="column"
+            gap="6"
+            lg={{ gridColumn: '1', position: 'sticky', top: '6' }}
+          >
+            <Box>
+              <HostLink as={linkComponent} href={indexHref} className={link}>
+                ← {indexTitle ?? 'All posts'}
+              </HostLink>
             </Box>
-          ) : null}
-          <Box>
-            <styled.h2 textStyle="xs" color="fg.subtle" mb="2">
-              Details
-            </styled.h2>
-            <styled.dl
-              m="0"
-              display="grid"
-              gridTemplateColumns="auto 1fr"
-              columnGap="4"
-              rowGap="1.5"
-              textStyle="sm"
-            >
-              {details.map(([term, value]) => (
-                <Box key={term} display="contents">
-                  <styled.dt color="fg.subtle">{term}</styled.dt>
-                  <styled.dd m="0">{value}</styled.dd>
-                </Box>
-              ))}
-            </styled.dl>
+            {items.length > 0 ? (
+              <Box display={{ base: 'none', lg: 'block' }}>
+                <OnThisPage items={items} />
+              </Box>
+            ) : null}
+            <Box>
+              <styled.h2 textStyle="xs" color="fg.subtle" mb="2">
+                Details
+              </styled.h2>
+              <styled.dl
+                m="0"
+                display="grid"
+                gridTemplateColumns="auto 1fr"
+                columnGap="4"
+                rowGap="1.5"
+                textStyle="sm"
+              >
+                {details.map(([term, value]) => (
+                  <Box key={term} display="contents">
+                    <styled.dt color="fg.subtle">{term}</styled.dt>
+                    <styled.dd m="0">{value}</styled.dd>
+                  </Box>
+                ))}
+              </styled.dl>
+            </Box>
           </Box>
-          <Box order={{ base: 2, lg: 0 }}>
+          <Box minW="0" lg={{ gridColumn: '2' }}>
+            <Stack gap="4" alignItems="flex-start" maxW="40rem">
+              <TopicBadge topic={post.topic} />
+              <styled.h1
+                textStyle={{ base: '3xl', md: '4xl' }}
+                fontWeight="semibold"
+                letterSpacing="-0.025em"
+                lineHeight="1.1"
+              >
+                {post.title}
+              </styled.h1>
+              <Text color="fg.muted" textStyle="md" maxW="56ch">
+                {post.summary}
+              </Text>
+            </Stack>
+            <Box maxW="40rem" mt="6" pt="6" borderTopWidth="1px" borderColor="border">
+              <Box as="article">
+                <BlogProse blocks={post.body} />
+              </Box>
+            </Box>
+          </Box>
+        </div>
+        <div className={band}>
+          <Box lg={{ gridColumn: '1' }}>
             <CopyLinkButton />
           </Box>
-        </Box>
-        <Box order={{ base: 1, lg: 0 }} minW="0">
-          <Stack gap="4" alignItems="flex-start" maxW="40rem">
-            <TopicBadge topic={post.topic} />
-            <styled.h1
-              textStyle={{ base: '3xl', md: '4xl' }}
-              fontWeight="semibold"
-              letterSpacing="-0.025em"
-              lineHeight="1.1"
-            >
-              {post.title}
-            </styled.h1>
-            <Text color="fg.muted" textStyle="md" maxW="56ch">
-              {post.summary}
-            </Text>
-          </Stack>
-          <Box maxW="40rem" mt="6" pt="6" borderTopWidth="1px" borderColor="border">
-            <Box as="article">
-              <BlogProse blocks={post.body} />
+          {comments ? (
+            <Box minW="0" lg={{ gridColumn: '2' }}>
+              <BlogComments comments={comments} onAddComment={onAddComment} />
             </Box>
-          </Box>
-          {comments ? <BlogComments comments={comments} onAddComment={onAddComment} /> : null}
-        </Box>
+          ) : null}
+        </div>
       </Box>
     </BlogLayout>
   )
