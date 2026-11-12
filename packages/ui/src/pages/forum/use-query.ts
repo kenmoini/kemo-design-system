@@ -12,7 +12,7 @@ const DELAY = 300
 /**
  * The search query of a list page: the text in the field (`input`) and the committed `query`
  * that filters the list. Controlled exactly when `'query' in opts`; `input` then re-syncs
- * during render whenever the `query` prop changes.
+ * during render when the `query` prop changes to something other than a trimmed echo of it.
  */
 export function useQuery(opts: UseQueryOptions) {
   const controlled = 'query' in opts
@@ -21,7 +21,8 @@ export function useQuery(opts: UseQueryOptions) {
   const [seen, setSeen] = useState(opts.query)
   if (controlled && opts.query !== seen) {
     setSeen(opts.query)
-    setInputState(opts.query ?? '')
+    // A prop that only echoes the user's own (trimmed) input must not rewrite the field.
+    if ((opts.query ?? '').trim() !== input.trim()) setInputState(opts.query ?? '')
   }
 
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)

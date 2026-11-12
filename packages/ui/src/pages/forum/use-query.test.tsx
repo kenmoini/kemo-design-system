@@ -84,4 +84,19 @@ describe('useQuery controlled', () => {
     rerender({ query: 'zz' })
     expect(result.current.input).toBe('zz')
   })
+
+  it('keeps the typed input when the prop is only its trimmed echo', () => {
+    const { result, rerender } = renderHook(
+      (p: { query: string }) => useQuery({ query: p.query }),
+      {
+        initialProps: { query: 'a' },
+      },
+    )
+    act(() => result.current.setInput('ab '))
+    act(() => void vi.advanceTimersByTime(300))
+    rerender({ query: 'ab' })
+    expect(result.current.input).toBe('ab ')
+    rerender({ query: 'zzz' })
+    expect(result.current.input).toBe('zzz')
+  })
 })
