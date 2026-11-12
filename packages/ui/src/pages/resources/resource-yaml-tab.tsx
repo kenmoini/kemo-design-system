@@ -219,7 +219,7 @@ export function ResourceYamlTab({
               {
                 id: 'download-clean',
                 label: 'Download clean YAML',
-                onSelect: () => downloadText(cleanFileName(fileName), cleanText()),
+                onSelect: () => downloadText(cleanFileName(fileName), cleanText(text)),
               },
             ]}
           />

@@ -54,8 +54,10 @@ export interface ResourceYamlTabProps {
   onReload?: () => void
   /** The name "Download YAML" saves under; "Download clean YAML" adds `.clean.yaml`. */
   fileName: string
-  /** The text "Download clean YAML" saves: the server copy without its server-managed fields. */
-  cleanText: () => string
+  /** The text "Download clean YAML" saves. It receives the text the editor shows (the draft when
+   * there is one), so the clean copy is of what the person sees: strip the server-managed fields
+   * from it, and fall back to the server copy when it does not parse. */
+  cleanText: (text: string) => string
   /** `create`: Save reads "Create" and is enabled whenever there is text. Default `edit`. */
   mode?: 'edit' | 'create'
   /** Create mode: shown above the editor (cluster and namespace pickers, say). */

@@ -123,13 +123,26 @@ describe('DeploymentDetailPage', () => {
     expect(vi.mocked(downloadText).mock.lastCall?.[1]).not.toContain('resourceVersion')
   })
 
+  it('cleans the draft, not the server copy, for the clean download', async () => {
+    const user = userEvent.setup()
+    const draft = toYaml(checkoutApi).replace('replicas: 6', 'replicas: 8')
+    renderPage({ tab: 'yaml', draft })
+    await screen.findByRole('textbox', { name: 'checkout-api.yaml' })
+    await user.click(screen.getByRole('button', { name: 'Download' }))
+    const menu = await screen.findByRole('menu')
+    await user.click(within(menu).getByRole('menuitem', { name: 'Download clean YAML' }))
+    const saved = vi.mocked(downloadText).mock.lastCall?.[1] as string
+    expect(saved).toContain('replicas: 8')
+    expect(saved).not.toContain('resourceVersion')
+  })
+
   it('renders the events table on the events tab', () => {
     renderPage({ tab: 'events' })
     expect(screen.getByRole('radio', { name: 'Deployment + children' })).toBeChecked()
     expect(screen.getByRole('radio', { name: 'All 3' })).toBeChecked()
     const table = screen.getByRole('table')
     expect(within(table).getAllByRole('row')).toHaveLength(events.length + 1)
-    expect(within(table).getByText('pod/checkout-api-7d9f-b81mn')).toBeInTheDocument()
+    expect(within(table).getByText('Pod/checkout-api-7d9f-b81mn')).toBeInTheDocument()
   })
 
   it('says the events stream when they are live', () => {

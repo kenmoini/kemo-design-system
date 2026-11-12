@@ -402,9 +402,14 @@ rest: rows and handlers come in through props, and the host keeps the state.
 - `DataTable` (widget): a Park `Table` with sortable headers, a search box, checkbox and select
   filters with live counts (a rail from `lg`, a "Filters" drawer below), row selection that
   survives paging and filtering, a "Bulk actions" menu, per-row action menus, an "+ Add" button,
-  pagination (10 rows a page) and a polite live region. Also `ActionMenu`, `DataTableFilters`,
-  `DataTablePager`, `dataTableFeatures` and the types `DataTableProps`, `DataTableColumn`,
-  `DataTableFilter`, `ActionItem` and `Option`.
+  pagination (10 rows a page; the pager and its range line hide when everything fits on one page)
+  and a polite live region. Also `ActionMenu`, `DataTableFilters`, `DataTablePager`,
+  `dataTableFeatures` and the types `DataTableProps`, `DataTableColumn`, `DataTableFilter`,
+  `ActionItem` (`ActionCommandItem` with `onSelect`, `ActionLinkItem` with `href`),
+  `DataTableFilterValues` and `Option`. A row or bulk action with an `href` renders as a link,
+  through `linkComponent` (Next's `Link`, say) when given. Pass `filterValues` and
+  `onFilterValuesChange` to own the filters' values: a record by filter id where an absent key
+  means no value; reflect every change back into it, and a change by content returns to page 1.
 - `AccessPage` and `accessTabs`: the header and a strip of ten tabs (Overview, Users, Groups, Roles,
   Permissions, Audit, OIDC, Service accounts, OAuth apps, Settings), each a link to its own URL;
   the strip scrolls sideways when it does not fit.
@@ -523,7 +528,9 @@ back as a callback. Exports from `@kemo/ui`:
   and scope filters, a live mode that holds still for a reader), `ShortcutsDialog`,
   `SchemaRegistry`, `schemaFor`, `defaultSchemaRegistry` and `downloadText`.
 - Widgets: `YamlEditor`, `useYamlDocument`, `SchemaBrowser` and `resolveNode`; `DataTable` gains a
-  `tags` filter kind (`key=value` chips; a row matches when it has every chip) and a `countLabel`.
+  `tags` filter kind (`key=value` chips; a row matches when it has every chip), a `countLabel` and
+  the controlled `filterValues` the Deployments list uses to clear a stale Namespace filter;
+  `MultiSelectField` gains `maxChips` (the rest collapse into a "+N" chip).
 - Helpers (`lib/kubernetes`, no UI): the types (`DeploymentResource`, `DeploymentSummary`,
   `RelatedObjects`, `K8sEvent`, `ScopeValue`, `ClusterOption`, …), `deploymentStatus`,
   `summarize`, `cleanResource`, `cleanYaml`, `toYaml`, `parseYaml`, `pathAtOffset`,
@@ -606,8 +613,9 @@ the library renders what it is given), its events, and the YAML as text with the
 Hold the draft (and anything else that must outlast a tab) above the `[[...tab]]` page, in a layout
 or a store: Next remounts a page when its params change. Save is disabled until the text differs
 from `yamlText` and blocked while the editor reports a problem; Reload asks before it discards a
-draft. "Download YAML" saves the text as shown; "Download clean YAML" saves `cleanYaml(resource)`,
-the resource without `metadata.uid`, `resourceVersion`, `generation`, `creationTimestamp`,
+draft. "Download YAML" saves the text as shown; "Download clean YAML" saves `cleanText(text)`, which
+gets that same text (the Deployments page cleans the draft with `cleanYaml`, or the server copy when
+the draft does not parse): the resource without `metadata.uid`, `resourceVersion`, `generation`, `creationTimestamp`,
 `managedFields`, `selfLink`, the `kubectl.kubernetes.io/last-applied-configuration` annotation and
 `status`, keys in their original order and indented by two spaces (`cleanResource` returns the
 same as an object).

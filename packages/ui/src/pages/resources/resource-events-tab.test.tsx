@@ -74,7 +74,7 @@ describe('ResourceEventsTab', () => {
       'Normal',
       'ScalingReplicaSet',
       'ScalingReplicaSet on web',
-      'deployment/web',
+      'Deployment/web',
       '1',
       '4m',
     ])
@@ -82,7 +82,7 @@ describe('ResourceEventsTab', () => {
       'Warning',
       'Unhealthy',
       'Unhealthy on web-7d9f-b81mn',
-      'pod/web-7d9f-b81mn',
+      'Pod/web-7d9f-b81mn',
       '3',
       '6m',
     ])
@@ -108,7 +108,7 @@ describe('ResourceEventsTab', () => {
     renderEvents()
     expect(screen.getByRole('radio', { name: 'Deployment + children' })).toBeChecked()
     await user.click(screen.getByRole('radio', { name: 'Deployment only' }))
-    expect(bodyRows().map((row) => cellTexts(row)[3])).toEqual(['deployment/web', 'deployment/web'])
+    expect(bodyRows().map((row) => cellTexts(row)[3])).toEqual(['Deployment/web', 'Deployment/web'])
     // The type counts follow the scope.
     expect(screen.getByRole('radio', { name: 'All 2' })).toBeChecked()
     expect(screen.getByRole('radio', { name: 'Warning 0' })).toBeInTheDocument()
@@ -132,7 +132,7 @@ describe('ResourceEventsTab', () => {
     expect(screen.getByRole('radio', { name: 'Rollout + children' })).toBeChecked()
     // Neither Deployment nor Pod events belong to a Rollout and its ReplicaSets.
     expect(reasons()).toEqual(['RolloutUpdated', 'SuccessfulCreate'])
-    expect(cellTexts(bodyRows()[0]!)[3]).toBe('rollout/web')
+    expect(cellTexts(bodyRows()[0]!)[3]).toBe('Rollout/web')
     await user.click(screen.getByRole('radio', { name: 'Rollout only' }))
     expect(reasons()).toEqual(['RolloutUpdated'])
   })

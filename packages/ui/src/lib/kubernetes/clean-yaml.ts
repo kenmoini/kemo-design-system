@@ -5,17 +5,19 @@ const LAST_APPLIED = 'kubectl.kubernetes.io/last-applied-configuration'
 
 /** A deep copy without the server-managed metadata fields and `status`. */
 export function cleanResource<T extends { metadata: K8sMeta; status?: unknown }>(r: T): T {
-  const copy = structuredClone(r) as T & { metadata: Partial<K8sMeta> }
-  const meta = copy.metadata
-  delete meta.uid
-  delete meta.resourceVersion
-  delete meta.generation
-  delete meta.creationTimestamp
-  delete meta.managedFields
-  delete (meta as { selfLink?: string }).selfLink
-  if (meta.annotations) {
-    delete meta.annotations[LAST_APPLIED]
-    if (Object.keys(meta.annotations).length === 0) delete meta.annotations
+  const copy = structuredClone(r) as T
+  const meta = copy.metadata as Partial<K8sMeta> | undefined
+  if (meta) {
+    delete meta.uid
+    delete meta.resourceVersion
+    delete meta.generation
+    delete meta.creationTimestamp
+    delete meta.managedFields
+    delete (meta as { selfLink?: string }).selfLink
+    if (meta.annotations) {
+      delete meta.annotations[LAST_APPLIED]
+      if (Object.keys(meta.annotations).length === 0) delete meta.annotations
+    }
   }
   delete copy.status
   return copy

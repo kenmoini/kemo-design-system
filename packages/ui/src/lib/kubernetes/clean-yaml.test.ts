@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cleanYaml, parseYaml, toYaml } from './clean-yaml'
+import { cleanResource, cleanYaml, parseYaml, toYaml } from './clean-yaml'
 
 const resource = {
   apiVersion: 'apps/v1',
@@ -22,6 +22,13 @@ const resource = {
   spec: { replicas: 2 },
   status: { replicas: 2 },
 }
+
+describe('cleanResource without metadata', () => {
+  it('does not throw and still drops status', () => {
+    const out = cleanResource({ kind: 'Widget', status: { ok: true } } as never)
+    expect(out).toEqual({ kind: 'Widget' })
+  })
+})
 
 describe('cleanYaml', () => {
   it('strips only the server-managed fields', () => {

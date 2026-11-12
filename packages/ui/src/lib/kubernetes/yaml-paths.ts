@@ -15,7 +15,7 @@ function pairSpan(pair: Pair): [number, number] | undefined {
   const k = rangeOf(pair.key)
   if (!k) return undefined
   const v = rangeOf(pair.value)
-  return [k[0], Math.max(k[1], v ? v[2] : k[1])]
+  return [k[0], Math.max(k[1], v ? v[1] : k[1])]
 }
 
 function walk(node: unknown, offset: number, path: Path): Path {

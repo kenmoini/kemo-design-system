@@ -26,6 +26,17 @@ describe('pathAtOffset', () => {
   })
 })
 
+describe('pathAtOffset at column 0', () => {
+  const flat = 'spec:\n  replicas: 6\n  strategy:\n    type: Recreate\n'
+
+  it('reports the key of the line, not the previous sibling', () => {
+    const line = flat.indexOf('  strategy:')
+    expect(pathAtOffset(flat, line)).toEqual(['spec'])
+    expect(pathAtOffset(flat, line + 2)).toEqual(['spec', 'strategy'])
+    expect(pathAtOffset(flat, flat.indexOf('    type:') + 4)).toEqual(['spec', 'strategy', 'type'])
+  })
+})
+
 describe('offsetForPath', () => {
   it('returns the key offset', () => {
     expect(offsetForPath(text, ['spec', 'template', 'spec', 'containers', 0, 'image'])).toBe(

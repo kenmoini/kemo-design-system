@@ -929,8 +929,8 @@ test.describe('deployments', () => {
 
     await page.getByText(/^All \d+$/).click()
     await page.getByText('Deployment only', { exact: true }).click()
-    await expect(objects.first()).toHaveText(/^deployment\//)
-    for (const object of await objects.all()) await expect(object).not.toContainText('pod/')
+    await expect(objects.first()).toHaveText(/^Deployment\//)
+    for (const object of await objects.all()) await expect(object).not.toContainText('Pod/')
   })
 
   test('deployments at 375', async ({ page }) => {

@@ -1,10 +1,13 @@
 'use client'
 import {
   Button,
+  cleanYaml,
   defaultSchemaRegistry,
+  type DeploymentResource,
   deploymentSchema,
   type Option,
   PageHeader,
+  parseYaml,
   ResourceYamlTab,
   schemaFor,
   SelectField,
@@ -82,7 +85,10 @@ export function DeploymentCreateDemo() {
           router.push(`/deployments/${id}`)
         }}
         fileName="new-deployment.yaml"
-        cleanText={() => text}
+        cleanText={(shown) => {
+          const { value } = parseYaml<DeploymentResource>(shown)
+          return value?.metadata ? cleanYaml(value) : shown
+        }}
         createControls={
           <Grid columns={{ base: 1, md: 2 }} gap="4" maxW="3xl">
             <SelectField

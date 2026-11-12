@@ -42,7 +42,7 @@ function eventColumns(now: string): DataTableColumn<K8sEvent>[] {
       accessor: (event) => `${event.involvedObject.kind}/${event.involvedObject.name}`,
       cell: (event) => (
         <Code size="sm" whiteSpace="nowrap">
-          {`${event.involvedObject.kind.toLowerCase()}/${event.involvedObject.name}`}
+          {`${event.involvedObject.kind}/${event.involvedObject.name}`}
         </Code>
       ),
     },

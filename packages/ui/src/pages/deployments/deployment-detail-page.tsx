@@ -6,6 +6,7 @@ import {
   type DeploymentResource,
   type DeploymentSummary,
   type K8sEvent,
+  parseYaml,
   type RelatedObjects,
 } from '../../lib/kubernetes'
 import { ConfirmDialog } from '../access'
@@ -160,7 +161,10 @@ export function DeploymentDetailPage({
             schema={schema}
             onSave={onSaveYaml}
             fileName={`${name}.yaml`}
-            cleanText={() => cleanYaml(deployment)}
+            cleanText={(text) => {
+              const { value } = parseYaml<DeploymentResource>(text)
+              return cleanYaml(value?.metadata ? value : deployment)
+            }}
             serverChanged={serverChanged}
             onReload={onReloadYaml}
           />

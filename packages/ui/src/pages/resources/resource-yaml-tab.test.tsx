@@ -257,7 +257,7 @@ describe('ResourceYamlTab', () => {
 
     await user.click(screen.getByRole('button', { name: 'Download' }))
     await user.click(await screen.findByRole('menuitem', { name: 'Download clean YAML' }))
-    expect(cleanText).toHaveBeenCalled()
+    expect(cleanText).toHaveBeenCalledWith(scaled)
     expect(downloadText).toHaveBeenLastCalledWith('demo.clean.yaml', 'kind: Widget\n')
   })
 
