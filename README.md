@@ -34,7 +34,7 @@ container use; the repo requires Node >= 24 and works on newer releases.
 ## Repo layout
 
 ```
-apps/preview/        @kemo/preview: component pages, auth and dashboard demos, Playwright e2e suite
+apps/preview/        @kemo/preview: component pages, auth, dashboard and blog demos, Playwright e2e suite
 packages/ui/         @kemo/ui: theme, Park UI components, Panda config (`panda lib` output in dist/)
 scripts/park-ui/     Park UI registry sync and the Panda v2 port transform (with tests)
 docs/superpowers/    Design specs and plans (scaffold, auth pages, dashboard)
@@ -497,6 +497,105 @@ built in), 24 permissions over 6 resources, 7 service accounts, 5 OAuth apps and
 Overview and Audit streams tick while their tab shows and pause while the pointer or focus is inside
 them.
 
+## Blog pages
+
+A blog family, presentational like the others: posts and comments come in as props, the host
+supplies the routes, `linkComponent`, and what happens on subscribe and on a new comment. Three
+variations of the same index and post pages, picked with `variant` or rendered directly:
+
+| `variant`        | Title               | Index                                          | Post                                 |
+| ---------------- | ------------------- | ---------------------------------------------- | ------------------------------------ |
+| `editorial-list` | Editorial list      | Featured block, topic buttons, dated rows      | Single column, byline, previous/next |
+| `magazine-grid`  | Magazine grid       | Hero, topic tabs, three-column cards, paginate | Cover banner, share and copy link    |
+| `journal-rail`   | Journal with a rail | Sticky rail (topics, subscribe) beside a feed  | Rail with "On this page" and details |
+
+Exports from `@kemo/ui`: `BlogIndexPage` and `BlogPostPage` (each renders the variation named by
+`variant`), `BlogLayout` (the top bar and footer), `BlogComments`, `SubscribeForm`, `BlogCover`,
+`BlogProse`, `blogVariants` (the ids, titles and descriptions above) and the types `BlogVariant`,
+`BlogPost`, `BlogBlock`, `BlogComment`, `BlogAuthor`, `BlogTopic`, `BlogCoverSpec`,
+`BlogIndexPageProps`, `BlogPostPageProps`, `BlogLayoutProps`, `SubscribeFormProps` and
+`BlogCommentsProps`.
+
+A post is data, and its body is a list of typed blocks:
+
+```ts
+interface BlogPost {
+  slug: string // unique; keys, and the cover preset when `cover` is omitted
+  title: string
+  summary: string
+  topic: BlogTopic // { id, label }
+  author: BlogAuthor // { id, name, role?, avatarSrc? }
+  publishedAt: string // ISO 8601; shown as an absolute UTC date, "11 Nov 2026"
+  readingMinutes: number
+  featured?: boolean // the newest featured post leads the index
+  cover?: BlogCoverSpec
+  tags?: string[]
+  body: BlogBlock[]
+}
+// paragraph | heading (2 or 3) | list | quote | code | callout (neutral or warning) | stats | figure
+```
+
+A host wires the pages like this (the preview does it in
+`apps/preview/src/components/blog/blog-demo.tsx`):
+
+```tsx
+import { BlogIndexPage, BlogPostPage } from '@kemo/ui'
+import NextLink from 'next/link'
+
+const chrome = {
+  variant: 'editorial-list' as const,
+  brand: 'Kemo',
+  indexHref: '/blog',
+  postHref: (post: { slug: string }) => `/blog/${post.slug}`,
+  linkComponent: NextLink,
+  onSubscribe: async (email: string) => {
+    await fetch('/api/subscribe', { method: 'POST', body: JSON.stringify({ email }) }) // throw to fail
+  },
+}
+
+<BlogIndexPage {...chrome} title="Notes from the platform team" posts={posts} />
+<BlogPostPage {...chrome} post={post} posts={posts} />
+```
+
+Inline markup in a paragraph, list item, quote or callout is plain React: use the Park `Code` for
+inline code and `Link` for links (`<Code>req_7f3a91</Code>`, `<Link href="/docs">the docs</Link>`),
+and a `code` block for multi-line code. A cover is either a generated gradient preset
+(`{ preset: 1 }` to `{ preset: 6 }`, picked from the slug when omitted) or an image
+(`{ src, alt }`). On the index, `topic` is controlled by `topic` and `onTopicChange`, or
+uncontrolled from `defaultTopic`. `indexTitle` sets the post's back link ("All posts" by default;
+the preview passes "Platform journal" to the Journal). Omit `onSubscribe` to drop every subscribe
+control.
+
+Comments are opt-in. Pass `comments` (`BlogComment[]`, oldest first on the page, one level of
+replies) and `onAddComment` to `BlogPostPage` for the section and its form; omit both for none, or
+pass only `comments` for a read-only thread. The host stores and returns the comments: the form
+calls `onAddComment({ name, body, parentId? })`, and once it resolves the host adds the comment to
+the list it passes back. Reject (an `Error`'s message is shown) to keep the text and say why.
+Bodies are plain text; markup is shown as text, not rendered.
+
+```tsx
+const [comments, setComments] = useState(initial)
+<BlogPostPage
+  {...chrome}
+  post={post}
+  posts={posts}
+  comments={comments}
+  onAddComment={async ({ name, body, parentId }) => {
+    const saved = await api.addComment(post.slug, { name, body, parentId }) // throws on failure
+    setComments((current) => withComment(current, saved, parentId))
+  }}
+/>
+```
+
+Not included: search, topic and author pages, RSS, Markdown parsing, and comment moderation or
+sign-in. A name and a comment is all the form asks for.
+
+In the preview, `/blog` redirects to `/blog/editorial-list`; `/blog/<variation>` is the index and
+`/blog/<variation>/<slug>` a post, for the three variations. The posts and comments are in
+`apps/preview/src/lib/mock-blog.tsx`: eight posts across four topics, with seed comments on three of them.
+An address or comment that contains "fail" is rejected, so both error states can be tried. The
+preview panel lists the six pages under "Blog".
+
 ## Testing
 
 | Command                      | What it runs                                                       |
@@ -508,7 +607,7 @@ them.
 | `make check`                 | Lint, format check, typecheck and unit tests                       |
 
 The e2e suite loads every route (landing page, auth pages, component pages, dashboard, Access tabs,
-FAQ, Blank page and status pages) and fails on any console error or uncaught page error. It also checks the
+FAQ, Blank page, blog pages and status pages) and fails on any console error or uncaught page error. It also checks the
 theme (font, radii), dark mode through the preview panel's theme toggle, and that the panel
 navigates, closes and marks the current page. On the auth pages, where any uncaught page error (such
 as an escaped `onSubmit` rejection) fails the test, it checks validation and the mock error on every
@@ -526,8 +625,11 @@ scroll to the top) and a question's anchor sets the hash. On the Access page it 
 are links that mark the current tab, that the users table searches and filters, that "Bulk actions"
 follows the selection, adding a user through the dialog and disabling one from its row menu, the
 Overview widgets, the Audit layout and the OIDC sync badges, that an unknown tab answers 404, and
-at 375px the scrolled tab strip, the "Filters" drawer and no horizontal overflow. It runs against a
-built preview, so build first (`make e2e` does).
+at 375px the scrolled tab strip, the "Filters" drawer and no horizontal overflow. On the blog pages
+it checks every variation from index to post and back and the topic filter, pagination, the
+subscribe dialog and rail (and its failure), posting a comment and a reply, a rejected and a long
+comment, the empty state, the Journal's current section and its rail at 375px, Copy link and dark
+mode. It runs against a built preview, so build first (`make e2e` does).
 
 ## CI
 
@@ -565,4 +667,7 @@ access because `next build` fetches DM Sans from Google Fonts.
    `DataTable` widget on TanStack Table v9, exported from `@kemo/ui`, with the `/access` demo in the
    preview (see [Access page and DataTable](#access-page-and-datatable)); spec in
    `docs/superpowers/specs/2026-11-11-access-page-design.md`.
-6. Publishing `@kemo/ui`, once the package prefix is decided.
+6. Done: blog pages in three variations (Editorial list, Magazine grid, Journal with a rail) with
+   comments, exported from `@kemo/ui`, with the `/blog` demos in the preview (see
+   [Blog pages](#blog-pages)); spec in `docs/superpowers/specs/2026-11-12-blog-pages-design.md`.
+7. Publishing `@kemo/ui`, once the package prefix is decided.
