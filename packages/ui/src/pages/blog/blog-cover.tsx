@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react'
-import { Box } from '../../../styled-system/jsx'
+import { cva } from '../../../styled-system/css'
+import { Box, styled } from '../../../styled-system/jsx'
 import { coverPreset } from './content'
 import type { BlogCoverSpec, BlogPost } from './types'
 
@@ -10,15 +11,19 @@ export interface BlogCoverProps extends Omit<ComponentProps<typeof Box>, 'childr
   cover?: BlogCoverSpec
 }
 
-// Literal entries so Panda can extract each class.
-const gradients: Record<Preset, ComponentProps<typeof Box>> = {
-  1: { bgGradient: 'cover1' },
-  2: { bgGradient: 'cover2' },
-  3: { bgGradient: 'cover3' },
-  4: { bgGradient: 'cover4' },
-  5: { bgGradient: 'cover5' },
-  6: { bgGradient: 'cover6' },
-}
+// Literal variant entries so Panda can extract each gradient class.
+const presetStyle = cva({
+  variants: {
+    preset: {
+      1: { bgGradient: 'cover1' },
+      2: { bgGradient: 'cover2' },
+      3: { bgGradient: 'cover3' },
+      4: { bgGradient: 'cover4' },
+      5: { bgGradient: 'cover5' },
+      6: { bgGradient: 'cover6' },
+    },
+  },
+})
 
 export function BlogCover({ post, cover, ...styleProps }: BlogCoverProps) {
   const spec = cover ?? post?.cover
@@ -28,16 +33,14 @@ export function BlogCover({ post, cover, ...styleProps }: BlogCoverProps) {
   return (
     <Box borderRadius="l2" overflow="hidden" position="relative" {...styleProps}>
       {spec && 'src' in spec ? (
-        <img
+        <styled.img
           src={spec.src}
           alt={spec.alt}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
+          position="absolute"
+          inset="0"
+          w="full"
+          h="full"
+          objectFit="cover"
         />
       ) : (
         <Box
@@ -45,7 +48,7 @@ export function BlogCover({ post, cover, ...styleProps }: BlogCoverProps) {
           data-preset={preset}
           position="absolute"
           inset="0"
-          {...gradients[preset ?? 1]}
+          className={presetStyle({ preset: preset ?? 1 })}
         >
           <Box position="absolute" inset="0" bgGradient="coverStripes" />
         </Box>

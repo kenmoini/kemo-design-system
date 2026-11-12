@@ -30,6 +30,15 @@ describe('BlogCover', () => {
     expect(container.querySelector('[data-preset]')).toHaveAttribute('data-preset', '4')
   })
 
+  it('applies a different gradient class per preset', () => {
+    const { container, rerender } = render(<BlogCover cover={{ preset: 1 }} h="40" />)
+    const one = container.querySelector('[data-preset]')?.className
+    rerender(<BlogCover cover={{ preset: 4 }} h="40" />)
+    const four = container.querySelector('[data-preset]')?.className
+    expect(one).toContain('cover1')
+    expect(four).toContain('cover4')
+  })
+
   it('renders an image cover with its alt text', () => {
     render(<BlogCover cover={{ src: '/team.png', alt: 'Team photo' }} h="40" />)
     expect(screen.getByRole('img', { name: 'Team photo' })).toHaveAttribute('src', '/team.png')
