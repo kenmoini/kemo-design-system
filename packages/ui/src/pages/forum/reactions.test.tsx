@@ -33,6 +33,11 @@ describe('ReactionPills', () => {
     expect(onReact).toHaveBeenCalledWith('🎉')
   })
 
+  it('keeps a zero-count pill when showEmpty is set', () => {
+    render(<ReactionPills reactions={[{ emoji: '🎉', count: 0 }]} onReact={vi.fn()} showEmpty />)
+    expect(screen.getByRole('button', { name: '🎉 0, react' })).toBeInTheDocument()
+  })
+
   it('calls onReact from a pill', async () => {
     const user = userEvent.setup()
     const onReact = vi.fn().mockResolvedValue(undefined)

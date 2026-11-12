@@ -11,12 +11,19 @@ export interface ReactionPillsProps {
   onReact?: (emoji: ReactionEmoji) => Promise<void>
   /** Show the trailing "+" pill that offers every emoji (default true). */
   addable?: boolean
+  /** Keep a pill whose count is 0, so the reaction can be the first one (default false). */
+  showEmpty?: boolean
 }
 
 /** Reaction counts as pills; buttons (with an add menu) when `onReact` is given, else plain spans. */
-export function ReactionPills({ reactions, onReact, addable = true }: ReactionPillsProps) {
+export function ReactionPills({
+  reactions,
+  onReact,
+  addable = true,
+  showEmpty = false,
+}: ReactionPillsProps) {
   const [pending, setPending] = useState<ReactionEmoji | null>(null)
-  const shown = (reactions ?? []).filter((reaction) => reaction.count > 0)
+  const shown = (reactions ?? []).filter((reaction) => showEmpty || reaction.count > 0)
 
   async function react(emoji: ReactionEmoji) {
     if (!onReact) return
