@@ -79,15 +79,16 @@ a Playwright run driven by the manifest in `apps/preview/gallery/manifest.ts`
 (`apps/preview/playwright.gallery.config.ts`): one test per page and theme loads the route on a
 built preview, waits for hydration, the h1, fonts and network idle, hides the preview panel's
 trigger, runs the entry's optional `setup` step (open a dialog, press a toggle), and saves
-`docs/gallery/<family>/<id>.png` (`<id>.dark.png` for a dark entry) at a 1440×900 viewport. Dark
-mode comes from `prefers-color-scheme`, which next-themes follows. After the run,
+`docs/gallery/<family>/<id>.png` and `<id>.dark.png` at a 1440×900 viewport, one per host theme
+(dark mode comes from `prefers-color-scheme`, which next-themes follows). Pages that force dark
+mode (auth, status) set `themes: ['light']` and are captured once. After the run,
 `gallery/write-index.ts` rewrites `docs/gallery/README.md` from the manifest, so the README is
 generated (Prettier ignores it) and the manifest is the only place to edit.
 
 `make gallery` builds first, then captures; `pnpm gallery` captures against the existing build.
 The run serves the build on port 3100 so a `next dev` on 3000 is left alone. `GALLERY_ONLY`
 limits a run to family ids, shot ids or both (`GALLERY_ONLY=blog,deployments/yaml pnpm gallery`,
-or `make gallery ONLY=blog`); the index is still rewritten in full, with a "not captured yet" cell
+or `make gallery ONLY=blog`) and `GALLERY_THEMES=dark` to one theme; the index is still rewritten in full, with a "not captured yet" cell
 for any shot whose PNG is missing. Live widgets (event streams, the demo clock) make a re-capture
 differ pixel for pixel, so re-run only the family you changed and commit its PNGs with the index.
 

@@ -1,6 +1,12 @@
 import { access, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { families, type GalleryFamily, type GalleryShot, type GalleryTheme } from './manifest'
+import {
+  families,
+  type GalleryFamily,
+  type GalleryShot,
+  type GalleryTheme,
+  themesOf,
+} from './manifest'
 import { GALLERY_DIR, shotRelativePath } from './paths'
 
 /**
@@ -60,7 +66,7 @@ async function cell(family: GalleryFamily, shot: GalleryShot, theme: GalleryThem
 async function familySection(family: GalleryFamily) {
   const cells: string[] = []
   for (const shot of family.shots) {
-    for (const theme of shot.themes ?? ['light']) cells.push(await cell(family, shot, theme))
+    for (const theme of themesOf(shot)) cells.push(await cell(family, shot, theme))
   }
   const rows: string[] = []
   for (let index = 0; index < cells.length; index += 2) {
@@ -83,7 +89,7 @@ function linkTitle(family: GalleryFamily) {
 }
 
 function shotCount(family: GalleryFamily) {
-  return family.shots.reduce((count, shot) => count + (shot.themes ?? ['light']).length, 0)
+  return family.shots.reduce((count, shot) => count + themesOf(shot).length, 0)
 }
 
 export async function writeIndex() {
@@ -104,9 +110,9 @@ export async function writeIndex() {
     '',
     '# Gallery',
     '',
-    'Screenshots of every page the preview renders, one family per guide. Each is the full page at a',
-    '1440×900 viewport in the light host theme; a `(dark)` entry is the same page under the dark theme.',
-    'Click a thumbnail for the full-size PNG.',
+    'Screenshots of every page the preview renders, one family per guide: the full page at a 1440×900',
+    'viewport in the light host theme and, beside it, the same page in the dark theme. The auth and',
+    'status pages force dark mode, so they appear once. Click a thumbnail for the full-size PNG.',
     '',
     'To add a page or component, add it to `apps/preview/gallery/manifest.ts` and run `pnpm gallery`',
     '(`GALLERY_ONLY=<family>` captures one family and still rewrites this index); see',

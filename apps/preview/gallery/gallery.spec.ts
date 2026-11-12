@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
-import { selectFamilies, shotPath } from './paths'
+import { selectFamilies, selectThemes, shotPath } from './paths'
 
 /**
  * Captures the screenshot gallery (docs/gallery). One test per page and theme so a failure names
  * the page; the index is rewritten afterwards by write-index.ts (the config's globalTeardown).
- * `GALLERY_ONLY=blog,deployments/yaml` limits the capture; see paths.ts.
+ * `GALLERY_ONLY=blog,deployments/yaml` and `GALLERY_THEMES=dark` limit the capture; see paths.ts.
  */
 
 /** Gives Recharts' ResizeObserver, lazy editors and the live streams a moment to settle. */
@@ -18,7 +18,7 @@ const HIDE_PREVIEW_CHROME = '[data-testid="preview-panel-trigger"] { display: no
 for (const family of selectFamilies(process.env.GALLERY_ONLY)) {
   test.describe(family.title, () => {
     for (const shot of family.shots) {
-      for (const theme of shot.themes ?? ['light']) {
+      for (const theme of selectThemes(shot, process.env.GALLERY_THEMES)) {
         test(`${shot.id} (${theme})`, async ({ page }) => {
           // next-themes follows the system scheme (defaultTheme="system"), so this picks the theme.
           await page.emulateMedia({ colorScheme: theme })

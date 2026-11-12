@@ -21,7 +21,10 @@ export interface GalleryShot {
    * a client-side 404 (also an h1), so a wrong route fails the capture instead of saving a 404.
    */
   heading?: string
-  /** Host themes to capture; `dark` adds a `<id>.dark.png`. Default: light only. */
+  /**
+   * Host themes to capture: `<id>.png` for light, `<id>.dark.png` for dark. Default: both. Set
+   * `['light']` on a page that forces dark mode (auth, status), where the two would be identical.
+   */
   themes?: GalleryTheme[]
   /** Steps to run after the page has hydrated and before the shot (open a dialog, press a toggle). */
   setup?: (page: Page) => Promise<void>
@@ -39,7 +42,15 @@ export interface GalleryFamily {
   shots: GalleryShot[]
 }
 
-const both: GalleryTheme[] = ['light', 'dark']
+export const DEFAULT_THEMES: GalleryTheme[] = ['light', 'dark']
+
+/** The themes a shot is captured in. */
+export function themesOf(shot: GalleryShot): GalleryTheme[] {
+  return shot.themes ?? DEFAULT_THEMES
+}
+
+/** For pages that force dark mode: one capture, the host theme makes no difference. */
+const forcedDark: GalleryTheme[] = ['light']
 
 const DEPLOYMENT = '/deployments/prod-us-east/checkout/checkout-api'
 const POST = 'cold-start-62'
@@ -52,10 +63,20 @@ export const families: GalleryFamily[] = [
       'Sign in, Register, Forgot Password and Complete Profile on the Nightfall gradient. The drawer stays dark whatever the host theme, so each page is captured once.',
     guide: '../auth-pages.md',
     shots: [
-      { id: 'login', title: 'Sign in', route: '/login' },
-      { id: 'register', title: 'Create your account', route: '/register' },
-      { id: 'forgot-password', title: 'Reset your password', route: '/forgot-password' },
-      { id: 'complete-profile', title: 'Complete your profile', route: '/complete-profile' },
+      { id: 'login', title: 'Sign in', route: '/login', themes: forcedDark },
+      { id: 'register', title: 'Create your account', route: '/register', themes: forcedDark },
+      {
+        id: 'forgot-password',
+        title: 'Reset your password',
+        route: '/forgot-password',
+        themes: forcedDark,
+      },
+      {
+        id: 'complete-profile',
+        title: 'Complete your profile',
+        route: '/complete-profile',
+        themes: forcedDark,
+      },
     ],
   },
   {
@@ -64,22 +85,22 @@ export const families: GalleryFamily[] = [
     description:
       'The application shell (top bar, side navigation, page header and footer) around the overview dashboard and its widget family.',
     guide: '../dashboard.md',
-    shots: [{ id: 'dashboard', title: 'Overview dashboard', route: '/dashboard', themes: both }],
+    shots: [{ id: 'dashboard', title: 'Overview dashboard', route: '/dashboard' }],
   },
   {
     id: 'status',
     title: 'Status pages and console pages',
     description:
-      'The bare status pages (401, 403, 404, 500, 503 and Maintenance, forced dark on the muted gradient) and the console pages rendered inside the shell (FAQ and the Blank page).',
+      'The bare status pages (401, 403, 404, 500, 503 and Maintenance, forced dark on the muted gradient, so captured once) and the console pages rendered inside the shell (FAQ and the Blank page).',
     guide: '../status-pages.md',
     shots: [
-      { id: '401', title: '401 Unauthorized', route: '/errors/401' },
-      { id: '403', title: '403 Forbidden', route: '/errors/403' },
-      { id: '404', title: '404 Not found', route: '/errors/404' },
-      { id: '500', title: '500 Server error', route: '/errors/500' },
-      { id: '503', title: '503 Unavailable', route: '/errors/503' },
-      { id: 'maintenance', title: 'Maintenance', route: '/maintenance' },
-      { id: 'faq', title: 'FAQ', route: '/faq', themes: both },
+      { id: '401', title: '401 Unauthorized', route: '/errors/401', themes: forcedDark },
+      { id: '403', title: '403 Forbidden', route: '/errors/403', themes: forcedDark },
+      { id: '404', title: '404 Not found', route: '/errors/404', themes: forcedDark },
+      { id: '500', title: '500 Server error', route: '/errors/500', themes: forcedDark },
+      { id: '503', title: '503 Unavailable', route: '/errors/503', themes: forcedDark },
+      { id: 'maintenance', title: 'Maintenance', route: '/maintenance', themes: forcedDark },
+      { id: 'faq', title: 'FAQ', route: '/faq' },
       { id: 'blank', title: 'Blank page', route: '/blank' },
     ],
   },
@@ -90,7 +111,7 @@ export const families: GalleryFamily[] = [
       'The ten-tab Access page: Overview, the six object tables on DataTable (users, groups, roles, permissions, service accounts, OAuth apps), Audit, OIDC and Settings.',
     guide: '../access-page.md',
     shots: [
-      { id: 'overview', title: 'Overview', route: '/access', themes: both },
+      { id: 'overview', title: 'Overview', route: '/access' },
       { id: 'users', title: 'Users', route: '/access/users' },
       { id: 'groups', title: 'Groups', route: '/access/groups' },
       { id: 'roles', title: 'Roles', route: '/access/roles' },
@@ -109,7 +130,7 @@ export const families: GalleryFamily[] = [
       'The Deployments list with its cluster and namespace scope, the create page, and the detail page with its Overview, YAML (CodeMirror editor and schema browser) and Events tabs.',
     guide: '../deployments-pages.md',
     shots: [
-      { id: 'list', title: 'Deployments list', route: '/deployments', themes: both },
+      { id: 'list', title: 'Deployments list', route: '/deployments' },
       { id: 'new', title: 'Create deployment', route: '/deployments/new' },
       { id: 'overview', title: 'Deployment: Overview', route: DEPLOYMENT, heading: 'checkout-api' },
       {
@@ -117,7 +138,6 @@ export const families: GalleryFamily[] = [
         title: 'Deployment: YAML',
         route: `${DEPLOYMENT}/yaml`,
         heading: 'checkout-api',
-        themes: both,
         note: 'With the schema browser open.',
         setup: async (page) => {
           await page.getByRole('button', { name: 'Schema', exact: true }).click()
@@ -143,7 +163,6 @@ export const families: GalleryFamily[] = [
         id: 'editorial-list',
         title: 'Editorial list',
         route: '/blog/editorial-list',
-        themes: both,
       },
       {
         id: 'editorial-list-post',
@@ -171,7 +190,7 @@ export const families: GalleryFamily[] = [
       'The preview pages that render every variant of the Park UI components: buttons, forms, surfaces and typography.',
     guide: '../../README.md#quickstart',
     shots: [
-      { id: 'buttons', title: 'Buttons', route: '/components/buttons', themes: both },
+      { id: 'buttons', title: 'Buttons', route: '/components/buttons' },
       { id: 'forms', title: 'Forms', route: '/components/forms' },
       { id: 'surfaces', title: 'Surfaces', route: '/components/surfaces' },
       { id: 'typography', title: 'Typography', route: '/components/typography' },
