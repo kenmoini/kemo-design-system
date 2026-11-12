@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -131,6 +131,69 @@ describe('SelectField and MultiSelectField', () => {
     render(<MultiSelectField label="Roles" options={roleOptions} value={[]} onChange={() => {}} />)
     await user.click(screen.getByRole('combobox', { name: 'Roles' }))
     expect(await screen.findByRole('listbox')).toHaveClass('z_popover')
+  })
+
+  const clusterOptions = ['east', 'west', 'north', 'south'].map((value) => ({
+    value,
+    label: value,
+  }))
+
+  it('shows every chosen label as a chip by default', () => {
+    render(
+      <MultiSelectField
+        label="Clusters"
+        options={clusterOptions}
+        value={['east', 'west', 'north']}
+        onChange={() => {}}
+      />,
+    )
+    const trigger = screen.getByRole('combobox', { name: 'Clusters' })
+    for (const label of ['east', 'west', 'north']) {
+      expect(within(trigger).getByText(label)).toBeInTheDocument()
+    }
+    expect(within(trigger).queryByText(/^\+/)).toBeNull()
+  })
+
+  it('caps the chips at maxChips and counts the rest as +N', () => {
+    const { rerender } = render(
+      <MultiSelectField
+        label="Clusters"
+        options={clusterOptions}
+        value={['east', 'west', 'north', 'south']}
+        onChange={() => {}}
+        maxChips={2}
+      />,
+    )
+    const trigger = screen.getByRole('combobox', { name: 'Clusters' })
+    expect(within(trigger).getByText('east')).toBeInTheDocument()
+    expect(within(trigger).getByText('west')).toBeInTheDocument()
+    expect(within(trigger).queryByText('north')).toBeNull()
+    expect(within(trigger).getByText('+2')).toBeInTheDocument()
+
+    rerender(
+      <MultiSelectField
+        label="Clusters"
+        options={clusterOptions}
+        value={['east', 'west']}
+        onChange={() => {}}
+        maxChips={2}
+      />,
+    )
+    expect(within(trigger).queryByText(/^\+/)).toBeNull()
+  })
+
+  it('shows the placeholder when nothing is chosen', () => {
+    render(
+      <MultiSelectField
+        label="Clusters"
+        options={clusterOptions}
+        value={[]}
+        onChange={() => {}}
+        placeholder="All clusters"
+        maxChips={2}
+      />,
+    )
+    expect(screen.getByRole('combobox', { name: 'Clusters' })).toHaveTextContent('All clusters')
   })
 })
 

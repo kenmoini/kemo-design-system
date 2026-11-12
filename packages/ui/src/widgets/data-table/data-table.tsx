@@ -1,5 +1,6 @@
 'use client'
 import {
+  type ColumnFiltersState,
   functionalUpdate,
   type RowSelectionState,
   type Updater,
@@ -15,6 +16,7 @@ import {
   clearFilters,
   countNoun,
   type DataTableInstance,
+  filterColumnId,
   SEARCH_COLUMN_ID,
   toColumnDefs,
 } from './columns'
@@ -22,7 +24,7 @@ import { DataTableFilters } from './data-table-filters'
 import { DataTablePager } from './data-table-pager'
 import { DataTableFiltersDrawer, DataTableToolbar } from './data-table-toolbar'
 import { dataTableFeatures } from './table-features'
-import type { DataTableColumn, DataTableProps } from './types'
+import type { DataTableColumn, DataTableFilterValues, DataTableProps } from './types'
 
 const SortButton = styled('button', {
   base: {
@@ -65,6 +67,27 @@ function pruneSelection(selection: RowSelectionState, rowIds: Set<string>): RowS
   const ids = Object.keys(selection)
   const kept = ids.filter((id) => rowIds.has(id))
   return kept.length === ids.length ? selection : toSelection(kept)
+}
+
+const isEmptyValue = (value: unknown) =>
+  value === undefined || value === '' || (Array.isArray(value) && value.length === 0)
+
+/** A host's filter values as TanStack column filters on the filters' own columns. */
+function toColumnFilters(values: DataTableFilterValues): ColumnFiltersState {
+  return Object.entries(values)
+    .filter(([, value]) => !isEmptyValue(value))
+    .map(([id, value]) => ({ id: filterColumnId(id), value }))
+}
+
+/** TanStack column filters back as filter values by filter id. */
+function toFilterValues(filters: ColumnFiltersState): DataTableFilterValues {
+  const values: DataTableFilterValues = {}
+  const prefix = filterColumnId('')
+  for (const filter of filters) {
+    if (!filter.id.startsWith(prefix) || isEmptyValue(filter.value)) continue
+    values[filter.id.slice(prefix.length)] = filter.value as string | string[]
+  }
+  return values
 }
 
 function cellContent<T>(column: DataTableColumn<T>, row: T): ReactNode {
@@ -141,6 +164,9 @@ export function DataTable<T extends { id: string }>({
   pageSize = 10,
   initialSort,
   emptyMessage,
+  filterValues,
+  onFilterValuesChange,
+  linkComponent,
 }: DataTableProps<T>) {
   const selectable = selectableProp ?? bulkActions !== undefined
   const isLg = useMediaQuery(MEDIA_LG)
@@ -163,6 +189,20 @@ export function DataTable<T extends { id: string }>({
   const [ownSelection, setOwnSelection] = useState<RowSelectionState>({})
   const rowSelection = controlledSelection ?? ownSelection
 
+  // Host-held filter values: the table reads them as its column filters and reports changes.
+  const controlledFilters = useMemo(
+    () => (filterValues ? toColumnFilters(filterValues) : undefined),
+    [filterValues],
+  )
+  const filterState = controlledFilters
+    ? {
+        state: { rowSelection, columnFilters: controlledFilters },
+        onColumnFiltersChange: (updater: Updater<ColumnFiltersState>) =>
+          onFilterValuesChange?.(toFilterValues(functionalUpdate(updater, controlledFilters))),
+      }
+    : // Uncontrolled, the table's own column filter state and updater stay in charge.
+      { state: { rowSelection } }
+
   const table = useTable({
     features: dataTableFeatures,
     columns: columnDefs,
@@ -172,7 +212,7 @@ export function DataTable<T extends { id: string }>({
       sorting: initialSort ? [{ id: initialSort.id, desc: initialSort.desc ?? false }] : [],
       pagination: { pageIndex: 0, pageSize },
     },
-    state: { rowSelection },
+    ...filterState,
     onRowSelectionChange: (updater: Updater<RowSelectionState>) => {
       const updated = functionalUpdate(updater, rowSelection)
       // The table's own selection holds only rows that exist; a host's `selectedIds` is its own.
@@ -261,6 +301,7 @@ export function DataTable<T extends { id: string }>({
           <ActionMenu
             trigger="button"
             buttonLabel="Bulk actions"
+            linkComponent={linkComponent}
             disabled={selectedCount === 0}
             groupLabel={`${selectedCount} ${countNoun(selectedCount, entity)}`}
             items={selectedCount > 0 ? bulkActions(selectedRows) : []}
@@ -378,7 +419,11 @@ export function DataTable<T extends { id: string }>({
                       {rowActions ? (
                         <Table.Cell textAlign="end" py="1.5">
                           {actions.length > 0 ? (
-                            <ActionMenu label={`Actions for ${label}`} items={actions} />
+                            <ActionMenu
+                              label={`Actions for ${label}`}
+                              items={actions}
+                              linkComponent={linkComponent}
+                            />
                           ) : null}
                         </Table.Cell>
                       ) : null}

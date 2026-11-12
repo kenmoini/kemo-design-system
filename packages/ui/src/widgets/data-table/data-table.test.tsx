@@ -1,8 +1,10 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { forwardRef, useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Badge } from '../../components/ui'
 import { MEDIA_LG } from '../../layouts/app-shell'
+import type { LinkComponent } from '../../pages/auth/types'
 import { setMediaMatches } from '../../test/media'
 import { DataTable } from './data-table'
 import type { ActionItem, DataTableColumn, DataTableFilter, DataTableProps } from './types'
@@ -520,5 +522,114 @@ describe('DataTable tags filter', () => {
     expect(bodyRows()).toHaveLength(1)
     expect(bodyRows()[0]).toHaveTextContent('a')
     expect(screen.getByRole('button', { name: 'Filters (2 active)' })).toHaveTextContent('Filters2')
+  })
+})
+
+describe('DataTable controlled filter values', () => {
+  beforeEach(() => {
+    setMediaMatches(MEDIA_LG, true)
+  })
+
+  type Values = Record<string, string | string[]>
+
+  function Host({ initial, onChange }: { initial: Values; onChange: (values: Values) => void }) {
+    const [values, setValues] = useState(initial)
+    return (
+      <>
+        <button type="button" onClick={() => setValues({})}>
+          Reset from the host
+        </button>
+        {tableElement({
+          filterValues: values,
+          onFilterValuesChange: (next) => {
+            onChange(next)
+            setValues(next)
+          },
+        })}
+      </>
+    )
+  }
+
+  it('filters by the values it is given and reports every change by filter id', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn<(values: Values) => void>()
+    render(<Host initial={{ role: 'deployer' }} onChange={onChange} />)
+    const deployers = users.filter((u) => u.role === 'deployer')
+    const role = screen.getByRole('combobox', { name: 'Role' })
+    expect(role).toHaveTextContent('Deployer')
+    expect(screen.getByText(`${deployers.length} users`)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('checkbox', { name: /^Disabled/ }))
+    expect(onChange).toHaveBeenLastCalledWith({ role: 'deployer', status: ['disabled'] })
+    const disabledDeployers = deployers.filter((u) => u.status === 'disabled')
+    expect(bodyRows()).toHaveLength(disabledDeployers.length)
+
+    await user.click(role)
+    await user.click(await screen.findByRole('option', { name: 'All roles' }))
+    expect(onChange).toHaveBeenLastCalledWith({ status: ['disabled'] })
+  })
+
+  it('follows the host when it changes the values', async () => {
+    const user = userEvent.setup()
+    render(<Host initial={{ role: 'viewer', status: ['active'] }} onChange={() => {}} />)
+    expect(screen.getByRole('combobox', { name: 'Role' })).toHaveTextContent('Viewer')
+    expect(screen.getByRole('checkbox', { name: /^Active/ })).toBeChecked()
+
+    await user.click(screen.getByRole('button', { name: 'Reset from the host' }))
+    expect(screen.getByRole('combobox', { name: 'Role' })).toHaveTextContent('All roles')
+    expect(screen.getByRole('checkbox', { name: /^Active/ })).not.toBeChecked()
+    expect(screen.getByText('25 users')).toBeInTheDocument()
+  })
+
+  it('reports an empty record when Clear filters runs', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn<(values: Values) => void>()
+    render(<Host initial={{ status: ['disabled'] }} onChange={onChange} />)
+    const rail = screen.getByRole('complementary', { name: 'Filters' })
+    await user.click(within(rail).getByRole('button', { name: 'Clear filters' }))
+    expect(onChange).toHaveBeenLastCalledWith({})
+    expect(screen.getByText('25 users')).toBeInTheDocument()
+  })
+})
+
+describe('DataTable link actions', () => {
+  beforeEach(() => {
+    setMediaMatches(MEDIA_LG, true)
+  })
+
+  const linkActions = (row: User): ActionItem[] => [
+    { id: 'open', label: 'Open', href: `/users/${row.id}` },
+    { id: 'off', label: 'Open (off)', href: `/users/${row.id}/off`, disabled: true },
+    { id: 'delete', label: 'Delete', tone: 'danger', onSelect: () => {} },
+  ]
+
+  it('renders an item with an href as a link in the menu', async () => {
+    const user = userEvent.setup()
+    renderTable({ rowActions: linkActions })
+    await user.click(screen.getByRole('button', { name: 'Actions for Priya Natarajan' }))
+    const menu = await screen.findByRole('menu')
+    const open = within(menu).getByRole('menuitem', { name: 'Open' })
+    expect(open.tagName).toBe('A')
+    expect(open).toHaveAttribute('href', '/users/u1')
+    // A disabled link is not a link: nothing to follow.
+    const off = within(menu).getByRole('menuitem', { name: 'Open (off)' })
+    expect(off.tagName).not.toBe('A')
+    expect(off).toHaveAttribute('aria-disabled', 'true')
+    expect(within(menu).getByRole('menuitem', { name: 'Delete' }).tagName).not.toBe('A')
+  })
+
+  it('renders link items through the host link component', async () => {
+    const user = userEvent.setup()
+    const HostLink: LinkComponent = forwardRef<HTMLAnchorElement, { href: string }>(
+      function HostLink(props, ref) {
+        return <a data-host-link="" ref={ref} {...props} />
+      },
+    )
+    renderTable({ rowActions: linkActions, linkComponent: HostLink })
+    await user.click(screen.getByRole('button', { name: 'Actions for Priya Natarajan' }))
+    const menu = await screen.findByRole('menu')
+    const open = within(menu).getByRole('menuitem', { name: 'Open' })
+    expect(open).toHaveAttribute('data-host-link')
+    expect(open).toHaveAttribute('href', '/users/u1')
   })
 })

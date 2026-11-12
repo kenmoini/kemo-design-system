@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { LinkComponent } from '../../pages/auth/types'
 
 /** A value and its label: a filter option, a `Select` item, a reference to another entity. */
 export type Option = { value: string; label: string }
@@ -49,13 +50,30 @@ export interface TagsFilter<T> extends FilterBase {
 
 export type DataTableFilter<T> = CheckboxFilter<T> | SelectFilter<T> | TagsFilter<T>
 
-export interface ActionItem {
+interface ActionItemBase {
   id: string
   label: string
   tone?: 'default' | 'danger'
   disabled?: boolean
-  onSelect: () => void
 }
+
+/** A command: choosing it calls `onSelect`. */
+export interface ActionCommandItem extends ActionItemBase {
+  onSelect: () => void
+  href?: undefined
+}
+
+/** A link: the item is an anchor to `href` (through the menu's `linkComponent` when there is one);
+ * `onSelect` also runs when it is chosen. A disabled link is a plain, inert item. */
+export interface ActionLinkItem extends ActionItemBase {
+  href: string
+  onSelect?: () => void
+}
+
+export type ActionItem = ActionCommandItem | ActionLinkItem
+
+/** Filter values by filter id: a checkbox or tags filter's values, a select filter's value. */
+export type DataTableFilterValues = Record<string, string | string[]>
 
 export interface DataTableProps<T extends { id: string }> {
   /** Lower-case nouns for the counts and empty states, e.g. `{ singular: 'user', plural: 'users' }`. */
@@ -86,4 +104,10 @@ export interface DataTableProps<T extends { id: string }> {
   initialSort?: { id: string; desc?: boolean }
   /** Replaces "No {plural} yet" when there are no rows at all. */
   emptyMessage?: string
+  /** The filters' values by filter id; omit it to let the table hold them. When given, reflect
+   * every `onFilterValuesChange` back into it. A filter without a value is absent from the record. */
+  filterValues?: DataTableFilterValues
+  onFilterValuesChange?: (values: DataTableFilterValues) => void
+  /** The host's link (Next's `Link`, say) for action items with an `href`; defaults to an anchor. */
+  linkComponent?: LinkComponent
 }

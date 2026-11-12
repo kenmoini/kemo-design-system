@@ -340,6 +340,21 @@ type SelectFieldInnerProps = SelectBaseProps & {
   multiple: boolean
   value: string[]
   onChange: (value: string[]) => void
+  maxChips?: number
+}
+
+/** The chosen labels as wrapping chips, the first `max` of them and "+N" for the rest. */
+function SelectionChips({ items, max }: { items: Option[]; max?: number }) {
+  const shown = max === undefined ? items : items.slice(0, max)
+  const more = items.length - shown.length
+  return (
+    <HStack gap="1" flexWrap="wrap" flex="1" minW="0">
+      {shown.map((item) => (
+        <Badge key={item.value}>{item.label}</Badge>
+      ))}
+      {more > 0 ? <Badge variant="outline">{`+${more}`}</Badge> : null}
+    </HStack>
+  )
 }
 
 const SelectFieldInner = forwardRef<HTMLButtonElement, SelectFieldInnerProps>(
@@ -356,6 +371,7 @@ const SelectFieldInner = forwardRef<HTMLButtonElement, SelectFieldInnerProps>(
       required,
       disabled,
       onBlur,
+      maxChips,
     },
     ref,
   ) {
@@ -390,11 +406,7 @@ const SelectFieldInner = forwardRef<HTMLButtonElement, SelectFieldInnerProps>(
                     <Select.Context>
                       {(select) =>
                         select.selectedItems.length > 0 ? (
-                          <HStack gap="1" flexWrap="wrap" flex="1" minW="0">
-                            {(select.selectedItems as Option[]).map((item) => (
-                              <Badge key={item.value}>{item.label}</Badge>
-                            ))}
-                          </HStack>
+                          <SelectionChips items={select.selectedItems as Option[]} max={maxChips} />
                         ) : (
                           <Select.ValueText placeholder={placeholder} />
                         )
@@ -464,6 +476,8 @@ export const SelectField = forwardRef<HTMLButtonElement, SelectFieldProps>(funct
 export type MultiSelectFieldProps = SelectBaseProps & {
   value: string[]
   onChange: (value: string[]) => void
+  /** Show at most this many chips, then "+N" for the rest; omitted, every chosen label shows. */
+  maxChips?: number
 }
 
 /** `SelectField` for several values: the trigger shows each chosen label as a chip. */

@@ -3,6 +3,7 @@ import { Portal } from '@ark-ui/react/portal'
 import { ChevronDown, EllipsisVertical } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { Button, IconButton, Menu } from '../../components/ui'
+import type { LinkComponent } from '../../pages/auth/types'
 import type { ActionItem } from './types'
 
 export interface ActionMenuProps {
@@ -21,13 +22,23 @@ export interface ActionMenuProps {
   groupLabel?: string
   /** Items after a separator, in a group of their own (the bulk menu's "Clear selection"). */
   footerItems?: ActionItem[]
+  /** The host's link for items with an `href` (Next's `Link`, say); defaults to an anchor. */
+  linkComponent?: LinkComponent
 }
 
-function ActionItems({ items }: { items: ActionItem[] }) {
+function ActionItems({
+  items,
+  linkComponent: HostLink,
+}: {
+  items: ActionItem[]
+  linkComponent?: LinkComponent
+}) {
   return items.map((item, index) => {
     const danger = item.tone === 'danger'
     // Destructive items start their own section, below a separator.
     const separate = danger && index > 0 && items[index - 1]?.tone !== 'danger'
+    // A disabled link would still follow its href on a click: render it as a plain item.
+    const href = item.disabled ? undefined : item.href
     return (
       <Fragment key={item.id}>
         {separate ? <Menu.Separator /> : null}
@@ -36,8 +47,16 @@ function ActionItems({ items }: { items: ActionItem[] }) {
           disabled={item.disabled}
           onSelect={item.onSelect}
           color={danger ? 'red.11' : 'fg.default'}
+          // Zag follows a link item on Enter by clicking it, so the host link's routing applies.
+          asChild={href !== undefined}
         >
-          {item.label}
+          {href === undefined ? (
+            item.label
+          ) : HostLink ? (
+            <HostLink href={href}>{item.label}</HostLink>
+          ) : (
+            <a href={href}>{item.label}</a>
+          )}
         </Menu.Item>
       </Fragment>
     )
@@ -56,6 +75,7 @@ export function ActionMenu({
   disabled,
   groupLabel,
   footerItems,
+  linkComponent,
 }: ActionMenuProps) {
   const [open, setOpen] = useState(false)
   return (
@@ -88,16 +108,16 @@ export function ActionMenu({
             {groupLabel ? (
               <Menu.ItemGroup>
                 <Menu.ItemGroupLabel>{groupLabel}</Menu.ItemGroupLabel>
-                <ActionItems items={items} />
+                <ActionItems items={items} linkComponent={linkComponent} />
               </Menu.ItemGroup>
             ) : (
-              <ActionItems items={items} />
+              <ActionItems items={items} linkComponent={linkComponent} />
             )}
             {footerItems && footerItems.length > 0 ? (
               <>
                 <Menu.Separator />
                 <Menu.ItemGroup>
-                  <ActionItems items={footerItems} />
+                  <ActionItems items={footerItems} linkComponent={linkComponent} />
                 </Menu.ItemGroup>
               </>
             ) : null}
