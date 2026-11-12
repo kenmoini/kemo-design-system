@@ -11,3 +11,4 @@ export type {
   BlogVariant,
 } from './types'
 export { BlogCover } from './blog-cover'
+export { BlogProse } from './blog-prose'
