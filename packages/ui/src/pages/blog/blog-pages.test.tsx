@@ -29,6 +29,29 @@ describe('BlogPostPage', () => {
   )
 })
 
+describe('footer year', () => {
+  it('reaches the footer from every index and post variation', () => {
+    for (const variant of ['editorial-list', 'magazine-grid', 'journal-rail'] as const) {
+      const index = render(
+        <BlogIndexPage {...chrome} variant={variant} title="Notes" posts={testPosts} year={2031} />,
+      )
+      expect(screen.getByRole('contentinfo')).toHaveTextContent('© 2031')
+      index.unmount()
+      const post = render(
+        <BlogPostPage
+          {...chrome}
+          variant={variant}
+          posts={testPosts}
+          post={testPosts[0]!}
+          year={2031}
+        />,
+      )
+      expect(screen.getByRole('contentinfo')).toHaveTextContent('© 2031')
+      post.unmount()
+    }
+  })
+})
+
 describe('package index', () => {
   it('exports the public API', () => {
     for (const name of [

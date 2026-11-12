@@ -9,7 +9,15 @@ import type { BlogChromeProps } from './types'
 
 export type BlogLayoutProps = Pick<
   BlogChromeProps,
-  'logo' | 'brand' | 'section' | 'nav' | 'footer' | 'onSubscribe' | 'linkComponent' | 'indexHref'
+  | 'logo'
+  | 'brand'
+  | 'section'
+  | 'nav'
+  | 'footer'
+  | 'onSubscribe'
+  | 'linkComponent'
+  | 'indexHref'
+  | 'year'
 > & {
   /** Drop the top bar's Subscribe button (a page that shows its own form). */
   hideSubscribe?: boolean
@@ -63,6 +71,7 @@ export function BlogLayout({
   hideSubscribe,
   linkComponent,
   indexHref,
+  year,
   children,
 }: BlogLayoutProps) {
   return (
@@ -126,8 +135,9 @@ export function BlogLayout({
         color="fg.subtle"
       >
         <Box>{footer ?? null}</Box>
-        <Box>
-          © {new Date().getFullYear()} {brand}
+        {/* Without `year`, a page rendered in one year and hydrated in the next differs here. */}
+        <Box suppressHydrationWarning>
+          © {year ?? new Date().getFullYear()} {brand}
         </Box>
       </Box>
     </Box>

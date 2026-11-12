@@ -27,6 +27,15 @@ describe('BlogLayout', () => {
     expect(screen.getByRole('link', { name: /Kemo.*Blog/ })).toHaveAttribute('href', '/blog')
   })
 
+  it('prints the year it is given, so a static page can pin it', () => {
+    render(
+      <BlogLayout {...base} year={2031}>
+        x
+      </BlogLayout>,
+    )
+    expect(screen.getByRole('contentinfo')).toHaveTextContent('© 2031 Kemo')
+  })
+
   it('marks the current nav link and omits the nav when there are no links', () => {
     const { rerender } = render(
       <BlogLayout

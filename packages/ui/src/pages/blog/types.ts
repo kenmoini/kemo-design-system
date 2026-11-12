@@ -62,6 +62,11 @@ export interface BlogChromeProps {
   linkComponent?: LinkComponent
   indexHref: string
   postHref: (post: BlogPost) => string
+  /**
+   * The year in the footer's copyright line; default the current year. Pin it in a statically
+   * generated page, which otherwise prints the year it was built in.
+   */
+  year?: number
 }
 
 export interface BlogIndexPageProps extends BlogChromeProps {
