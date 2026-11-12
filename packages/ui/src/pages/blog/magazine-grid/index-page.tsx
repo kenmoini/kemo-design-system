@@ -157,7 +157,12 @@ export function MagazineGridIndex(props: BlogIndexPageProps) {
                 borderBottomWidth="1px"
                 borderColor="border"
               >
-                <Tabs.List flex="1" minW="0" overflowX="auto" _horizontal={{ borderBottomWidth: '0' }}>
+                <Tabs.List
+                  flex="1"
+                  minW="0"
+                  overflowX="auto"
+                  _horizontal={{ borderBottomWidth: '0' }}
+                >
                   <Tabs.Trigger value="all">All posts</Tabs.Trigger>
                   {topics.map((t) => (
                     <Tabs.Trigger key={t.id} value={t.id}>
