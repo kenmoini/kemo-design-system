@@ -1,0 +1,238 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .fm { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .fm * { box-sizing: border-box; }
+  .fm.cards { display: grid; grid-template-columns: 1fr; gap: 28px; max-width: 1040px; }
+  .fm .card-image { display: block; aspect-ratio: auto; padding: 0; }
+  .pg { --canvas:#fcfcfc; --card:#fff; --ink:#202020; --muted:#646464; --subtle:#838383; --line:#e8e8e8; --sub:#f0f0f0; --sub2:#f7f7f7;
+        background: var(--canvas); color: var(--ink); font-size: 12px; line-height: 1.45; text-align: left; }
+  .pg p, .pg h4, .pg h5, .pg h6 { margin: 0; }
+  .night { background: linear-gradient(115deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 28%), linear-gradient(135deg, #4a0f26 0%, #5d1f7e 48%, #140b2a 100%); color: #f3eef6; }
+  /* shared top bar */
+  .top { height: 46px; display: flex; align-items: center; gap: 22px; padding: 0 28px; border-bottom: 1px solid var(--line); background: var(--card); }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; }
+  .brand i { width: 18px; height: 18px; border-radius: 3px; background: #000; color: #fff; display: grid; place-items: center; font-size: 10px; font-style: normal; font-weight: 700; }
+  .brand span { color: var(--subtle); font-weight: 400; }
+  .links { display: flex; gap: 16px; color: var(--muted); }
+  .links b { color: var(--ink); font-weight: 500; }
+  .sp { flex: 1; }
+  .btn { height: 26px; padding: 0 10px; border-radius: 2px; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; border: 1px solid var(--line); background: var(--card); white-space: nowrap; }
+  .btn.solid { background: #000; color: #fff; border-color: #000; }
+  .search { height: 26px; width: 220px; border: 1px solid var(--line); border-radius: 2px; padding: 0 8px; display: flex; align-items: center; color: var(--subtle); font-size: 11px; background: var(--card); }
+  .tag { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 2px; background: var(--sub); color: var(--muted); font-size: 10px; font-weight: 500; white-space: nowrap; }
+  .tag.ok { background: #e6f4ea; color: #1e6b3a; } .tag.warn { background: #fdf1dc; color: #8a5a00; } .tag.new { background: #e8eefb; color: #2b4ea3; }
+  .night .tag { background: rgba(255,255,255,.14); color: #f3eef6; }
+  .meta { color: var(--subtle); font-size: 10.5px; display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+  .av { width: 16px; height: 16px; border-radius: 50%; background: #c9c2d6; display: inline-block; flex: none; }
+  .av.l { width: 28px; height: 28px; }
+  .av.b { background: #b8c4e0; } .av.c { background: #d6c2b8; } .av.d { background: #bfd6c2; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { height: 24px; padding: 0 10px; border: 1px solid var(--line); border-radius: 2px; display: inline-flex; align-items: center; color: var(--muted); font-size: 11px; background: var(--card); }
+  .chip.on { background: #000; color: #fff; border-color: #000; }
+  .foot { border-top: 1px solid var(--line); padding: 14px 28px; display: flex; justify-content: space-between; color: var(--subtle); font-size: 10.5px; }
+  .lbl { font-size: 10px; color: var(--subtle); text-transform: uppercase; letter-spacing: .06em; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* A — boards */
+  .a-wrap { max-width: 1000px; margin: 0 auto; padding: 28px; }
+  .a-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
+  .a-head h4 { font-size: 28px; font-weight: 600; letter-spacing: -.025em; line-height: 1.1; }
+  .a-head p { color: var(--muted); font-size: 13px; margin-top: 6px; max-width: 52ch; }
+  .a-stats { display: flex; gap: 18px; color: var(--muted); font-size: 11px; padding-bottom: 4px; }
+  .a-stats b { display: block; font-size: 16px; font-weight: 600; letter-spacing: -.02em; color: var(--ink); }
+  .a-sec { margin-top: 26px; }
+  .a-sec .lbl { padding-bottom: 8px; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 1fr 64px 64px 272px; gap: 16px; }
+  .a-row { display: grid; grid-template-columns: 1fr 64px 64px 272px; gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--line); align-items: center; }
+  .a-row .nm { display: flex; gap: 12px; align-items: flex-start; }
+  .a-row .ic { width: 28px; height: 28px; border-radius: 3px; background: var(--sub); flex: none; display: grid; place-items: center; font-size: 11px; font-weight: 600; color: var(--muted); }
+  .a-row .ic.n { color: #f3eef6; }
+  .a-row h5 { font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
+  .a-row p { color: var(--muted); margin-top: 2px; font-size: 11.5px; max-width: 44ch; }
+  .a-row .ct { font-size: 12px; color: var(--muted); }
+  .a-row .last { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: center; min-width: 0; }
+  .a-row .last h6 { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .a-latest { margin-top: 26px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .a-card { border: 1px solid var(--line); background: var(--card); border-radius: 3px; padding: 12px; }
+  .a-card h6 { font-size: 12.5px; font-weight: 600; line-height: 1.3; }
+  .a-card .meta { margin-top: 8px; }
+
+  /* B — discussions feed with a rail */
+  .b-wrap { display: grid; grid-template-columns: 1fr 236px; gap: 36px; padding: 28px; max-width: 1040px; margin: 0 auto; }
+  .b-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .b-row { display: grid; grid-template-columns: 28px 1fr 88px; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: start; }
+  .b-row.pin { background: var(--sub2); margin: 0 -12px; padding: 12px; border-radius: 3px; border-bottom: 0; }
+  .b-row h5 { font-size: 14.5px; font-weight: 600; letter-spacing: -.01em; line-height: 1.25; }
+  .b-row p { color: var(--muted); margin-top: 3px; font-size: 11.5px; max-width: 70ch; }
+  .b-row .meta { margin-top: 7px; }
+  .b-row .cnt { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; padding-top: 2px; }
+  .b-row .cnt b { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .b-rail { display: flex; flex-direction: column; gap: 22px; }
+  .b-cta { border-radius: 3px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .b-cta h5 { font-size: 16px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
+  .b-cta p { color: rgba(243,238,246,.75); font-size: 11.5px; }
+  .b-cta .btn { background: #fff; color: #000; border-color: #fff; align-self: flex-start; margin-top: 4px; }
+  .b-cat { display: flex; justify-content: space-between; padding: 5px 8px; border-radius: 2px; color: var(--muted); }
+  .b-cat.on { background: var(--sub); color: var(--ink); font-weight: 500; }
+  .b-cat i { display: inline-block; width: 7px; height: 7px; border-radius: 2px; background: #5d1f7e; margin-right: 8px; vertical-align: 0; }
+  .b-stat { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .b-stat div { border: 1px solid var(--line); background: var(--card); border-radius: 3px; padding: 8px; }
+  .b-stat b { display: block; font-size: 16px; font-weight: 600; letter-spacing: -.02em; }
+  .b-stat span { font-size: 10px; color: var(--subtle); }
+  .b-people { display: flex; flex-direction: column; gap: 7px; }
+  .b-people div { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+  .b-people span { margin-left: auto; color: var(--subtle); font-size: 10.5px; }
+
+  /* C — Q&A desk */
+  .c-hero { padding: 40px 28px 30px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; }
+  .c-hero h4 { font-size: 30px; font-weight: 600; letter-spacing: -.025em; line-height: 1.1; }
+  .c-hero p { color: rgba(243,238,246,.75); font-size: 13px; }
+  .c-hero .in { margin-top: 8px; width: 560px; height: 38px; background: #fff; color: var(--subtle); border-radius: 3px; display: flex; align-items: center; padding: 0 12px; justify-content: space-between; font-size: 12px; }
+  .c-hero .in b { height: 26px; padding: 0 10px; background: #000; color: #fff; border-radius: 2px; display: inline-flex; align-items: center; font-size: 11px; font-weight: 500; }
+  .c-hero .pop { display: flex; gap: 6px; align-items: center; color: rgba(243,238,246,.6); font-size: 10.5px; }
+  .c-hero .pop .tag { background: rgba(255,255,255,.14); color: #f3eef6; }
+  .c-wrap { max-width: 1000px; margin: 0 auto; padding: 24px 28px 28px; }
+  .c-cats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .c-cat { border: 1px solid var(--line); background: var(--card); border-radius: 3px; padding: 14px; }
+  .c-cat h5 { font-size: 13.5px; font-weight: 600; letter-spacing: -.01em; }
+  .c-cat p { color: var(--muted); margin-top: 3px; font-size: 11px; min-height: 32px; }
+  .c-cat .meta { margin-top: 10px; justify-content: space-between; }
+  .c-cat .bar { margin-top: 6px; height: 3px; background: var(--sub); border-radius: 2px; overflow: hidden; }
+  .c-cat .bar i { display: block; height: 100%; background: #2b2b2b; }
+  .c-two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 26px; }
+  .c-two .hd { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .c-two .hd h5 { font-size: 14px; font-weight: 600; }
+  .c-two .hd span { color: var(--subtle); font-size: 11px; }
+  .c-q { display: grid; grid-template-columns: 44px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); align-items: start; }
+  .c-q .vt { text-align: center; border: 1px solid var(--line); border-radius: 2px; padding: 4px 0; background: var(--card); }
+  .c-q .vt b { display: block; font-size: 14px; font-weight: 600; letter-spacing: -.02em; line-height: 1; }
+  .c-q .vt span { font-size: 9px; color: var(--subtle); }
+  .c-q .vt.ok { border-color: #bfe3c9; background: #e6f4ea; } .c-q .vt.ok b { color: #1e6b3a; } .c-q .vt.ok span { color: #1e6b3a; }
+  .c-q .vt.zero { border-style: dashed; color: var(--subtle); }
+  .c-q h6 { font-size: 12.5px; font-weight: 600; line-height: 1.3; }
+  .c-q .meta { margin-top: 6px; }
+</style>
+
+<h2>Forum front page: three layout directions</h2>
+<p class="subtitle">All three live outside the console shell like the blog (public community forum, own slim top bar), with the neutral palette, DM Sans and the Nightfall gradient as the only colour. Same categories and topics in each. Click one to pick it, or tell me which parts of each you'd mix.</p>
+
+<div class="cards fm">
+
+  <!-- A -->
+  <div class="card" data-choice="a-boards" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="pg">
+        <div class="top"><div class="brand"><i>K</i> Kemo <span>/ Community</span></div><div class="links"><b>Boards</b><span>Latest</span><span>Unanswered</span><span>Members</span></div><div class="sp"></div><span class="search">Search topics</span><span class="btn">Sign in</span><span class="btn solid">New topic</span></div>
+        <div class="a-wrap">
+          <div class="a-head"><div><h4>Kemo Community</h4><p>Questions, answers and release talk from the people who run Kemo Console.</p></div>
+            <div class="a-stats"><div><b class="num">1,248</b>topics</div><div><b class="num">9,310</b>posts</div><div><b class="num">412</b>members</div></div></div>
+          <div class="a-sec">
+            <div class="lbl"><span>Product</span><span>Topics</span><span>Posts</span><span>Latest</span></div>
+            <div class="a-row"><div class="nm"><span class="ic night n">A</span><div><h5>Announcements</h5><p>Releases, maintenance windows and policy changes.</p></div></div><span class="ct num">32</span><span class="ct num">118</span><div class="last"><span class="av l"></span><div><h6>Console 4.2 released: schema-aware YAML editing</h6><div class="meta">Priya Raman · 2 h ago</div></div></div></div>
+            <div class="a-row"><div class="nm"><span class="ic">C</span><div><h5>Kemo Console</h5><p>The web console: dashboards, Access, Deployments and the rest.</p></div></div><span class="ct num">486</span><span class="ct num">3,902</span><div class="last"><span class="av l b"></span><div><h6>Schema browser shows no CRD fields after 4.2</h6><div class="meta">Jonas Lindqvist · 14 min ago</div></div></div></div>
+            <div class="a-row"><div class="nm"><span class="ic">D</span><div><h5>Deployments &amp; GitOps</h5><p>Rollouts, scaling, YAML and the pipelines around them.</p></div></div><span class="ct num">311</span><span class="ct num">2,140</span><div class="last"><span class="av l c"></span><div><h6>How do you structure namespaces across dev, stage and prod?</h6><div class="meta">Amara Osei · 1 h ago</div></div></div></div>
+            <div class="a-row"><div class="nm"><span class="ic">S</span><div><h5>Access &amp; SSO</h5><p>OIDC providers, groups, roles and permissions.</p></div></div><span class="ct num">158</span><span class="ct num">1,034</span><div class="last"><span class="av l d"></span><div><h6>Keycloak group mapping: nested groups are not synced</h6><div class="meta">Tomas Berg · 3 h ago</div></div></div></div>
+          </div>
+          <div class="a-sec">
+            <div class="lbl"><span>Community</span><span>Topics</span><span>Posts</span><span>Latest</span></div>
+            <div class="a-row"><div class="nm"><span class="ic">G</span><div><h5>Getting started</h5><p>First install, first cluster, first questions.</p></div></div><span class="ct num">97</span><span class="ct num">612</span><div class="last"><span class="av l"></span><div><h6>Minimum RBAC for a read-only console account?</h6><div class="meta">Lena Fischer · 5 h ago</div></div></div></div>
+            <div class="a-row"><div class="nm"><span class="ic">T</span><div><h5>Show and tell</h5><p>Things you built on or around Kemo.</p></div></div><span class="ct num">41</span><span class="ct num">388</span><div class="last"><span class="av l b"></span><div><h6>A GitOps dashboard built with @kemo/ui</h6><div class="meta">Mei Tanaka · yesterday</div></div></div></div>
+            <div class="a-row"><div class="nm"><span class="ic">F</span><div><h5>Feature requests</h5><p>What should the console do next? Vote on ideas.</p></div></div><span class="ct num">88</span><span class="ct num">704</span><div class="last"><span class="av l c"></span><div><h6>Dark mode for the YAML editor's schema panel</h6><div class="meta">Dan Okafor · yesterday</div></div></div></div>
+            <div class="a-row"><div class="nm"><span class="ic">B</span><div><h5>Bug reports</h5><p>Something broke? Include the version and a request id.</p></div></div><span class="ct num">35</span><span class="ct num">412</span><div class="last"><span class="av l d"></span><div><h6>Events tab stops updating after a laptop sleep</h6><div class="meta">Ana Souza · 2 days ago</div></div></div></div>
+          </div>
+          <div class="a-latest">
+            <div class="a-card"><span class="tag ok">Solved</span><h6 style="margin-top:8px">Schema browser shows no CRD fields after 4.2</h6><div class="meta"><span class="av b"></span> Jonas Lindqvist · 12 replies</div></div>
+            <div class="a-card"><span class="tag">Discussion</span><h6 style="margin-top:8px">How do you structure namespaces across dev, stage and prod?</h6><div class="meta"><span class="av c"></span> Amara Osei · 9 replies</div></div>
+            <div class="a-card"><span class="tag new">Announcement</span><h6 style="margin-top:8px">Console 4.2 released: schema-aware YAML editing</h6><div class="meta"><span class="av"></span> Priya Raman · 31 replies</div></div>
+          </div>
+        </div>
+        <div class="foot"><span>Guidelines · Code of conduct · Status</span><span>© 2026 Kemo</span></div>
+      </div>
+    </div>
+    <div class="card-body"><h3>A · Boards</h3><p>The classic forum: categories grouped into sections, each row with its counts and the latest post, and a strip of recent topics at the bottom. Dense and familiar; the category page would be the same row shape with topics instead of boards.</p></div>
+  </div>
+
+  <!-- B -->
+  <div class="card" data-choice="b-discussions-rail" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="pg">
+        <div class="top"><div class="brand"><i>K</i> Kemo <span>/ Community</span></div><div class="links"><b>Discussions</b><span>Categories</span><span>Members</span></div><div class="sp"></div><span class="search">Search discussions</span><span class="btn solid">New discussion</span></div>
+        <div class="b-wrap">
+          <div>
+            <div class="b-bar"><div class="chips"><span class="chip on">Latest</span><span class="chip">Top</span><span class="chip">Unanswered</span><span class="chip">Solved</span><span class="chip">Following</span></div><span class="meta">Sort: recent activity ▾</span></div>
+            <div class="b-row pin" style="margin-top:12px"><span class="av l night"></span><div><h5>Forum guidelines and how to ask a question that gets answered</h5><div class="meta"><span class="tag">Pinned</span> Announcements · Priya Raman · updated 3 Nov</div></div><div class="cnt"><b class="num">4</b></div></div>
+            <div class="b-row"><span class="av l b"></span><div><h5>Schema browser shows no CRD fields after 4.2</h5><p>After upgrading, the YAML tab lints fine but the Schema panel is empty for our Gateway API objects. Registered the schema the way the docs say…</p><div class="meta"><span class="tag">Kemo Console</span><span class="tag ok">Solved</span> Jonas Lindqvist · 14 min ago</div></div><div class="cnt"><b class="num">12 replies</b><span class="meta">👍 18</span></div></div>
+            <div class="b-row"><span class="av l c"></span><div><h5>How do you structure namespaces across dev, stage and prod?</h5><p>One namespace per environment per team, or one cluster per environment? Curious what people do once there are more than ten teams.</p><div class="meta"><span class="tag">Deployments &amp; GitOps</span> Amara Osei · 1 h ago</div></div><div class="cnt"><b class="num">9 replies</b><span class="meta">👍 7</span></div></div>
+            <div class="b-row"><span class="av l"></span><div><h5>Console 4.2 released: schema-aware YAML editing</h5><p>Lint, hover docs and completion for every resource kind your cluster knows about, plus a schema browser beside the editor.</p><div class="meta"><span class="tag new">Announcement</span> Priya Raman · 2 h ago</div></div><div class="cnt"><b class="num">31 replies</b><span class="meta">👍 64</span></div></div>
+            <div class="b-row"><span class="av l d"></span><div><h5>Keycloak group mapping: nested groups are not synced</h5><p>Top-level groups arrive, nested ones never show up in Access → Groups. Is there a flag for the full path?</p><div class="meta"><span class="tag">Access &amp; SSO</span><span class="tag warn">Needs info</span> Tomas Berg · 3 h ago</div></div><div class="cnt"><b class="num">3 replies</b><span class="meta">👍 2</span></div></div>
+            <div class="b-row"><span class="av l"></span><div><h5>Minimum RBAC for a read-only console account?</h5><p>Setting up a viewer account for the NOC. Which ClusterRole rules does the console need to render the dashboard?</p><div class="meta"><span class="tag">Getting started</span> Lena Fischer · 5 h ago</div></div><div class="cnt"><b class="num">0 replies</b></div></div>
+            <div class="b-row"><span class="av l b"></span><div><h5>A GitOps dashboard built with @kemo/ui</h5><p>Weekend project: Argo sync status, drift and rollout history on the same widgets the console uses. Source on GitHub.</p><div class="meta"><span class="tag">Show and tell</span> Mei Tanaka · yesterday</div></div><div class="cnt"><b class="num">17 replies</b><span class="meta">👍 41</span></div></div>
+            <div class="b-row"><span class="av l c"></span><div><h5>Dark mode for the YAML editor's schema panel</h5><p>The editor goes dark with the theme but the schema panel stays light. Small, but it's the one bright thing on the page at night.</p><div class="meta"><span class="tag">Feature requests</span> Dan Okafor · yesterday</div></div><div class="cnt"><b class="num">6 replies</b><span class="meta">👍 23</span></div></div>
+            <div class="meta" style="justify-content:center;padding:16px 0 0">Load more</div>
+          </div>
+          <div class="b-rail">
+            <div class="b-cta night"><h5>Start a discussion</h5><p>Ask a question, share what you built or propose a change.</p><span class="btn">New discussion</span></div>
+            <div><div class="lbl" style="margin-bottom:6px">Categories</div>
+              <div class="b-cat on"><span>All</span><span class="num">1,248</span></div>
+              <div class="b-cat"><span><i></i>Announcements</span><span class="num">32</span></div>
+              <div class="b-cat"><span><i style="background:#2b4ea3"></i>Kemo Console</span><span class="num">486</span></div>
+              <div class="b-cat"><span><i style="background:#1e6b3a"></i>Deployments &amp; GitOps</span><span class="num">311</span></div>
+              <div class="b-cat"><span><i style="background:#8a5a00"></i>Access &amp; SSO</span><span class="num">158</span></div>
+              <div class="b-cat"><span><i style="background:#4a0f26"></i>Getting started</span><span class="num">97</span></div>
+              <div class="b-cat"><span><i style="background:#646464"></i>Show and tell</span><span class="num">41</span></div>
+              <div class="b-cat"><span><i style="background:#838383"></i>Feature requests</span><span class="num">88</span></div>
+              <div class="b-cat"><span><i style="background:#a52a2a"></i>Bug reports</span><span class="num">35</span></div>
+            </div>
+            <div><div class="lbl" style="margin-bottom:6px">This week</div><div class="b-stat"><div><b class="num">48</b><span>new topics</span></div><div><b class="num">212</b><span>replies</span></div><div><b class="num">19</b><span>solved</span></div></div></div>
+            <div><div class="lbl" style="margin-bottom:6px">Top contributors</div><div class="b-people"><div><span class="av"></span>Priya Raman<span>Kemo</span></div><div><span class="av b"></span>Jonas Lindqvist<span>142</span></div><div><span class="av c"></span>Amara Osei<span>98</span></div><div><span class="av d"></span>Tomas Berg<span>71</span></div></div></div>
+          </div>
+        </div>
+        <div class="foot"><span>Guidelines · Code of conduct · Status</span><span>© 2026 Kemo</span></div>
+      </div>
+    </div>
+    <div class="card-body"><h3>B · Discussions feed with a rail</h3><p>One feed of topics across categories (Latest, Top, Unanswered, Solved), a pinned guidelines post, reply and reaction counts on the right. The rail holds the Nightfall call to action, the category list with counts, this week's numbers and top contributors. GitHub Discussions in spirit; a category is just the same feed filtered.</p></div>
+  </div>
+
+  <!-- C -->
+  <div class="card" data-choice="c-qa-desk" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="pg">
+        <div class="top"><div class="brand"><i>K</i> Kemo <span>/ Community</span></div><div class="links"><b>Questions</b><span>Topics</span><span>Docs</span><span>Members</span></div><div class="sp"></div><span class="btn">Sign in</span><span class="btn solid">Ask a question</span></div>
+        <div class="c-hero night">
+          <h4>Ask the community</h4>
+          <p>1,146 of 1,248 questions have an accepted answer. Search first, then ask.</p>
+          <div class="in"><span>Search questions, e.g. “schema browser CRD”</span><b>Search</b></div>
+          <div class="pop">Popular: <span class="tag">yaml editor</span><span class="tag">oidc groups</span><span class="tag">scaling</span><span class="tag">upgrade 4.2</span><span class="tag">rbac</span></div>
+        </div>
+        <div class="c-wrap">
+          <div class="c-cats">
+            <div class="c-cat"><h5>Kemo Console</h5><p>Dashboards, Access, Deployments and the rest of the web console.</p><div class="meta"><span class="num">486 questions</span><span>92% answered</span></div><div class="bar"><i style="width:92%"></i></div></div>
+            <div class="c-cat"><h5>Deployments &amp; GitOps</h5><p>Rollouts, scaling, YAML and the pipelines around them.</p><div class="meta"><span class="num">311 questions</span><span>88% answered</span></div><div class="bar"><i style="width:88%"></i></div></div>
+            <div class="c-cat"><h5>Access &amp; SSO</h5><p>OIDC providers, groups, roles and permissions.</p><div class="meta"><span class="num">158 questions</span><span>95% answered</span></div><div class="bar"><i style="width:95%"></i></div></div>
+            <div class="c-cat"><h5>Getting started</h5><p>First install, first cluster, first questions.</p><div class="meta"><span class="num">97 questions</span><span>97% answered</span></div><div class="bar"><i style="width:97%"></i></div></div>
+          </div>
+          <div class="meta" style="margin-top:10px">Also: <span class="tag">Announcements</span><span class="tag">Show and tell</span><span class="tag">Feature requests</span><span class="tag">Bug reports</span></div>
+          <div class="c-two">
+            <div>
+              <div class="hd"><h5>Needs an answer</h5><span>102 open</span></div>
+              <div class="c-q"><div class="vt zero"><b>0</b><span>answers</span></div><div><h6>Minimum RBAC for a read-only console account?</h6><div class="meta"><span class="tag">Getting started</span><span class="tag">rbac</span> Lena Fischer · 5 h ago</div></div></div>
+              <div class="c-q"><div class="vt zero"><b>0</b><span>answers</span></div><div><h6>Events tab stops updating after a laptop sleep</h6><div class="meta"><span class="tag">Bug reports</span><span class="tag">events</span> Ana Souza · 2 days ago</div></div></div>
+              <div class="c-q"><div class="vt"><b>2</b><span>answers</span></div><div><h6>Keycloak group mapping: nested groups are not synced</h6><div class="meta"><span class="tag">Access &amp; SSO</span><span class="tag warn">Needs info</span> Tomas Berg · 3 h ago</div></div></div>
+              <div class="c-q"><div class="vt"><b>1</b><span>answer</span></div><div><h6>Scale dialog rejects 0 replicas for a paused Deployment</h6><div class="meta"><span class="tag">Kemo Console</span><span class="tag">deployments</span> Noah Martin · 6 h ago</div></div></div>
+            </div>
+            <div>
+              <div class="hd"><h5>Trending this week</h5><span>by votes</span></div>
+              <div class="c-q"><div class="vt ok"><b>12</b><span>answers</span></div><div><h6>Schema browser shows no CRD fields after 4.2</h6><div class="meta"><span class="tag">Kemo Console</span><span class="tag ok">Solved</span> Jonas Lindqvist · 18 votes</div></div></div>
+              <div class="c-q"><div class="vt"><b>9</b><span>answers</span></div><div><h6>How do you structure namespaces across dev, stage and prod?</h6><div class="meta"><span class="tag">Deployments &amp; GitOps</span> Amara Osei · 7 votes</div></div></div>
+              <div class="c-q"><div class="vt ok"><b>5</b><span>answers</span></div><div><h6>Keeping Deployment drafts when the tab is closed</h6><div class="meta"><span class="tag">Kemo Console</span><span class="tag ok">Solved</span> Sara Haddad · 11 votes</div></div></div>
+              <div class="c-q"><div class="vt"><b>6</b><span>answers</span></div><div><h6>Dark mode for the YAML editor's schema panel</h6><div class="meta"><span class="tag">Feature requests</span> Dan Okafor · 23 votes</div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="foot"><span>Guidelines · Code of conduct · Status</span><span>© 2026 Kemo</span></div>
+      </div>
+    </div>
+    <div class="card-body"><h3>C · Q&amp;A desk</h3><p>Search-first and answer-first: a Nightfall band with one big search box and popular tags, category cards with their answered rate, then "Needs an answer" beside "Trending". Votes and accepted answers are the currency, so the thread page would pin the accepted answer under the question.</p></div>
+  </div>
+
+</div>

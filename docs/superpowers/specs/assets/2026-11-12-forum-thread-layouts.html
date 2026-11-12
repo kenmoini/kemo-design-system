@@ -1,0 +1,303 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .fm { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .fm * { box-sizing: border-box; }
+  .fm.cards { display: grid; grid-template-columns: 1fr; gap: 28px; max-width: 1040px; }
+  .fm .card-image { display: block; aspect-ratio: auto; padding: 0; }
+  .pg { --canvas:#fcfcfc; --card:#fff; --ink:#202020; --muted:#646464; --subtle:#838383; --line:#e8e8e8; --sub:#f0f0f0; --sub2:#f7f7f7;
+        background: var(--canvas); color: var(--ink); font-size: 12px; line-height: 1.5; text-align: left; }
+  .pg p, .pg h4, .pg h5, .pg h6 { margin: 0; }
+  .night { background: linear-gradient(115deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 28%), linear-gradient(135deg, #4a0f26 0%, #5d1f7e 48%, #140b2a 100%); color: #f3eef6; }
+  .top { height: 46px; display: flex; align-items: center; gap: 22px; padding: 0 28px; border-bottom: 1px solid var(--line); background: var(--card); }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; }
+  .brand i { width: 18px; height: 18px; border-radius: 3px; background: #000; color: #fff; display: grid; place-items: center; font-size: 10px; font-style: normal; font-weight: 700; }
+  .brand span { color: var(--subtle); font-weight: 400; }
+  .links { display: flex; gap: 16px; color: var(--muted); }
+  .links b { color: var(--ink); font-weight: 500; }
+  .sp { flex: 1; }
+  .btn { height: 26px; padding: 0 10px; border-radius: 2px; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; border: 1px solid var(--line); background: var(--card); white-space: nowrap; }
+  .btn.solid { background: #000; color: #fff; border-color: #000; }
+  .btn.sm { height: 22px; font-size: 10.5px; padding: 0 8px; }
+  .search { height: 26px; width: 220px; border: 1px solid var(--line); border-radius: 2px; padding: 0 8px; display: flex; align-items: center; color: var(--subtle); font-size: 11px; background: var(--card); }
+  .tag { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 2px; background: var(--sub); color: var(--muted); font-size: 10px; font-weight: 500; white-space: nowrap; }
+  .tag.ok { background: #e6f4ea; color: #1e6b3a; } .tag.warn { background: #fdf1dc; color: #8a5a00; } .tag.new { background: #e8eefb; color: #2b4ea3; } .tag.staff { background: #000; color: #fff; }
+  .meta { color: var(--subtle); font-size: 10.5px; display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+  .av { width: 16px; height: 16px; border-radius: 50%; background: #c9c2d6; display: inline-block; flex: none; }
+  .av.l { width: 28px; height: 28px; } .av.xl { width: 40px; height: 40px; }
+  .av.b { background: #b8c4e0; } .av.c { background: #d6c2b8; } .av.d { background: #bfd6c2; }
+  .foot { border-top: 1px solid var(--line); padding: 14px 28px; display: flex; justify-content: space-between; color: var(--subtle); font-size: 10.5px; }
+  .lbl { font-size: 10px; color: var(--subtle); text-transform: uppercase; letter-spacing: .06em; }
+  .num { font-variant-numeric: tabular-nums; }
+  .crumb { display: flex; gap: 6px; color: var(--subtle); font-size: 11px; }
+  .crumb b { color: var(--ink); font-weight: 500; }
+  .body p + p { margin-top: 8px; }
+  .body code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; background: var(--sub); padding: 1px 4px; border-radius: 2px; }
+  .body pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; background: #1c1c1c; color: #e8e8e8; padding: 10px 12px; border-radius: 3px; margin: 8px 0 0; white-space: pre; line-height: 1.5; }
+  .acts { display: flex; gap: 10px; align-items: center; color: var(--subtle); font-size: 10.5px; margin-top: 10px; }
+  .acts span { display: inline-flex; align-items: center; gap: 4px; }
+  .acts .on { color: var(--ink); font-weight: 500; }
+  .quote { border-left: 2px solid var(--line); padding: 2px 10px; color: var(--muted); margin-bottom: 8px; }
+  .quote b { color: var(--ink); font-weight: 500; font-size: 11px; display: block; margin-bottom: 2px; }
+  .comp { border: 1px solid var(--line); background: var(--card); border-radius: 3px; }
+  .comp .tb { display: flex; gap: 12px; padding: 6px 10px; border-bottom: 1px solid var(--line); color: var(--subtle); font-size: 10.5px; }
+  .comp .tb b { color: var(--ink); font-weight: 500; }
+  .comp .ta { padding: 10px; color: var(--subtle); min-height: 64px; }
+  .comp .ft { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-top: 1px solid var(--line); }
+  .comp .ft .meta { color: var(--subtle); }
+
+  /* A — boards thread: author column + linear posts */
+  .a-wrap { max-width: 1000px; margin: 0 auto; padding: 22px 28px 28px; }
+  .a-head { margin-top: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+  .a-head h4 { font-size: 24px; font-weight: 600; letter-spacing: -.025em; line-height: 1.15; max-width: 30ch; }
+  .a-head .meta { margin-top: 8px; }
+  .a-tools { display: flex; gap: 8px; flex: none; }
+  .a-bar { margin-top: 16px; padding: 8px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .a-pg { display: flex; gap: 4px; }
+  .a-pg span { min-width: 22px; height: 22px; padding: 0 6px; border: 1px solid var(--line); border-radius: 2px; display: inline-flex; align-items: center; justify-content: center; font-size: 10.5px; color: var(--muted); background: var(--card); }
+  .a-pg span.on { background: #000; color: #fff; border-color: #000; }
+  .a-post { display: grid; grid-template-columns: 148px 1fr; border-bottom: 1px solid var(--line); }
+  .a-post.sol { background: #f3faf5; margin: 0 -12px; padding: 0 12px; border-radius: 3px; border-bottom: 0; }
+  .a-post.sol + .a-post { border-top: 1px solid var(--line); }
+  .a-who { padding: 16px 16px 16px 0; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+  .a-who b { font-size: 12.5px; font-weight: 600; }
+  .a-who .meta { flex-direction: column; align-items: flex-start; gap: 2px; white-space: normal; }
+  .a-body { padding: 16px 0 16px 20px; }
+  .a-body .hd { display: flex; justify-content: space-between; color: var(--subtle); font-size: 10.5px; margin-bottom: 8px; }
+  .a-body .hd b { color: var(--ink); font-weight: 500; }
+  .a-sol .lbl { color: #1e6b3a; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+
+  /* B — discussion: card + nested replies + rail */
+  .b-wrap { display: grid; grid-template-columns: 1fr 236px; gap: 36px; padding: 22px 28px 28px; max-width: 1040px; margin: 0 auto; }
+  .b-head h4 { font-size: 24px; font-weight: 600; letter-spacing: -.025em; line-height: 1.15; margin-top: 10px; max-width: 32ch; }
+  .b-head .meta { margin-top: 8px; }
+  .b-op { margin-top: 16px; border: 1px solid var(--line); background: var(--card); border-radius: 3px; }
+  .b-op .hd { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .b-op .hd b { font-weight: 600; font-size: 12.5px; }
+  .b-op .bd { padding: 14px; }
+  .b-react { display: flex; gap: 6px; padding: 0 14px 12px; }
+  .b-react span { height: 22px; padding: 0 8px; border: 1px solid var(--line); border-radius: 12px; display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; color: var(--muted); background: var(--card); }
+  .b-react span.on { border-color: #000; color: #000; background: var(--sub2); }
+  .b-rbar { margin-top: 22px; display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .b-rbar h5 { font-size: 14px; font-weight: 600; }
+  .b-rbar span { color: var(--subtle); font-size: 11px; }
+  .b-r { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .b-r .hd { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .b-r .hd b { font-weight: 600; font-size: 12.5px; }
+  .b-r.ans { background: #f3faf5; margin: 14px -12px 0; padding: 12px; border-radius: 3px; border: 1px solid #bfe3c9; }
+  .b-r.ans .lbl { color: #1e6b3a; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .b-r.nest { margin-left: 40px; padding: 10px 0 10px 12px; border-left: 2px solid var(--line); border-bottom: 0; }
+  .b-r.nest .av { width: 22px; height: 22px; }
+  .b-rail { display: flex; flex-direction: column; gap: 20px; }
+  .b-rail section { display: flex; flex-direction: column; gap: 6px; }
+  .b-rail .row { display: flex; justify-content: space-between; color: var(--muted); }
+  .b-rail .pp { display: flex; gap: 4px; }
+  .b-rail .rel { color: var(--ink); font-weight: 500; font-size: 11.5px; line-height: 1.3; }
+  .b-rail .rel small { display: block; color: var(--subtle); font-weight: 400; font-size: 10.5px; }
+
+  /* C — Q&A: vote column, accepted answer, answers by votes, rail */
+  .c-wrap { display: grid; grid-template-columns: 1fr 236px; gap: 36px; padding: 22px 28px 28px; max-width: 1040px; margin: 0 auto; }
+  .c-head h4 { font-size: 24px; font-weight: 600; letter-spacing: -.025em; line-height: 1.15; margin-top: 10px; max-width: 32ch; }
+  .c-head .meta { margin-top: 8px; gap: 14px; }
+  .c-head .meta b { color: var(--ink); font-weight: 500; }
+  .c-q { display: grid; grid-template-columns: 44px 1fr; gap: 16px; margin-top: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .c-vote { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--subtle); }
+  .c-vote i { width: 26px; height: 22px; border: 1px solid var(--line); border-radius: 2px; display: grid; place-items: center; font-style: normal; font-size: 10px; background: var(--card); }
+  .c-vote b { font-size: 16px; font-weight: 600; letter-spacing: -.02em; color: var(--ink); line-height: 1.3; }
+  .c-vote .chk { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; margin-top: 6px; font-size: 13px; }
+  .c-vote .chk.on { background: #1e6b3a; color: #fff; }
+  .c-q .tags { margin-top: 10px; display: flex; gap: 6px; }
+  .c-q .by { margin-top: 12px; display: flex; justify-content: flex-end; }
+  .c-q .by div { background: var(--sub2); border-radius: 3px; padding: 6px 10px; display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-items: center; }
+  .c-q .by small { display: block; color: var(--subtle); font-size: 10px; }
+  .c-q .by b { font-size: 11.5px; font-weight: 600; }
+  .c-cm { margin-top: 10px; border-top: 1px solid var(--line); }
+  .c-cm div { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+  .c-cm div b { color: var(--ink); font-weight: 500; }
+  .c-abar { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+  .c-abar h5 { font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+  .c-abar .chips { display: flex; gap: 0; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+  .c-abar .chips span { padding: 3px 8px; font-size: 10.5px; color: var(--muted); background: var(--card); }
+  .c-abar .chips span.on { background: #000; color: #fff; }
+  .c-a { display: grid; grid-template-columns: 44px 1fr; gap: 16px; margin-top: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .c-a.acc { background: #f3faf5; margin: 16px -12px 0; padding: 12px 12px 16px; border-radius: 3px; border: 1px solid #bfe3c9; }
+  .c-a.acc .lbl { color: #1e6b3a; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; }
+  .c-rail { display: flex; flex-direction: column; gap: 20px; }
+  .c-rail section { display: flex; flex-direction: column; gap: 6px; }
+  .c-rail .row { display: flex; justify-content: space-between; color: var(--muted); }
+  .c-rail .rel { display: grid; grid-template-columns: 30px 1fr; gap: 8px; align-items: start; color: var(--ink); font-weight: 500; font-size: 11.5px; line-height: 1.3; }
+  .c-rail .rel i { font-style: normal; font-size: 10.5px; height: 18px; border: 1px solid var(--line); border-radius: 2px; display: grid; place-items: center; color: var(--muted); background: var(--card); }
+  .c-rail .rel i.ok { background: #e6f4ea; border-color: #bfe3c9; color: #1e6b3a; }
+</style>
+
+<h2>Thread page: one treatment per direction</h2>
+<p class="subtitle">The same topic in each ("Schema browser shows no CRD fields after 4.2", solved), with the reply composer at the bottom. Each follows its front page: A keeps the classic author column and post order, B is a discussion card with one level of nested replies and reactions, C is a question with votes and the accepted answer pinned. Click to approve, or tell me what to change on any of them.</p>
+
+<div class="cards fm">
+
+  <!-- A -->
+  <div class="card" data-choice="a-boards-thread" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="pg">
+        <div class="top"><div class="brand"><i>K</i> Kemo <span>/ Community</span></div><div class="links"><b>Boards</b><span>Latest</span><span>Unanswered</span><span>Members</span></div><div class="sp"></div><span class="search">Search topics</span><span class="btn">Sign in</span><span class="btn solid">New topic</span></div>
+        <div class="a-wrap">
+          <div class="crumb"><span>Boards</span>›<span>Kemo Console</span>›<b>Schema browser shows no CRD fields after 4.2</b></div>
+          <div class="a-head">
+            <div><h4>Schema browser shows no CRD fields after 4.2</h4><div class="meta"><span class="tag ok">Solved</span><span class="tag">Kemo Console</span><span class="tag">yaml-editor</span><span class="tag">crd</span> · 12 replies · 1.2k views · started 14 min ago by Jonas Lindqvist</div></div>
+            <div class="a-tools"><span class="btn">Watch</span><span class="btn">Share</span><span class="btn solid">Reply</span></div>
+          </div>
+          <div class="a-bar"><span class="meta">Posts 1–6 of 13</span><div class="a-pg"><span>‹</span><span class="on">1</span><span>2</span><span>3</span><span>›</span></div></div>
+
+          <div class="a-post">
+            <div class="a-who"><span class="av xl b"></span><b>Jonas Lindqvist</b><div class="meta"><span>Member</span><span>Joined Mar 2026</span><span>48 posts</span></div></div>
+            <div class="a-body"><div class="hd"><span><b>#1</b> · original post</span><span>14 min ago</span></div>
+              <div class="body"><p>After upgrading to 4.2 the YAML tab lints fine, but the Schema panel is empty for our Gateway API objects. Deployments show the full tree. I registered the schema the way the docs say:</p>
+              <pre>registry.register({ group: 'gateway.networking.k8s.io', kind: 'HTTPRoute', schema })</pre>
+              <p>Is there something else the browser needs, like a version in the key?</p></div>
+              <div class="acts"><span>👍 4</span><span>Quote</span><span>Reply</span><span>Share</span><span>Report</span></div></div>
+          </div>
+          <div class="a-post">
+            <div class="a-who"><span class="av xl c"></span><b>Dan Okafor</b><div class="meta"><span>Member</span><span>Joined Jan 2026</span><span>212 posts</span></div></div>
+            <div class="a-body"><div class="hd"><span><b>#2</b></span><span>11 min ago</span></div>
+              <div class="body"><p>Which exact version, 4.2.0 or 4.2.1? And does the panel show anything for a plain <code>Deployment</code> on the same cluster?</p></div>
+              <div class="acts"><span>👍 1</span><span>Quote</span><span>Reply</span></div></div>
+          </div>
+          <div class="a-post">
+            <div class="a-who"><span class="av xl b"></span><b>Jonas Lindqvist</b><div class="meta"><span>Member</span><span>Joined Mar 2026</span><span>48 posts</span></div></div>
+            <div class="a-body"><div class="hd"><span><b>#3</b></span><span>9 min ago</span></div>
+              <div class="body"><div class="quote"><b>Dan Okafor wrote</b>Which exact version, 4.2.0 or 4.2.1?</div><p>4.2.1. Deployments are fine, it is only the CRD kinds. The lint still works for them, so the schema is loaded somewhere.</p></div>
+              <div class="acts"><span>Quote</span><span>Reply</span></div></div>
+          </div>
+          <div class="a-post sol">
+            <div class="a-who"><span class="av xl"></span><b>Priya Raman</b><div class="meta"><span class="tag staff">Kemo staff</span><span>Joined Nov 2025</span><span>1,430 posts</span></div></div>
+            <div class="a-body"><div class="a-sol"><div class="lbl">✓ Accepted answer · marked by Jonas Lindqvist</div></div><div class="hd"><span><b>#4</b></span><span>6 min ago</span></div>
+              <div class="body"><p>Since 4.2 the browser resolves the schema by <code>apiVersion</code> and <code>kind</code> together, so the key needs the version as well. Register it as:</p>
+              <pre>registry.register({ apiVersion: 'gateway.networking.k8s.io/v1', kind: 'HTTPRoute', schema })</pre>
+              <p>The linter still matches by kind alone, which is why it kept working. We are adding a warning for the old shape in 4.2.2.</p></div>
+              <div class="acts"><span class="on">👍 18</span><span>Quote</span><span>Reply</span><span>Share</span></div></div>
+          </div>
+          <div class="a-post">
+            <div class="a-who"><span class="av xl d"></span><b>Mei Tanaka</b><div class="meta"><span>Member</span><span>Joined Feb 2026</span><span>96 posts</span></div></div>
+            <div class="a-body"><div class="hd"><span><b>#5</b></span><span>3 min ago</span></div>
+              <div class="body"><p>Worth noting that <code>defaultSchemaRegistry</code> already has the version for Deployments, which is why those never broke.</p></div>
+              <div class="acts"><span>👍 3</span><span>Quote</span><span>Reply</span></div></div>
+          </div>
+          <div class="a-bar"><span class="meta">Posts 1–6 of 13</span><div class="a-pg"><span>‹</span><span class="on">1</span><span>2</span><span>3</span><span>›</span></div></div>
+
+          <div style="margin-top:20px"><div class="lbl" style="margin-bottom:8px">Reply to this topic</div>
+            <div class="comp"><div class="tb"><b>Write</b><span>Preview</span><span>B</span><span>I</span><span>Code</span><span>Quote</span><span>Link</span></div><div class="ta">Share what you tried and the console version.</div><div class="ft"><span class="meta">Markdown supported · be kind</span><span class="btn solid">Post reply</span></div></div></div>
+        </div>
+        <div class="foot"><span>Guidelines · Code of conduct · Status</span><span>© 2026 Kemo</span></div>
+      </div>
+    </div>
+    <div class="card-body"><h3>A · Boards: classic posts</h3><p>Breadcrumb, the topic header with its badges and tools, then numbered posts in order with an author column (avatar, name, role, joined, post count), quotes, per-post actions and a pager at both ends. The accepted answer stays in place, tinted green. Composer at the bottom.</p></div>
+  </div>
+
+  <!-- B -->
+  <div class="card" data-choice="b-discussion-thread" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="pg">
+        <div class="top"><div class="brand"><i>K</i> Kemo <span>/ Community</span></div><div class="links"><b>Discussions</b><span>Categories</span><span>Members</span></div><div class="sp"></div><span class="search">Search discussions</span><span class="btn solid">New discussion</span></div>
+        <div class="b-wrap">
+          <div>
+            <div class="crumb"><span>Discussions</span>›<span>Kemo Console</span></div>
+            <div class="b-head"><h4>Schema browser shows no CRD fields after 4.2</h4><div class="meta"><span class="tag ok">Solved</span><span class="tag">Kemo Console</span> · <span class="av b"></span> Jonas Lindqvist started 14 min ago · 12 replies · 6 participants</div></div>
+            <div class="b-op">
+              <div class="hd"><span class="av l b"></span><b>Jonas Lindqvist</b><span class="meta">14 min ago · edited</span><span class="sp"></span><span class="meta">···</span></div>
+              <div class="bd body"><p>After upgrading to 4.2 the YAML tab lints fine, but the Schema panel is empty for our Gateway API objects. Deployments show the full tree. I registered the schema the way the docs say:</p>
+                <pre>registry.register({ group: 'gateway.networking.k8s.io', kind: 'HTTPRoute', schema })</pre>
+                <p>Is there something else the browser needs, like a version in the key?</p></div>
+              <div class="b-react"><span class="on">👍 4</span><span>👀 2</span><span>+</span></div>
+            </div>
+            <div class="b-rbar"><h5>12 replies</h5><span>Oldest · <b style="color:var(--ink);font-weight:500">Top</b></span></div>
+
+            <div class="b-r ans"><span class="av l"></span><div><div class="lbl">✓ Answer · marked by Jonas Lindqvist</div><div class="hd"><b>Priya Raman</b><span class="tag staff">Kemo staff</span><span class="meta">6 min ago</span></div>
+              <div class="body"><p>Since 4.2 the browser resolves the schema by <code>apiVersion</code> and <code>kind</code> together, so the key needs the version too:</p>
+              <pre>registry.register({ apiVersion: 'gateway.networking.k8s.io/v1', kind: 'HTTPRoute', schema })</pre>
+              <p>The linter still matches by kind alone, which is why it kept working. A warning for the old shape lands in 4.2.2.</p></div>
+              <div class="acts"><span class="on">👍 18</span><span>🎉 3</span><span>Reply</span><span>Share</span></div></div></div>
+            <div class="b-r nest"><span class="av b"></span><div><div class="hd"><b>Jonas Lindqvist</b><span class="meta">4 min ago</span></div><div class="body"><p>That was it. The panel fills in as soon as the version is on the key. Thanks!</p></div><div class="acts"><span>👍 2</span><span>Reply</span></div></div></div>
+            <div class="b-r nest"><span class="av d"></span><div><div class="hd"><b>Mei Tanaka</b><span class="meta">3 min ago</span></div><div class="body"><p>Worth noting <code>defaultSchemaRegistry</code> already keys Deployments by version, which is why those never broke.</p></div><div class="acts"><span>👍 3</span><span>Reply</span></div></div></div>
+
+            <div class="b-r"><span class="av l c"></span><div><div class="hd"><b>Dan Okafor</b><span class="meta">11 min ago</span></div><div class="body"><p>Which exact version, 4.2.0 or 4.2.1? And does the panel show anything for a plain <code>Deployment</code> on the same cluster?</p></div><div class="acts"><span>👍 1</span><span>Reply</span></div></div></div>
+            <div class="b-r nest"><span class="av b"></span><div><div class="hd"><b>Jonas Lindqvist</b><span class="meta">9 min ago</span></div><div class="body"><p>4.2.1. Deployments are fine, it is only the CRD kinds. Lint still works for them, so the schema is loaded somewhere.</p></div><div class="acts"><span>Reply</span></div></div></div>
+            <div class="b-r"><span class="av l d"></span><div><div class="hd"><b>Tomas Berg</b><span class="meta">1 min ago</span></div><div class="body"><p>Same symptom here with Argo Rollouts CRDs. Following.</p></div><div class="acts"><span>Reply</span></div></div></div>
+
+            <div style="margin-top:18px;display:grid;grid-template-columns:28px 1fr;gap:12px"><span class="av l"></span>
+              <div class="comp"><div class="tb"><b>Write</b><span>Preview</span><span>B</span><span>I</span><span>Code</span><span>Quote</span><span>Link</span></div><div class="ta">Add to the discussion</div><div class="ft"><span class="meta">Markdown supported</span><span class="btn solid">Comment</span></div></div></div>
+          </div>
+          <div class="b-rail">
+            <section><div class="lbl">Category</div><div class="row"><span>Kemo Console</span><span class="num">486</span></div></section>
+            <section><div class="lbl">Labels</div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tag">yaml-editor</span><span class="tag">crd</span><span class="tag">4.2</span></div></section>
+            <section><div class="lbl">Participants · 6</div><div class="pp"><span class="av l b"></span><span class="av l"></span><span class="av l c"></span><span class="av l d"></span><span class="av l"></span><span class="av l b"></span></div></section>
+            <section><div class="lbl">Notifications</div><span class="btn" style="align-self:flex-start">Subscribed ✓</span></section>
+            <section><div class="lbl">Related</div><div class="rel">Registering schemas for Gateway API objects<small>Docs · Schema registry</small></div><div class="rel">Events tab stops updating after a laptop sleep<small>Bug reports · 2 days ago</small></div><div class="rel">Dark mode for the YAML editor's schema panel<small>Feature requests · yesterday</small></div></section>
+          </div>
+        </div>
+        <div class="foot"><span>Guidelines · Code of conduct · Status</span><span>© 2026 Kemo</span></div>
+      </div>
+    </div>
+    <div class="card-body"><h3>B · Discussion with nested replies</h3><p>The original post as a card with reactions, then replies sorted Top or Oldest with one level of nesting, the marked answer lifted to the top of the list in green. The rail carries category, labels, participants, the subscribe toggle and related threads and docs. Composer inline at the end.</p></div>
+  </div>
+
+  <!-- C -->
+  <div class="card" data-choice="c-qa-thread" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="pg">
+        <div class="top"><div class="brand"><i>K</i> Kemo <span>/ Community</span></div><div class="links"><b>Questions</b><span>Topics</span><span>Docs</span><span>Members</span></div><div class="sp"></div><span class="btn">Sign in</span><span class="btn solid">Ask a question</span></div>
+        <div class="c-wrap">
+          <div>
+            <div class="crumb"><span>Questions</span>›<span>Kemo Console</span></div>
+            <div class="c-head"><h4>Schema browser shows no CRD fields after 4.2</h4><div class="meta"><span>Asked <b>14 min ago</b></span><span>Modified <b>3 min ago</b></span><span>Viewed <b>1.2k</b></span><span class="tag ok">Solved</span></div></div>
+            <div class="c-q">
+              <div class="c-vote"><i>▲</i><b class="num">18</b><i>▼</i><span class="chk on">✓</span></div>
+              <div><div class="body"><p>After upgrading to 4.2 the YAML tab lints fine, but the Schema panel is empty for our Gateway API objects. Deployments show the full tree. I registered the schema the way the docs say:</p>
+                <pre>registry.register({ group: 'gateway.networking.k8s.io', kind: 'HTTPRoute', schema })</pre>
+                <p>Is there something else the browser needs, like a version in the key?</p></div>
+                <div class="tags"><span class="tag">kemo-console</span><span class="tag">yaml-editor</span><span class="tag">crd</span><span class="tag">4.2</span></div>
+                <div class="acts"><span>Share</span><span>Edit</span><span>Follow</span><span class="sp"></span></div>
+                <div class="by"><div><span class="av l b"></span><div><small>asked 14 min ago</small><b>Jonas Lindqvist</b> <small style="display:inline">48 rep</small></div></div></div>
+                <div class="c-cm"><div><b>Dan Okafor</b> Which exact version, 4.2.0 or 4.2.1? And does a plain Deployment show anything? · 11 min ago</div><div><b>Jonas Lindqvist</b> 4.2.1. Deployments are fine, only the CRD kinds. · 9 min ago</div><div>Add a comment</div></div></div>
+            </div>
+            <div class="c-abar"><h5>3 answers</h5><div class="chips"><span class="on">Votes</span><span>Oldest</span><span>Newest</span></div></div>
+            <div class="c-a acc">
+              <div class="c-vote"><i>▲</i><b class="num">18</b><i>▼</i><span class="chk on">✓</span></div>
+              <div><div class="lbl">✓ Accepted answer</div><div class="body"><p>Since 4.2 the browser resolves the schema by <code>apiVersion</code> and <code>kind</code> together, so the key needs the version as well:</p>
+                <pre>registry.register({ apiVersion: 'gateway.networking.k8s.io/v1', kind: 'HTTPRoute', schema })</pre>
+                <p>The linter still matches by kind alone, which is why it kept working. We are adding a warning for the old shape in 4.2.2.</p></div>
+                <div class="acts"><span>Share</span><span>Edit</span><span>Flag</span></div>
+                <div class="by" style="margin-top:8px"><div><span class="av l"></span><div><small>answered 6 min ago</small><b>Priya Raman</b> <span class="tag staff" style="margin-left:4px">Kemo staff</span></div></div></div>
+                <div class="c-cm"><div><b>Jonas Lindqvist</b> That was it, thanks! · 4 min ago</div></div></div>
+            </div>
+            <div class="c-a">
+              <div class="c-vote"><i>▲</i><b class="num">3</b><i>▼</i></div>
+              <div><div class="body"><p>Worth noting that <code>defaultSchemaRegistry</code> already keys Deployments by version, which is why those never broke. If you load several CRD schemas, a loop over <code>kubectl api-resources</code> output saves retyping the versions.</p></div>
+                <div class="acts"><span>Share</span><span>Flag</span></div>
+                <div class="by" style="margin-top:8px"><div><span class="av l d"></span><div><small>answered 3 min ago</small><b>Mei Tanaka</b> <small style="display:inline">96 rep</small></div></div></div></div>
+            </div>
+            <div class="c-a">
+              <div class="c-vote"><i>▲</i><b class="num">0</b><i>▼</i></div>
+              <div><div class="body"><p>Same symptom with Argo Rollouts CRDs; the version on the key fixed it for us too.</p></div>
+                <div class="acts"><span>Share</span><span>Flag</span></div>
+                <div class="by" style="margin-top:8px"><div><span class="av l c"></span><div><small>answered 1 min ago</small><b>Tomas Berg</b> <small style="display:inline">71 rep</small></div></div></div></div>
+            </div>
+            <div style="margin-top:22px"><h5 style="font-size:16px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px">Your answer</h5>
+              <div class="comp"><div class="tb"><b>Write</b><span>Preview</span><span>B</span><span>I</span><span>Code</span><span>Link</span></div><div class="ta">Answer the question; comments go under the post they are about.</div><div class="ft"><span class="meta">Markdown supported</span><span class="btn solid">Post your answer</span></div></div></div>
+          </div>
+          <div class="c-rail">
+            <section><div class="lbl">Related questions</div>
+              <div class="rel"><i class="ok">5</i><span>Keeping Deployment drafts when the tab is closed</span></div>
+              <div class="rel"><i>2</i><span>Keycloak group mapping: nested groups are not synced</span></div>
+              <div class="rel"><i class="ok">9</i><span>Registering a schema for a CRD with several versions</span></div>
+              <div class="rel"><i>0</i><span>Events tab stops updating after a laptop sleep</span></div></section>
+            <section><div class="lbl">Linked docs</div><div class="rel" style="grid-template-columns:1fr"><span>Schema registry · @kemo/ui<small>docs/deployments-pages.md</small></span></div></section>
+            <section><div class="lbl">Hot tags</div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tag">yaml-editor</span><span class="tag">oidc</span><span class="tag">scaling</span><span class="tag">rbac</span><span class="tag">4.2</span></div></section>
+          </div>
+        </div>
+        <div class="foot"><span>Guidelines · Code of conduct · Status</span><span>© 2026 Kemo</span></div>
+      </div>
+    </div>
+    <div class="card-body"><h3>C · Question with an accepted answer</h3><p>Vote column on the question and on every answer, the asked/modified/viewed line, tags, comments as a thin list under each post, the accepted answer first and green, the rest by votes. "Your answer" at the end. The rail has related questions with their answer counts, linked docs and hot tags.</p></div>
+  </div>
+
+</div>
