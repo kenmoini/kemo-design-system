@@ -39,7 +39,7 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
     return (
       <styled.li key={comment.id} listStyleType="none">
         <Box display="grid" gridTemplateColumns="2rem 1fr" columnGap="3" pt={topLevel ? '5' : '4'}>
-          <Avatar.Root w="8" h="8" fontSize="xs" aria-hidden="true">
+          <Avatar.Root size="xs" aria-hidden="true">
             {comment.author.avatarSrc ? (
               <Avatar.Image src={comment.author.avatarSrc} alt="" />
             ) : null}

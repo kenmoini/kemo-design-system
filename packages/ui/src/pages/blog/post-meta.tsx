@@ -25,7 +25,7 @@ export function Byline({ post, show = defaultParts }: { post: BlogPost; show?: B
   for (const part of show) {
     if (part === 'avatar') {
       parts.push(
-        <Avatar.Root key={part} w="4" h="4" fontSize="2xs" aria-hidden="true">
+        <Avatar.Root key={part} size="2xs" aria-hidden="true">
           {post.author.avatarSrc ? <Avatar.Image src={post.author.avatarSrc} alt="" /> : null}
           <Avatar.Fallback name={post.author.name} />
         </Avatar.Root>,
@@ -55,7 +55,7 @@ export function AuthorBlock({ author, detail }: { author: BlogAuthor; detail?: R
   const sub = detail ?? author.role
   return (
     <HStack gap="3">
-      <Avatar.Root w="8" h="8" fontSize="xs" aria-hidden="true">
+      <Avatar.Root size="xs" aria-hidden="true">
         {author.avatarSrc ? <Avatar.Image src={author.avatarSrc} alt="" /> : null}
         <Avatar.Fallback name={author.name} />
       </Avatar.Root>
