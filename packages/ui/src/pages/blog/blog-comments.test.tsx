@@ -204,6 +204,19 @@ describe('BlogComments', () => {
     )
   })
 
+  it('returns focus to the Reply button once a reply posts', async () => {
+    stubLayout()
+    const user = userEvent.setup()
+    render(<BlogComments comments={comments} onAddComment={vi.fn().mockResolvedValue(undefined)} />)
+    await user.click(screen.getAllByRole('button', { name: 'Reply' })[1]!)
+    const reply = screen.getByPlaceholderText('Reply to Rafael Bastos')
+    await user.type(reply.closest('form')!.querySelector('input')!, 'Ada')
+    await user.type(reply, 'Agreed')
+    await user.click(screen.getByRole('button', { name: 'Post reply' }))
+    await waitFor(() => expect(screen.getAllByLabelText('Comment')).toHaveLength(1))
+    expect(screen.getAllByRole('button', { name: 'Reply' })[1]!).toHaveFocus()
+  })
+
   it('carries the name into a reply form', async () => {
     const user = userEvent.setup()
     render(<BlogComments comments={comments} onAddComment={vi.fn()} />)

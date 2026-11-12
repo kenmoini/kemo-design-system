@@ -29,7 +29,11 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
     await onAddComment!(parentId ? { ...values, parentId } : values)
     setName(values.name)
     setPosted(true)
-    if (parentId) setReplyingTo(null)
+    if (parentId) {
+      // The reply form, and its focused button, unmount: hand focus back as Cancel does.
+      setReplyingTo(null)
+      replyButtons.current.get(parentId)?.focus()
+    }
   }
 
   const renderComment = (comment: BlogComment, topLevel: boolean) => {

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { SubscribeForm } from './subscribe-form'
@@ -29,6 +29,16 @@ describe('SubscribeForm', () => {
       'Thanks. Check ada@example.com to confirm.',
     )
     expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
+  })
+
+  it('moves focus to the confirmation when it replaces the form', async () => {
+    const user = userEvent.setup()
+    render(<SubscribeForm onSubscribe={() => Promise.resolve()} />)
+    await user.type(screen.getByLabelText('Email'), 'ada@example.com')
+    await user.click(screen.getByRole('button', { name: 'Subscribe' }))
+    const status = await screen.findByRole('status')
+    await waitFor(() => expect(status).toHaveFocus())
+    expect(status).toHaveAttribute('tabindex', '-1')
   })
 
   it('keeps the form and shows the reason when the host rejects', async () => {

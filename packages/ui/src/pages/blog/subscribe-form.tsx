@@ -1,9 +1,9 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { Box, Stack } from '../../../styled-system/jsx'
+import { Stack } from '../../../styled-system/jsx'
 import { Button, Field, Input, Text } from '../../components/ui'
 import { FormAlert } from '../auth/form-alert'
 import { emailSchema } from '../auth/schemas'
@@ -14,18 +14,12 @@ type SubscribeValues = z.infer<typeof subscribeSchema>
 export interface SubscribeFormProps {
   /** Resolve to confirm; reject (an `Error` message is shown) to keep the form and report why. */
   onSubscribe: (email: string) => Promise<void>
-  /** `inline` puts the button beside the field; `stacked` puts it underneath. */
-  layout?: 'stacked' | 'inline'
   /** Prefix for the field id, so two forms on one page do not share a label target. */
   idPrefix?: string
 }
 
-/** An email field and a Subscribe button; the confirmation replaces the form on success. */
-export function SubscribeForm({
-  onSubscribe,
-  layout = 'stacked',
-  idPrefix = 'subscribe',
-}: SubscribeFormProps) {
+/** An email field over a Subscribe button; the confirmation replaces the form on success. */
+export function SubscribeForm({ onSubscribe, idPrefix = 'subscribe' }: SubscribeFormProps) {
   const [confirmedEmail, setConfirmedEmail] = useState<string | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
   const {
@@ -38,31 +32,21 @@ export function SubscribeForm({
     reValidateMode: 'onChange',
   })
 
+  // The confirmation replaces the form, and with it the focused button: move focus to the message
+  // so it does not fall to the page (or out of the dialog's content).
+  const confirmationRef = useRef<HTMLParagraphElement>(null)
+  useEffect(() => {
+    if (confirmedEmail !== null) confirmationRef.current?.focus()
+  }, [confirmedEmail])
+
   if (confirmedEmail !== null) {
     return (
-      <Text role="status" textStyle="sm">
+      // Focusable only from script, so no ring: it is not a control.
+      <Text ref={confirmationRef} role="status" tabIndex={-1} outline="none" textStyle="sm">
         Thanks. Check {confirmedEmail} to confirm.
       </Text>
     )
   }
-
-  const field = (
-    <Field.Root invalid={!!errors.email} ids={{ control: `${idPrefix}-email` }}>
-      <Field.Label>Email</Field.Label>
-      <Input
-        type="email"
-        autoComplete="email"
-        placeholder="you@example.com"
-        {...register('email')}
-      />
-      <Field.ErrorText>{errors.email?.message}</Field.ErrorText>
-    </Field.Root>
-  )
-  const submit = (
-    <Button type="submit" size="sm" loading={isSubmitting}>
-      Subscribe
-    </Button>
-  )
 
   return (
     <form
@@ -80,17 +64,19 @@ export function SubscribeForm({
     >
       <Stack gap="3">
         <FormAlert message={failure} />
-        {layout === 'inline' ? (
-          <Box display="flex" gap="2" alignItems="flex-end">
-            <Box flex="1">{field}</Box>
-            {submit}
-          </Box>
-        ) : (
-          <>
-            {field}
-            {submit}
-          </>
-        )}
+        <Field.Root invalid={!!errors.email} ids={{ control: `${idPrefix}-email` }}>
+          <Field.Label>Email</Field.Label>
+          <Input
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            {...register('email')}
+          />
+          <Field.ErrorText>{errors.email?.message}</Field.ErrorText>
+        </Field.Root>
+        <Button type="submit" size="sm" loading={isSubmitting}>
+          Subscribe
+        </Button>
       </Stack>
     </form>
   )
