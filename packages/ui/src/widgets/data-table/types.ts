@@ -16,17 +16,38 @@ export interface DataTableColumn<T> {
   width?: string
 }
 
-export interface DataTableFilter<T> {
+interface FilterBase {
   id: string
   label: string
-  /** `checkbox`: one checkbox per value with its count; `select`: one value or all. */
-  kind: 'checkbox' | 'select'
+}
+
+/** One checkbox per value with its count. */
+export interface CheckboxFilter<T> extends FilterBase {
+  kind: 'checkbox'
+  accessor: (row: T) => string
+  /** The values and their labels; omitted, the values found in the rows are listed as they are. */
+  options?: Option[]
+}
+
+/** One value or all. */
+export interface SelectFilter<T> extends FilterBase {
+  kind: 'select'
   accessor: (row: T) => string
   /** The values and their labels; omitted, the values found in the rows are listed as they are. */
   options?: Option[]
   /** The select's "no filter" item; defaults to "All". */
   allLabel?: string
 }
+
+/** `key=value` chips; a row passes when it carries every chip. */
+export interface TagsFilter<T> extends FilterBase {
+  kind: 'tags'
+  accessor: (row: T) => string[]
+  /** Defaults to "key=value…". */
+  placeholder?: string
+}
+
+export type DataTableFilter<T> = CheckboxFilter<T> | SelectFilter<T> | TagsFilter<T>
 
 export interface ActionItem {
   id: string

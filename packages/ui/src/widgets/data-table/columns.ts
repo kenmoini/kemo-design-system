@@ -17,6 +17,16 @@ export function countNoun(count: number, entity: { singular: string; plural: str
   return count === 1 ? entity.singular : entity.plural
 }
 
+/** Every chip must be among the row's values. */
+const hasEveryTag = (row: { getValue: <V>(id: string) => V }, id: string, chips: string[]) =>
+  chips.every((chip) => row.getValue<string[]>(id).includes(chip))
+
+function filterFnFor<T>(filter: DataTableFilter<T>) {
+  if (filter.kind === 'checkbox') return 'arrHas' as const
+  if (filter.kind === 'select') return 'equalsString' as const
+  return hasEveryTag
+}
+
 /**
  * Our columns, filters and search as TanStack column definitions. Display columns sort through
  * their `accessor`; filter columns use `arrHas` (checkbox: the row's value is one of the checked
@@ -48,11 +58,11 @@ export function toColumnDefs<T extends { id: string }>(
     defs.push({
       id: filterColumnId(filter.id),
       header: filter.label,
-      accessorFn: (row: T) => filter.accessor(row),
+      accessorFn: (row: T) => (filter.accessor as (row: T) => unknown)(row),
       enableSorting: false,
       enableColumnFilter: true,
       enableGlobalFilter: false,
-      filterFn: filter.kind === 'checkbox' ? 'arrHas' : 'equalsString',
+      filterFn: filterFnFor(filter),
     })
   }
   if (searchKeys) {
@@ -68,9 +78,13 @@ export function toColumnDefs<T extends { id: string }>(
   return defs
 }
 
-/** The active column filters plus the search, when it has text. */
+/** The active filters (one per checked/selected value set, one per tag chip) plus the search. */
 export function activeFilterCount<T extends { id: string }>(table: DataTableInstance<T>): number {
-  return table.state.columnFilters.length + (table.state.globalFilter ? 1 : 0)
+  const columns = table.state.columnFilters.reduce((sum, f) => {
+    const isTags = table.getColumn(f.id)?.columnDef.filterFn === hasEveryTag
+    return sum + (isTags && Array.isArray(f.value) ? f.value.length : 1)
+  }, 0)
+  return columns + (table.state.globalFilter ? 1 : 0)
 }
 
 /** Clears every filter and the search and returns to the first page; the selection is kept. */

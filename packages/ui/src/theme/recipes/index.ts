@@ -1,3 +1,6 @@
+import { code } from './code'
+import { scrollArea } from './scroll-area'
+import { breadcrumb } from './breadcrumb'
 import { radioGroup } from './radio-group'
 import { textarea } from './textarea'
 import { numberInput } from './number-input'
@@ -36,6 +39,7 @@ export const recipes = {
   absoluteCenter,
   badge,
   button,
+  code,
   group,
   heading,
   icon,
@@ -50,6 +54,7 @@ export const recipes = {
 export const slotRecipes = {
   alert,
   avatar,
+  breadcrumb,
   card,
   checkbox,
   dialog,
@@ -62,6 +67,7 @@ export const slotRecipes = {
   pagination,
   progress,
   radioGroup,
+  scrollArea,
   segmentGroup,
   select,
   switchRecipe,

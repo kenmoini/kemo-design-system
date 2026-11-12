@@ -2,11 +2,17 @@
 import { Portal } from '@ark-ui/react/portal'
 import { createListCollection } from '@ark-ui/react/select'
 import { Search } from 'lucide-react'
-import { useId, useMemo } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { Stack } from '../../../styled-system/jsx'
-import { Button, Checkbox, Input, InputGroup, Select, Text } from '../../components/ui'
+import { Button, Checkbox, Input, InputGroup, Select, TagsInput, Text } from '../../components/ui'
 import { activeFilterCount, clearFilters, type DataTableInstance, filterColumnId } from './columns'
-import type { DataTableFilter, Option } from './types'
+import type {
+  CheckboxFilter as CheckboxFilterDef,
+  DataTableFilter,
+  Option,
+  SelectFilter as SelectFilterDef,
+  TagsFilter as TagsFilterDef,
+} from './types'
 
 export interface DataTableFiltersProps<T extends { id: string }> {
   table: DataTableInstance<T>
@@ -48,7 +54,7 @@ function CheckboxFilter<T extends { id: string }>({
 }: {
   table: DataTableInstance<T>
   column: FilterColumn<T>
-  filter: DataTableFilter<T>
+  filter: CheckboxFilterDef<T>
 }) {
   const labelId = useId()
   // Counts over the rows that pass the search and every other filter (not this one).
@@ -99,7 +105,7 @@ function SelectFilter<T extends { id: string }>({
 }: {
   table: DataTableInstance<T>
   column: FilterColumn<T>
-  filter: DataTableFilter<T>
+  filter: SelectFilterDef<T>
 }) {
   const value = column.getFilterValue() as string | undefined
   const facets = column.getFacetedUniqueValues()
@@ -152,6 +158,54 @@ function SelectFilter<T extends { id: string }>({
   )
 }
 
+function TagsFilter<T extends { id: string }>({
+  table,
+  column,
+  filter,
+}: {
+  table: DataTableInstance<T>
+  column: FilterColumn<T>
+  filter: TagsFilterDef<T>
+}) {
+  const [rejected, setRejected] = useState(false)
+  const value = (column.getFilterValue() as string[] | undefined) ?? []
+
+  return (
+    <Stack gap="1">
+      <TagsInput.Root
+        size="sm"
+        value={value}
+        onValueChange={(details) => {
+          column.setFilterValue(details.value.length > 0 ? details.value : undefined)
+          table.setPageIndex(0)
+        }}
+        validate={({ inputValue }) => inputValue.includes('=')}
+        onValueInvalid={() => setRejected(true)}
+        // Clearing the field after a rejection must not hide the message; typing again does.
+        onInputValueChange={(details) => {
+          if (details.inputValue) setRejected(false)
+        }}
+        blurBehavior="add"
+        addOnPaste
+      >
+        <TagsInput.Label textStyle="xs" color="fg.muted" fontWeight="medium">
+          {filter.label}
+        </TagsInput.Label>
+        <TagsInput.Control>
+          <TagsInput.Items />
+          <TagsInput.Input placeholder={filter.placeholder ?? 'key=value…'} />
+        </TagsInput.Control>
+        <TagsInput.HiddenInput />
+      </TagsInput.Root>
+      {rejected ? (
+        <Text textStyle="xs" color="red.11">
+          Use key=value
+        </Text>
+      ) : null}
+    </Stack>
+  )
+}
+
 /**
  * The filter controls of a `DataTable`: the search box, one checkbox group (with counts) or select
  * per filter, and "Clear filters" while anything is filtered. The rail on `lg` and the "Filters"
@@ -185,11 +239,13 @@ export function DataTableFilters<T extends { id: string }>({
       {filters.map((filter) => {
         const column = table.getColumn(filterColumnId(filter.id))
         if (!column) return null
-        return filter.kind === 'checkbox' ? (
-          <CheckboxFilter key={filter.id} table={table} column={column} filter={filter} />
-        ) : (
-          <SelectFilter key={filter.id} table={table} column={column} filter={filter} />
-        )
+        if (filter.kind === 'checkbox') {
+          return <CheckboxFilter key={filter.id} table={table} column={column} filter={filter} />
+        }
+        if (filter.kind === 'select') {
+          return <SelectFilter key={filter.id} table={table} column={column} filter={filter} />
+        }
+        return <TagsFilter key={filter.id} table={table} column={column} filter={filter} />
       })}
       {activeFilterCount(table) > 0 ? (
         <Button

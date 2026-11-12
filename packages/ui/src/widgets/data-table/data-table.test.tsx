@@ -476,3 +476,49 @@ describe('DataTable', () => {
     expect(trigger).toHaveTextContent('Filters2')
   })
 })
+
+describe('DataTable tags filter', () => {
+  interface Dep {
+    id: string
+    labels: string[]
+  }
+  const deps: Dep[] = [
+    { id: 'a', labels: ['app=web', 'tier=front'] },
+    { id: 'b', labels: ['app=web'] },
+    { id: 'c', labels: ['app=api', 'tier=front'] },
+  ]
+  const depColumns: DataTableColumn<Dep>[] = [{ id: 'id', header: 'Id', accessor: (d) => d.id }]
+  const depFilters: DataTableFilter<Dep>[] = [
+    { id: 'labels', label: 'Labels', kind: 'tags', accessor: (d) => d.labels },
+  ]
+
+  it('filters by tags', async () => {
+    setMediaMatches(MEDIA_LG, false)
+    const user = userEvent.setup()
+    render(
+      <DataTable
+        entity={{ singular: 'deployment', plural: 'deployments' }}
+        columns={depColumns}
+        rows={deps}
+        filters={depFilters}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Filters' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Filters' })
+    const input = within(dialog).getByPlaceholderText('key=value…')
+    await user.type(input, 'app=web{Enter}')
+    // Zag empties the input after adding; user-event still tracks the typed text, so reset it.
+    await user.clear(input)
+    await user.type(input, 'tier=front{Enter}')
+    await user.clear(input)
+    await user.type(input, 'nope{Enter}')
+    expect(within(dialog).getByText('Use key=value')).toBeInTheDocument()
+    expect(within(dialog).queryByText('nope')).toBeNull()
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+    expect(bodyRows()).toHaveLength(1)
+    expect(bodyRows()[0]).toHaveTextContent('a')
+    expect(screen.getByRole('button', { name: 'Filters (2 active)' })).toHaveTextContent('Filters2')
+  })
+})
