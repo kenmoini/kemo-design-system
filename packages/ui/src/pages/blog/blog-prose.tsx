@@ -34,14 +34,24 @@ const Quote = styled('blockquote', {
   },
 })
 
+// Panda extracts these literal variants; a conditional style object would not be.
+const proseSize = cva({
+  variants: {
+    size: {
+      md: { textStyle: 'md', lineHeight: '1.7', gap: '4' },
+      sm: { textStyle: 'sm', lineHeight: '1.6', gap: '3' },
+    },
+  },
+})
+
 const maxStats = 3
 
-export function BlogProse({ blocks }: { blocks: BlogBlock[] }) {
+export function BlogProse({ blocks, size = 'md' }: { blocks: BlogBlock[]; size?: 'md' | 'sm' }) {
   const ids = tocOf(blocks).map((entry) => entry.id)
   let headingIndex = 0
 
   return (
-    <Stack maxW="40rem" gap="4" textStyle="md" lineHeight="1.7">
+    <Stack maxW="40rem" className={proseSize({ size })}>
       {blocks.map((block, index) => {
         switch (block.type) {
           case 'paragraph':

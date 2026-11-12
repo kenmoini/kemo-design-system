@@ -31,6 +31,17 @@ describe('BlogProse', () => {
     expect(container.querySelector('[data-preset="2"]')).toBeInTheDocument()
   })
 
+  it('renders at sm without changing md', () => {
+    const blocks: BlogBlock[] = [{ type: 'paragraph', content: 'Body.' }]
+    const { container: md } = render(<BlogProse blocks={blocks} />)
+    const { container: sm } = render(<BlogProse blocks={blocks} size="sm" />)
+    const { container: explicit } = render(<BlogProse blocks={blocks} size="md" />)
+    const mdClass = md.firstElementChild?.className
+    expect(explicit.firstElementChild?.className).toBe(mdClass)
+    expect(sm.firstElementChild?.className).not.toBe(mdClass)
+    expect(sm.firstElementChild?.className).toContain('sm')
+  })
+
   it('gives headings the ids from tocOf', () => {
     const blocks: BlogBlock[] = [
       { type: 'heading', level: 2, text: 'Results' },
