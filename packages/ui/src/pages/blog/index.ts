@@ -2,6 +2,7 @@ export { blogVariants } from './content'
 export type {
   BlogAuthor,
   BlogBlock,
+  BlogChromeProps,
   BlogComment,
   BlogCoverSpec,
   BlogIndexPageProps,
@@ -10,7 +11,7 @@ export type {
   BlogTopic,
   BlogVariant,
 } from './types'
-export { BlogCover } from './blog-cover'
+export { BlogCover, type BlogCoverProps } from './blog-cover'
 export { BlogProse } from './blog-prose'
 export { BlogLayout, type BlogLayoutProps } from './blog-layout'
 export { SubscribeForm, type SubscribeFormProps } from './subscribe-form'

@@ -130,8 +130,10 @@ export function BlogProse({ blocks }: { blocks: BlogBlock[] }) {
                       {block.language}
                     </Text>
                   ) : null}
+                  {/* Focusable so a keyboard can scroll it; a group, so its name is announced. */}
                   <styled.pre
                     tabIndex={0}
+                    role="group"
                     aria-label={block.language ? `Code example, ${block.language}` : 'Code example'}
                     overflowX="auto"
                     fontFamily="mono"

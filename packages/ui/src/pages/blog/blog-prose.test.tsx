@@ -65,16 +65,16 @@ describe('BlogProse', () => {
     expect(screen.getByText('Heads up')).toBeInTheDocument()
   })
 
-  it('makes the code block focusable and labelled', () => {
+  it('makes the code block a focusable, named group', () => {
     render(<BlogProse blocks={[{ type: 'code', code: 'x = 1', language: 'python' }]} />)
-    const pre = screen.getByLabelText('Code example, python')
+    const pre = screen.getByRole('group', { name: 'Code example, python' })
     expect(pre.tagName).toBe('PRE')
     expect(pre).toHaveAttribute('tabindex', '0')
   })
 
-  it('labels a code block without a language', () => {
+  it('names a code block without a language', () => {
     render(<BlogProse blocks={[{ type: 'code', code: 'x = 1' }]} />)
-    expect(screen.getByLabelText('Code example')).toHaveAttribute('tabindex', '0')
+    expect(screen.getByRole('group', { name: 'Code example' })).toHaveAttribute('tabindex', '0')
   })
 
   it('renders at most three stats', () => {

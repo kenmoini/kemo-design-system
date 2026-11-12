@@ -67,4 +67,12 @@ describe('package index', () => {
     }
     expect(Object.keys(ui.blogVariants)).toHaveLength(3)
   })
+
+  it('exports the chrome and cover prop types', () => {
+    // Compile-time: `pnpm typecheck` fails if either type is missing from the package index.
+    const props: ui.BlogChromeProps = { ...chrome, variant: 'journal-rail' }
+    const cover: ui.BlogCoverProps = { post: testPosts[0]!, h: '16' }
+    expect(props.variant).toBe('journal-rail')
+    expect(cover.post).toBe(testPosts[0])
+  })
 })
