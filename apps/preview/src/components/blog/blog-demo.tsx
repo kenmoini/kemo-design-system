@@ -17,6 +17,19 @@ function withComment(
   )
 }
 
+let commentCount = 0
+/**
+ * A new comment's id. `crypto.randomUUID` exists only in secure contexts (https or localhost), so
+ * a preview served over plain http elsewhere falls back to the time and a counter.
+ */
+function newCommentId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  commentCount += 1
+  return `comment-${Date.now()}-${commentCount}`
+}
+
 /** A blog index, or the post `slug` when given, in one of the three variations. */
 export function BlogDemo({ variant, slug }: Readonly<{ variant: BlogVariant; slug?: string }>) {
   const [comments, setComments] = useState<BlogComment[]>(() =>
@@ -46,7 +59,7 @@ export function BlogDemo({ variant, slug }: Readonly<{ variant: BlogVariant; slu
         onAddComment={async ({ name, body, parentId }) => {
           await mockAddComment(body)
           const comment: BlogComment = {
-            id: crypto.randomUUID(),
+            id: newCommentId(),
             author: { name },
             postedAt: new Date().toISOString(),
             body,

@@ -157,6 +157,8 @@ test.describe('blog routes', () => {
     await dialog.getByRole('button', { name: 'Subscribe' }).click()
 
     await expect(dialog.getByText('Thanks. Check ada@example.com to confirm.')).toBeVisible()
+    // The form, and the button that held focus, are gone: focus stays in the dialog.
+    await expect(dialog.getByRole('status')).toBeFocused()
   })
 
   test('subscribe failure keeps the form', async ({ page }) => {
@@ -184,6 +186,7 @@ test.describe('blog routes', () => {
     await rail.getByRole('button', { name: 'Subscribe' }).click()
 
     await expect(rail.getByText('Thanks. Check ada@example.com to confirm.')).toBeVisible()
+    await expect(rail.getByRole('status')).toBeFocused()
   })
 
   for (const variant of VARIANTS) {
@@ -192,14 +195,15 @@ test.describe('blog routes', () => {
       await page.goto(`/blog/${variant}/cold-start-62`)
       await hydrated(page)
       const comments = page.getByRole('region', { name: /^Comments/ })
-      await expect(comments.getByRole('heading', { level: 2 })).toHaveText(/Comments \(?4\)?/)
+      const heading = comments.getByRole('heading', { level: 2 })
+      await expect(heading).toHaveAccessibleName('Comments (4)')
 
       await comments.getByLabel('Name').fill('Ada')
       await comments.getByLabel('Comment').fill('Great write-up.')
       await comments.getByRole('button', { name: 'Post comment' }).click()
 
       await expect(comments.getByRole('status')).toHaveText('Comment posted.')
-      await expect(comments.getByRole('heading', { level: 2 })).toHaveText(/Comments \(?5\)?/)
+      await expect(heading).toHaveAccessibleName('Comments (5)')
       const posted = comments.getByRole('article').filter({ hasText: 'Great write-up.' })
       await expect(posted).toBeVisible()
 
@@ -207,7 +211,8 @@ test.describe('blog routes', () => {
       await comments.getByPlaceholder('Reply to Ada').fill('Thanks!')
       await comments.getByRole('button', { name: 'Post reply' }).click()
 
-      await expect(comments.getByRole('heading', { level: 2 })).toHaveText(/Comments \(?6\)?/)
+      await expect(heading).toHaveAccessibleName('Comments (6)')
+      await expect(posted.getByRole('button', { name: 'Reply' })).toBeFocused()
       await expect(comments.getByRole('status')).toHaveCount(1)
       const item = comments.getByRole('listitem').filter({ hasText: 'Great write-up.' }).first()
       await expect(item.getByRole('list').getByRole('article')).toContainText('Thanks!')
@@ -275,6 +280,126 @@ test.describe('blog routes', () => {
     await expect(topics).toBeVisible()
     await expect(topics.getByRole('button', { name: /^Releases/ })).toBeVisible()
     await expect(page.getByRole('heading', { level: 1, name: 'Platform journal' })).toBeVisible()
+  })
+
+  /**
+   * Tabs from the top of the page until focus leaves the blog's header, main and footer, and returns
+   * each stop's label and its top edge in page coordinates.
+   */
+  async function tabStops(page: Page) {
+    const stops: { name: string; top: number }[] = []
+    for (let i = 0; i < 100; i++) {
+      await page.keyboard.press('Tab')
+      const stop = await page.evaluate(() => {
+        const el = document.activeElement
+        if (!el?.closest('header, main, footer')) return null
+        const name = (el.getAttribute('aria-label') ?? el.textContent ?? '').trim()
+        return { name, top: el.getBoundingClientRect().top + window.scrollY }
+      })
+      if (!stop) break
+      stops.push(stop)
+    }
+    return stops
+  }
+
+  const JOURNAL_STOPS = [
+    ['index', '/blog/journal-rail', ['Engineering 4', YAML, 'Load older posts', 'Subscribe']],
+    [
+      'post',
+      '/blog/journal-rail/cold-start-62',
+      ['← Platform journal', 'Copy link', 'Post comment', `← ${YAML}`],
+    ],
+  ] as const
+
+  for (const [kind, route, landmarks] of JOURNAL_STOPS) {
+    test(`journal ${kind}: at 375px Tab moves down the page`, async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 800 })
+      await page.goto(route)
+      await hydrated(page)
+
+      const stops = await tabStops(page)
+
+      expect(stops.map((stop) => stop.name)).toEqual(expect.arrayContaining([...landmarks]))
+      // Each stop is level with the one before (a row of chips) or below it.
+      const upward = stops.filter((stop, i) => i > 0 && stop.top < stops[i - 1]!.top - 1)
+      expect(upward).toEqual([])
+    })
+  }
+
+  test('journal post at 375px puts Copy link between the prose and the comments', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 800 })
+    await page.goto('/blog/journal-rail/cold-start-62')
+    await hydrated(page)
+    const main = page.getByRole('main')
+
+    const prose = (await main.getByRole('article').first().boundingBox())!
+    const copy = (await main.getByRole('button', { name: 'Copy link' }).boundingBox())!
+    const comments = (await main.getByRole('region', { name: /^Comments/ }).boundingBox())!
+
+    expect(copy.y).toBeGreaterThanOrEqual(prose.y + prose.height)
+    expect(copy.y + copy.height).toBeLessThanOrEqual(comments.y)
+  })
+
+  test('journal post at 1280px: the rail follows the post and rests above Copy link', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await page.goto('/blog/journal-rail/cold-start-62')
+    await hydrated(page)
+    const rail = page.getByRole('complementary')
+    const copy = page.getByRole('button', { name: 'Copy link' })
+
+    await page.evaluate(() => window.scrollTo(0, 1000))
+    expect((await rail.boundingBox())!.y).toBeCloseTo(24, 0)
+
+    // Scroll until the post's last lines are mid-screen: the rail has come to rest on Copy link.
+    await page.evaluate(() => {
+      const article = document.querySelector('main article')!
+      window.scrollTo(0, article.getBoundingClientRect().bottom + window.scrollY - 350)
+    })
+    const railBox = (await rail.boundingBox())!
+    const copyBox = (await copy.boundingBox())!
+    expect(copyBox.x).toBeCloseTo(railBox.x, 0)
+    expect(railBox.y + railBox.height).toBeLessThanOrEqual(copyBox.y)
+    expect(copyBox.y - (railBox.y + railBox.height)).toBeLessThan(40)
+  })
+
+  test('a comment posts where crypto.randomUUID is missing (plain http)', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(Crypto.prototype, 'randomUUID', { value: undefined })
+    })
+    await page.goto('/blog/editorial-list/streaming-events')
+    await hydrated(page)
+    const comments = page.getByRole('region', { name: /^Comments/ })
+
+    await comments.getByLabel('Name').fill('Ada')
+    await comments.getByLabel('Comment').fill('Posted over plain http.')
+    await comments.getByRole('button', { name: 'Post comment' }).click()
+
+    await expect(comments.getByRole('status')).toHaveText('Comment posted.')
+    await expect(comments.getByRole('article')).toContainText('Posted over plain http.')
+  })
+
+  test('magazine grid post centres the prose, the tags row and the comments', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await page.goto('/blog/magazine-grid/cold-start-62')
+    await hydrated(page)
+    const main = page.getByRole('main')
+    const box = async (locator: ReturnType<Page['locator']>) => (await locator.boundingBox())!
+    const near = (a: number, b: number) => expect(Math.abs(a - b)).toBeLessThan(1)
+
+    const title = await box(main.getByRole('heading', { level: 1 }))
+    const prose = await box(main.getByRole('article').first().locator('> *'))
+    const tagsRow = await box(main.getByRole('list', { name: 'Tags' }).locator('..'))
+    const comments = await box(main.getByRole('region', { name: /^Comments/ }))
+
+    for (const column of [tagsRow, comments]) {
+      near(column.x, prose.x)
+      near(column.width, prose.width)
+    }
+    near(prose.x + prose.width / 2, title.x + title.width / 2)
   })
 
   test('copy link confirms', async ({ page, context, baseURL }) => {
