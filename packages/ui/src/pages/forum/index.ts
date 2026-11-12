@@ -32,6 +32,7 @@ export {
   vocabulary,
   weekStats,
 } from './content'
+export { ReplyComposer, type ReplyComposerProps } from './reply-composer'
 export type {
   ForumBlock,
   ForumCategory,

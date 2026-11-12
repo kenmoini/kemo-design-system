@@ -56,6 +56,16 @@ describe('CopyLinkButton', () => {
     expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument()
   })
 
+  it('copies the absolute address of an href', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    stubClipboard({ writeText })
+    render(<CopyLinkButton href="#post-p4" />)
+    await click()
+    const copied = String(writeText.mock.calls[0]?.[0])
+    expect(copied).toMatch(/^https?:\/\//)
+    expect(copied.endsWith('#post-p4')).toBe(true)
+  })
+
   it('clears its timer on unmount', async () => {
     stubClipboard({ writeText: vi.fn().mockResolvedValue(undefined) })
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})

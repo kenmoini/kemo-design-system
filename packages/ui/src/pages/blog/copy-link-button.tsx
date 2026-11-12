@@ -7,10 +7,12 @@ type CopyState = 'idle' | 'copied' | 'failed'
 
 export interface CopyLinkButtonProps extends Omit<ButtonProps, 'onClick' | 'children'> {
   label?: string
+  /** Copy this address (resolved against the page) instead of the page address. */
+  href?: string
 }
 
 /** Copies the current page address; the label confirms (or reports failure) for two seconds. */
-export function CopyLinkButton({ label = 'Copy link', ...buttonProps }: CopyLinkButtonProps) {
+export function CopyLinkButton({ label = 'Copy link', href, ...buttonProps }: CopyLinkButtonProps) {
   const [state, setState] = useState<CopyState>('idle')
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
@@ -19,7 +21,9 @@ export function CopyLinkButton({ label = 'Copy link', ...buttonProps }: CopyLink
   async function copy() {
     let next: CopyState = 'failed'
     try {
-      await navigator.clipboard.writeText(window.location.href)
+      await navigator.clipboard.writeText(
+        href === undefined ? window.location.href : new URL(href, window.location.href).toString(),
+      )
       next = 'copied'
     } catch {
       // Missing API or a rejected write: fall through to the failed state.
