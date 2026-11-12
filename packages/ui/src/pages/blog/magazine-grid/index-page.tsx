@@ -149,8 +149,15 @@ export function MagazineGridIndex(props: BlogIndexPageProps) {
               unmountOnExit
               mt={hero ? '8' : '0'}
             >
-              <Box display="flex" alignItems="center" justifyContent="space-between" gap="4">
-                <Tabs.List flex="1" minW="0" overflowX="auto">
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                gap="4"
+                borderBottomWidth="1px"
+                borderColor="border"
+              >
+                <Tabs.List flex="1" minW="0" overflowX="auto" _horizontal={{ borderBottomWidth: '0' }}>
                   <Tabs.Trigger value="all">All posts</Tabs.Trigger>
                   {topics.map((t) => (
                     <Tabs.Trigger key={t.id} value={t.id}>
