@@ -8,11 +8,14 @@ whose scopes or mappers leave the profile incomplete). Other Kemo apps are meant
 `@kemo/ui` so a token or component change lands everywhere.
 
 This repository holds the tooling, theme, components, auth pages, the application shell and
-dashboard widgets, status pages and console pages, the Access page and its `DataTable`, the preview
-and CI (see [Auth pages](#auth-pages),
+dashboard widgets, status pages and console pages, the Access page and its `DataTable`, the
+Deployments pages with their YAML editor and schema browser, the preview and CI (see
+[Auth pages](#auth-pages),
 [Application shell and dashboard widgets](#application-shell-and-dashboard-widgets),
 [Status pages and console pages](#status-pages-and-console-pages),
-[Access page and DataTable](#access-page-and-datatable) and [Roadmap](#roadmap)).
+[Access page and DataTable](#access-page-and-datatable),
+[Deployments pages, YamlEditor and SchemaBrowser](#deployments-pages-yamleditor-and-schemabrowser)
+and [Roadmap](#roadmap)).
 
 ## Stack and design language
 
@@ -126,7 +129,7 @@ add, because the barrel files are written unformatted.
 
 ## Consuming @kemo/ui from another app
 
-`@kemo/ui` is not published yet (see [Roadmap](#roadmap), item 4), so for now only apps inside
+`@kemo/ui` is not published yet (see [Roadmap](#roadmap), item 8), so for now only apps inside
 this workspace (`apps/*` or `packages/*`) can consume it, the way `apps/preview` does.
 
 1. Add `"@kemo/ui": "workspace:*"` to the app's dependencies, and the dev dependencies
@@ -497,6 +500,163 @@ built in), 24 permissions over 6 resources, 7 service accounts, 5 OAuth apps and
 Overview and Audit streams tick while their tab shows and pause while the pointer or focus is inside
 them.
 
+## Deployments pages, YamlEditor and SchemaBrowser
+
+The console's Deployments pages: a list of Kubernetes `apps/v1` Deployments across the clusters and
+namespaces a reader picks, and a page per Deployment with Overview, YAML and Events tabs. They bring
+the design system its code editor, a CodeMirror 6 YAML editor with JSON Schema lint, hover and
+completion, and a schema browser that shows each field's type, description, enum and default.
+Presentational like the rest: the host fetches, derives and keeps every value, and gets every action
+back as a callback. Exports from `@kemo/ui`:
+
+- Deployment-specific (`pages/deployments`): `DeploymentsListPage` (header with "+ Create
+  deployment", the `ScopeBar` of Clusters and Namespaces pickers, then a `DataTable` with Status,
+  Labels and Namespace filters, row actions Scale…, Restart, Pause|Resume, Edit YAML and Delete,
+  and bulk Restart, Pause, Resume and Delete), `DeploymentDetailPage` (the shell, the actions and
+  the three tabs), `DeploymentOverview` (tiles, details, conditions, related objects), `ScaleDialog`,
+  the cells `DeploymentStatusBadge`, `ReadyCell`, `LabelChips` and `AgeCell`,
+  `deploymentStatusOptions`, the bundled `deploymentSchema`, `scopedNamespaces` and
+  `CREATED_BY_ANNOTATION` (the annotation the Overview reads "by {creator}" from).
+- Kind-agnostic (`pages/resources`): `ResourceDetailShell` (breadcrumb, name and status badge,
+  context line, actions, tab links), `ResourceYamlTab` (Save, Reload, Download, the status line,
+  the editor, its problems and the schema browser; also a create mode), `ResourceEventsTab` (type
+  and scope filters, a live mode that holds still for a reader), `ShortcutsDialog`,
+  `SchemaRegistry`, `schemaFor`, `defaultSchemaRegistry` and `downloadText`.
+- Widgets: `YamlEditor`, `useYamlDocument`, `SchemaBrowser` and `resolveNode`; `DataTable` gains a
+  `tags` filter kind (`key=value` chips; a row matches when it has every chip) and a `countLabel`.
+- Helpers (`lib/kubernetes`, no UI): the types (`DeploymentResource`, `DeploymentSummary`,
+  `RelatedObjects`, `K8sEvent`, `ScopeValue`, `ClusterOption`, …), `deploymentStatus`,
+  `summarize`, `cleanResource`, `cleanYaml`, `toYaml`, `parseYaml`, `pathAtOffset`,
+  `offsetForPath` and `relativeAge`.
+
+`YamlEditor` imports CodeMirror with `import()` once it mounts, so only a page that shows an editor
+loads it, and until then (and on the server) it renders the text in a `pre` of the same height, so
+the YAML tab prerenders and hydrates without a jump; no `next/dynamic` is needed. Its theme is a
+CodeMirror theme and highlight style built from Park tokens' CSS variables (`token.var`), so the
+light and dark switch on `<html>` recolours it with no second theme: keys `fg.default`, strings
+`green.11`, numbers `amber.11`, booleans and null `blue.11`, comments `fg.subtle`, the cursor line
+`gray.a2`, the selection `blue.a4`, errors underlined `red.9`. Save in the YAML tab waits for the
+editor to load, then checks the text it sends against the schema (the linter itself runs half a
+second after an edit).
+
+A host wires the list to its data and keeps the scope:
+
+```tsx
+'use client'
+import { type DeploymentSummary, DeploymentsListPage, type ScopeValue, summarize } from '@kemo/ui'
+import NextLink from 'next/link'
+import { useState } from 'react'
+import { api, clusters, useDeployments } from './api' // your client
+
+const detailHref = (row: DeploymentSummary) =>
+  `/deployments/${row.cluster}/${row.namespace}/${row.name}`
+
+// `now`: the server's time (an ISO string), so the server and client renders agree on the ages.
+export function Deployments({ now }: { now: string }) {
+  const [scope, setScope] = useState<ScopeValue>({ clusters: [], namespaces: [] }) // [] is "All"
+  const items = useDeployments(scope) // { cluster, resource }[] in the scope
+  return (
+    <DeploymentsListPage
+      scope={scope}
+      onScopeChange={setScope} // persist it: the preview keeps it in localStorage
+      clusters={clusters} // { id, label, namespaces }[]
+      rows={items.map(({ cluster, resource }) => summarize(resource, cluster))}
+      now={now}
+      detailHref={detailHref} // its YAML tab is `${detailHref(row)}/yaml`
+      createHref="/deployments/new"
+      linkComponent={NextLink}
+      onScale={(id, replicas) => api.scale(id, replicas)} // a rejection shows in the dialog
+      onRestart={(ids) => api.restart(ids)}
+      onSetPaused={(ids, paused) => api.setPaused(ids, paused)}
+      onDelete={(ids) => api.delete(ids)}
+    />
+  )
+}
+```
+
+The detail page takes the Deployment, its summary, the objects around it (the host derives them:
+the library renders what it is given), its events, and the YAML as text with the host's draft:
+
+```tsx
+<DeploymentDetailPage
+  deployment={resource}
+  cluster={cluster}
+  summary={summarize(resource, cluster)}
+  related={related} // RelatedObjects: pods, replicaSets, services, ingresses, configMaps, …
+  events={events} // K8sEvent[]: the Deployment's and its ReplicaSets' and Pods'
+  liveEvents // a streaming note; the rows hold still while the pointer or focus is on them
+  tab={tab} // 'overview' | 'yaml' | 'events', from the URL
+  tabHref={(t) => (t === 'overview' ? base : `${base}/${t}`)}
+  listHref="/deployments"
+  linkComponent={NextLink}
+  now={now}
+  schema={schemaFor(defaultSchemaRegistry, 'apps/v1', 'Deployment') ?? deploymentSchema}
+  yamlText={yamlText} // the server copy, e.g. toYaml(resource)
+  draft={draft} // the host keeps the edit, so it outlasts a tab switch
+  onDraftChange={setDraft} // undefined once saved, discarded or undone
+  onSaveYaml={(text) => api.apply(text)} // a rejection keeps the draft and shows its message
+  serverChanged={serverChanged} // "Server copy changed · Reload to see it"
+  onScale={(id, replicas) => api.scale(id, replicas)}
+  onRestart={(ids) => api.restart(ids)}
+  onSetPaused={(ids, paused) => api.setPaused(ids, paused)}
+  onDelete={(ids) => api.delete(ids).then(() => router.push('/deployments'))}
+/>
+```
+
+Hold the draft (and anything else that must outlast a tab) above the `[[...tab]]` page, in a layout
+or a store: Next remounts a page when its params change. Save is disabled until the text differs
+from `yamlText` and blocked while the editor reports a problem; Reload asks before it discards a
+draft. "Download YAML" saves the text as shown; "Download clean YAML" saves `cleanYaml(resource)`,
+the resource without `metadata.uid`, `resourceVersion`, `generation`, `creationTimestamp`,
+`managedFields`, `selfLink`, the `kubectl.kubernetes.io/last-applied-configuration` annotation and
+`status`, keys in their original order and indented by two spaces (`cleanResource` returns the
+same as an object).
+
+The YAML tab, the editor and the schema browser take any JSON Schema (draft-07 style, such as a
+CRD's `openAPIV3Schema` or one converted from a cluster's OpenAPI v3), resolving `$ref`, `allOf`,
+`properties`, `items`, `additionalProperties` and `oneOf`/`anyOf`, and ignoring the
+`x-kubernetes-*` extensions. A `SchemaRegistry` holds one per kind, keyed
+`{apiVersion}/{kind}`; `defaultSchemaRegistry` has the bundled `apps/v1/Deployment` (trimmed to the
+fields a Deployment author touches, every one with its description), and a host adds its own:
+
+```ts
+import { defaultSchemaRegistry, schemaFor, type SchemaRegistry } from '@kemo/ui'
+import httpRouteSchema from './schemas/httproute.json'
+
+const registry: SchemaRegistry = {
+  ...defaultSchemaRegistry,
+  'gateway.networking.k8s.io/v1/HTTPRoute': httpRouteSchema,
+}
+// undefined for an unknown kind: the editor still flags YAML syntax, with no schema lint or browser
+const schema = schemaFor(registry, resource.apiVersion, resource.kind)
+```
+
+Only the list's columns and the Overview know what a Deployment is. A page for another kind, a
+Gateway API object or a CRD, composes `ResourceDetailShell` with its own overview and actions and
+reuses `ResourceYamlTab` (with its schema) and `ResourceEventsTab` (`parentKind` names the
+object, `childKinds` the kinds counted as its children) unchanged.
+
+In the preview, `/deployments`, `/deployments/new` and
+`/deployments/{cluster}/{namespace}/{name}[/yaml|/events]` are
+`apps/preview/src/app/deployments/`: the segment's `layout.tsx` renders `DeploymentsDemoShell`
+(the console frame and the state), so the list, the create page and the detail tabs share one
+state and a YAML draft survives a trip to another tab or page; the detail route prerenders the
+three tabs of every seeded Deployment with `generateStaticParams` and answers an unknown cluster,
+namespace or tab with `notFound()`. A name the server has not prerendered is checked in the
+browser instead, where the Deployments created during the visit live: an unknown one shows the 404
+page once the page has hydrated. The demos are in `apps/preview/src/components/deployments/`, and
+every control works on in-memory state through `deploymentsReducer` in
+`apps/preview/src/lib/deployments-reducer.ts`: the scope (kept in `localStorage` under
+`kemo.deployments.scope`), Scale, Restart (the rollout runs for three seconds), Pause and Resume,
+Delete, the YAML draft per Deployment, Save (kind, name and namespace can't change; a new pod
+template rolls out like a restart), Create, and the live events of the Events tab. The mock data,
+generated from seed lists and a string hash so the server and client renders match, is in
+`apps/preview/src/lib/mock-deployments.ts`: 3 clusters, 45 Deployments (38 available, 4
+progressing, 2 degraded, 1 paused; three run a sidecar), the objects around each, derived from
+their specs (`relatedFor`: pods, ReplicaSets, the Service whose selector matches, an Ingress, the
+ConfigMaps, Secrets and PVCs the pods read, an autoscaler for a few, the service account) and 8 to
+14 events each (`eventsFor`).
+
 ## Blog pages
 
 A blog family, presentational like the others: posts and comments come in as props, the host
@@ -615,7 +775,7 @@ preview panel lists the six pages under "Blog".
 | `make check`                 | Lint, format check, typecheck and unit tests                       |
 
 The e2e suite loads every route (landing page, auth pages, component pages, dashboard, Access tabs,
-FAQ, Blank page, blog pages and status pages) and fails on any console error or uncaught page error. It also checks the
+Deployments pages, FAQ, Blank page, blog pages and status pages) and fails on any console error or uncaught page error. It also checks the
 theme (font, radii), dark mode through the preview panel's theme toggle, and that the panel
 navigates, closes and marks the current page. On the auth pages, where any uncaught page error (such
 as an escaped `onSubmit` rejection) fails the test, it checks validation and the mock error on every
@@ -633,7 +793,13 @@ scroll to the top) and a question's anchor sets the hash. On the Access page it 
 are links that mark the current tab, that the users table searches and filters, that "Bulk actions"
 follows the selection, adding a user through the dialog and disabling one from its row menu, the
 Overview widgets, the Audit layout and the OIDC sync badges, that an unknown tab answers 404, and
-at 375px the scrolled tab strip, the "Filters" drawer and no horizontal overflow. On the blog pages
+at 375px the scrolled tab strip, the "Filters" drawer and no horizontal overflow. On the
+Deployments pages it checks that a cluster scope narrows the list and survives a reload, the labels
+filter, opening a Deployment from the list, switching the related kinds, editing replicas in the
+YAML editor and saving after a trip to the Overview (the draft is still there), that a schema
+problem blocks Save, that the schema browser follows the cursor, that "Download clean YAML" has no
+`resourceVersion` or `status`, the Events filters, and at 375px the stacked scope pickers, the
+"Filters" drawer and no horizontal overflow. On the blog pages
 it checks every variation from index to post and back and the topic filter, pagination, the
 subscribe dialog and rail (and its failure) and that focus lands on the confirmation, posting a
 comment and a reply (focus returns to Reply) and posting without `crypto.randomUUID`, a rejected and
@@ -680,4 +846,9 @@ access because `next build` fetches DM Sans from Google Fonts.
 6. Done: blog pages in three variations (Editorial list, Magazine grid, Journal with a rail) with
    comments, exported from `@kemo/ui`, with the `/blog` demos in the preview (see
    [Blog pages](#blog-pages)); spec in `docs/superpowers/specs/2026-11-12-blog-pages-design.md`.
-7. Publishing `@kemo/ui`, once the package prefix is decided.
+7. Done: the Deployments pages (list with cluster and namespace scope; detail with Overview, YAML
+   and Events), the CodeMirror `YamlEditor`, the `SchemaBrowser` and the kind-agnostic resource
+   tabs, exported from `@kemo/ui`, with the `/deployments` demo in the preview (see
+   [Deployments pages, YamlEditor and SchemaBrowser](#deployments-pages-yamleditor-and-schemabrowser));
+   spec in `docs/superpowers/specs/2026-11-11-deployments-page-design.md`.
+8. Publishing `@kemo/ui`, once the package prefix is decided.

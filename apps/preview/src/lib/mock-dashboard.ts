@@ -39,7 +39,7 @@ export const navGroups: { label: string; items: MockNavItem[] }[] = [
     items: [
       { id: 'overview', label: 'Overview', icon: LayoutDashboardIcon, href: '/dashboard' },
       { id: 'services', label: 'Services', icon: BoxesIcon, href: '#services' },
-      { id: 'deployments', label: 'Deployments', icon: RocketIcon, href: '#deployments', badge: 3 },
+      { id: 'deployments', label: 'Deployments', icon: RocketIcon, href: '/deployments', badge: 3 },
       { id: 'incidents', label: 'Incidents', icon: SirenIcon, href: '#incidents', badge: 1 },
     ],
   },

@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page, test } from '@playwright/test'
+import { readFile } from 'node:fs/promises'
 
 const ROUTES = [
   '/',
@@ -29,6 +30,11 @@ const ROUTES = [
   '/access/service-accounts',
   '/access/oauth-apps',
   '/access/settings',
+  '/deployments',
+  '/deployments/new',
+  '/deployments/prod-us-east/checkout/checkout-api',
+  '/deployments/prod-us-east/checkout/checkout-api/yaml',
+  '/deployments/prod-us-east/checkout/checkout-api/events',
 ]
 
 test.describe('routes', () => {
@@ -736,6 +742,217 @@ test.describe('access page', () => {
     await expect(drawer).toBeVisible()
     await expect(drawer.getByText('Status', { exact: true })).toBeVisible()
     await expect(drawer.getByRole('searchbox', { name: 'Search users' })).toBeVisible()
+    expect(await scrollWidth()).toBe(375)
+  })
+})
+
+test.describe('deployments', () => {
+  // Every console error and uncaught error fails these tests.
+  let errors: string[] = []
+  test.beforeEach(({ page }) => {
+    errors = []
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(`${message.text()} [${message.location().url}]`)
+    })
+    page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`))
+  })
+  test.afterEach(() => {
+    expect(errors).toEqual([])
+  })
+
+  const DETAIL = '/deployments/prod-us-east/checkout/checkout-api'
+  // The toolbar's "{n} deployments in {c} clusters · {namespaces}".
+  const countLine = (page: Page) => page.getByText(/^\d+ deployments? in \d+ clusters? · /)
+  const bodyRows = (page: Page) => page.locator('tbody tr')
+  // Wait for hydration (`<html data-hydrated>`): a click or keystroke before it is lost.
+  const open = async (page: Page, path: string) => {
+    await page.goto(path)
+    await page.locator('html[data-hydrated]').waitFor({ state: 'attached' })
+  }
+  const tab = (page: Page, name: string) => page.getByRole('tab', { name, exact: true })
+  // An Overview tile, named by its label.
+  const tile = (page: Page, name: string) => page.getByRole('group', { name, exact: true })
+  // CodeMirror loads lazily: until then the text sits in a `pre` and Save stays disabled.
+  const editor = async (page: Page) => {
+    const textbox = page.getByRole('textbox', { name: /yaml/i })
+    await expect(textbox).toBeVisible()
+    return textbox
+  }
+  // An editor line by its whole text (CodeMirror splits a line into token spans).
+  const line = (textbox: Locator, text: RegExp) =>
+    textbox.locator('.cm-line').filter({ hasText: text }).first()
+
+  test('scope narrows the list', async ({ page }) => {
+    await open(page, '/deployments')
+    await expect(countLine(page)).toHaveText('45 deployments in 3 clusters · all namespaces')
+
+    await page.getByRole('combobox', { name: 'Clusters' }).click()
+    await page.getByRole('option', { name: 'prod-eu-west', exact: true }).click()
+    await page.keyboard.press('Escape')
+
+    await expect(countLine(page)).toHaveText(/^\d+ deployments in 1 cluster · all namespaces$/)
+    const narrowed = await countLine(page).innerText()
+    expect(narrowed).not.toBe('45 deployments in 3 clusters · all namespaces')
+    for (const row of await bodyRows(page).all()) await expect(row).toContainText('prod-eu-west')
+
+    await page.reload()
+    await page.locator('html[data-hydrated]').waitFor({ state: 'attached' })
+    await expect(countLine(page)).toHaveText(narrowed)
+    await expect(page.getByRole('combobox', { name: 'Clusters' })).toContainText('prod-eu-west')
+  })
+
+  test('labels filter', async ({ page }) => {
+    await open(page, '/deployments')
+    const labels = page
+      .getByRole('complementary', { name: 'Filters' })
+      .getByRole('textbox', { name: 'Labels' })
+
+    await labels.fill('app=checkout-api')
+    await labels.press('Enter')
+
+    await expect(bodyRows(page)).toHaveCount(1)
+    await expect(bodyRows(page)).toContainText('checkout-api')
+    await expect(countLine(page)).toHaveText('1 deployment in 3 clusters · all namespaces')
+  })
+
+  test('open a deployment', async ({ page }) => {
+    await open(page, '/deployments')
+
+    await page.getByRole('link', { name: 'checkout-api', exact: true }).click()
+
+    await expect(page).toHaveURL(new RegExp(`${DETAIL}$`))
+    await expect(page.getByRole('heading', { level: 1, name: 'checkout-api' })).toBeVisible()
+    await expect(tab(page, 'Overview')).toHaveAttribute('aria-selected', 'true')
+    await expect(tile(page, 'Ready')).toContainText('6 / 6')
+    await expect(tile(page, 'Updated · Available')).toContainText('6 · 6')
+    await expect(tile(page, 'Restarts')).toContainText('image 2.14.0')
+  })
+
+  test('overview switches related kinds', async ({ page }) => {
+    await open(page, DETAIL)
+    await expect(page.getByRole('columnheader', { name: 'Node' })).toBeVisible()
+
+    await page.getByText(/^Services \d+$/).click()
+
+    await expect(page.getByRole('columnheader', { name: 'Cluster IP' })).toBeVisible()
+    await expect(page.getByRole('columnheader', { name: 'Node' })).toHaveCount(0)
+  })
+
+  test('yaml edit and save', async ({ page }) => {
+    await open(page, `${DETAIL}/yaml`)
+    const textbox = await editor(page)
+
+    await line(textbox, /^\s*replicas: 6$/).click()
+    await page.keyboard.press('End')
+    await page.keyboard.press('Shift+ArrowLeft')
+    await page.keyboard.type('8')
+    await expect(page.getByText('● Unsaved changes')).toBeVisible()
+
+    // The draft is the host's: it survives a trip to another tab.
+    await tab(page, 'Overview').click()
+    await expect(page).toHaveURL(new RegExp(`${DETAIL}$`))
+    await expect(tile(page, 'Ready')).toContainText('6 / 6')
+    await tab(page, 'YAML').click()
+    await expect(page).toHaveURL(new RegExp(`${DETAIL}/yaml$`))
+    await expect(page.getByText('● Unsaved changes')).toBeVisible()
+    await expect(line(await editor(page), /^\s*replicas: 8$/)).toBeVisible()
+
+    const save = page.getByRole('button', { name: 'Save', exact: true })
+    await expect(save).toBeEnabled()
+    await save.click()
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible()
+
+    await tab(page, 'Overview').click()
+    await expect(tile(page, 'Ready')).toContainText('8 / 8')
+  })
+
+  test('yaml schema problem blocks save', async ({ page }) => {
+    await open(page, `${DETAIL}/yaml`)
+    const textbox = await editor(page)
+
+    await line(textbox, /^\s*type: RollingUpdate$/).click()
+    await page.keyboard.press('End')
+    await page.keyboard.press('Backspace')
+    await expect(line(textbox, /^\s*type: RollingUpdat$/)).toBeVisible()
+
+    await expect(page.getByText('1 problem', { exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    await expect(page.getByRole('list', { name: 'Problems' })).toContainText('Line')
+  })
+
+  test('schema drawer follows the cursor', async ({ page }) => {
+    await open(page, `${DETAIL}/yaml`)
+    const textbox = await editor(page)
+
+    await page.getByRole('button', { name: 'Schema', exact: true }).click()
+    const panel = page.getByRole('complementary', { name: 'Schema' })
+    await expect(panel).toBeVisible()
+
+    await line(textbox, /^\s*strategy:$/)
+      .getByText('strategy', { exact: true })
+      .click()
+
+    await expect(panel.getByRole('navigation')).toContainText('strategy')
+  })
+
+  test('download clean yaml', async ({ page }) => {
+    await open(page, `${DETAIL}/yaml`)
+    await editor(page)
+
+    await page.getByRole('button', { name: 'Download' }).click()
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('menuitem', { name: 'Download clean YAML' }).click(),
+    ])
+
+    expect(download.suggestedFilename()).toBe('checkout-api.clean.yaml')
+    const text = await readFile(await download.path(), 'utf8')
+    expect(text).toContain('name: checkout-api')
+    expect(text).toContain('replicas: 6')
+    expect(text).not.toContain('resourceVersion')
+    expect(text).not.toMatch(/^status:/m)
+  })
+
+  test('events filter', async ({ page }) => {
+    await open(page, `${DETAIL}/events`)
+    const objects = page.locator('tbody tr td:nth-child(4)')
+    await expect(bodyRows(page).first()).toBeVisible()
+
+    await page.getByText(/^Warning \d+$/).click()
+    await expect(bodyRows(page).first()).toContainText('Warning')
+    for (const row of await bodyRows(page).all()) {
+      await expect(row.locator('td').first()).toHaveText('Warning')
+    }
+
+    await page.getByText(/^All \d+$/).click()
+    await page.getByText('Deployment only', { exact: true }).click()
+    await expect(objects.first()).toHaveText(/^deployment\//)
+    for (const object of await objects.all()) await expect(object).not.toContainText('pod/')
+  })
+
+  test('deployments at 375', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
+    const scrollWidth = () => page.evaluate(() => document.documentElement.scrollWidth)
+    await open(page, '/deployments')
+
+    // The scope pickers stack: Namespaces sits under Clusters, at the same left edge.
+    const clusters = await page.getByRole('combobox', { name: 'Clusters' }).boundingBox()
+    const namespaces = await page.getByRole('combobox', { name: 'Namespaces' }).boundingBox()
+    expect(clusters).not.toBeNull()
+    expect(namespaces).not.toBeNull()
+    expect(namespaces!.y).toBeGreaterThanOrEqual(clusters!.y + clusters!.height)
+    expect(Math.abs(namespaces!.x - clusters!.x)).toBeLessThan(1)
+    expect(await scrollWidth()).toBe(375)
+
+    await expect(page.getByRole('complementary', { name: 'Filters' })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Filters' }).click()
+    const drawer = page.getByRole('dialog', { name: 'Filters' })
+    await expect(drawer).toBeVisible()
+    await expect(drawer.getByText('Status', { exact: true })).toBeVisible()
+    await expect(drawer.getByRole('textbox', { name: 'Labels' })).toBeVisible()
     expect(await scrollWidth()).toBe(375)
   })
 })
