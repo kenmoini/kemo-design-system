@@ -647,15 +647,20 @@ browser instead, where the Deployments created during the visit live: an unknown
 page once the page has hydrated. The demos are in `apps/preview/src/components/deployments/`, and
 every control works on in-memory state through `deploymentsReducer` in
 `apps/preview/src/lib/deployments-reducer.ts`: the scope (kept in `localStorage` under
-`kemo.deployments.scope`), Scale, Restart (the rollout runs for three seconds), Pause and Resume,
-Delete, the YAML draft per Deployment, Save (kind, name and namespace can't change; a new pod
-template rolls out like a restart), Create, and the live events of the Events tab. The mock data,
-generated from seed lists and a string hash so the server and client renders match, is in
-`apps/preview/src/lib/mock-deployments.ts`: 3 clusters, 45 Deployments (38 available, 4
-progressing, 2 degraded, 1 paused; three run a sidecar), the objects around each, derived from
-their specs (`relatedFor`: pods, ReplicaSets, the Service whose selector matches, an Ingress, the
-ConfigMaps, Secrets and PVCs the pods read, an autoscaler for a few, the service account) and 8 to
-14 events each (`eventsFor`).
+`kemo.deployments.scope`), Scale, Restart (the rollout runs for three seconds; a paused Deployment
+rolls out when it is resumed), Pause and Resume, Delete, the YAML draft per Deployment, Save (kind,
+name and namespace can't change; a new pod template rolls out like a restart), Create, and the live
+events of the Events tab. Its clock never reads the wall clock: every change moves it on, and the
+shell moves it half a minute at a time while the page is visible, except while a reader holds the
+live events still, so the ages move and the server and client renders match. The mock data,
+generated from seed lists and a string hash, is in `apps/preview/src/lib/mock-deployments.ts`: 3
+clusters, 45 Deployments (38 available, 4 progressing, 2 degraded, 1 paused; three run a sidecar),
+a Service for each app that listens on a port and an Ingress for each namespace that serves web
+traffic, the objects around each Deployment (`relatedFor`: its pods and ReplicaSets, the Services
+in its namespace whose selectors match its pod labels and the Ingress rules that route to them,
+the ConfigMaps, Secrets and PVCs the pods read, an autoscaler for a few, the service account) and
+8 to 14 events each (`eventsFor`), naming those pods. The reducer and the mocks have unit tests in
+`apps/preview/src/lib/deployments-reducer.test.ts` (Vitest, `pnpm --filter @kemo/preview test`).
 
 ## Blog pages
 
@@ -766,13 +771,13 @@ preview panel lists the six pages under "Blog".
 
 ## Testing
 
-| Command                      | What it runs                                                       |
-| ---------------------------- | ------------------------------------------------------------------ |
-| `make test` (`pnpm test`)    | Vitest in `packages/ui`, then Node's test runner for `scripts/`    |
-| `pnpm test:scripts`          | Only the `scripts/park-ui` tests                                   |
-| `make e2e-install`           | Once: installs Chromium for Playwright (`pnpm e2e:install`)        |
-| `make e2e` (`pnpm test:e2e`) | Builds, then runs the Playwright smoke suite in `apps/preview/e2e` |
-| `make check`                 | Lint, format check, typecheck and unit tests                       |
+| Command                      | What it runs                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
+| `make test` (`pnpm test`)    | Vitest in `packages/ui` and `apps/preview`, then Node's test runner for `scripts/` |
+| `pnpm test:scripts`          | Only the `scripts/park-ui` tests                                                   |
+| `make e2e-install`           | Once: installs Chromium for Playwright (`pnpm e2e:install`)                        |
+| `make e2e` (`pnpm test:e2e`) | Builds, then runs the Playwright smoke suite in `apps/preview/e2e`                 |
+| `make check`                 | Lint, format check, typecheck and unit tests                                       |
 
 The e2e suite loads every route (landing page, auth pages, component pages, dashboard, Access tabs,
 Deployments pages, FAQ, Blank page, blog pages and status pages) and fails on any console error or uncaught page error. It also checks the

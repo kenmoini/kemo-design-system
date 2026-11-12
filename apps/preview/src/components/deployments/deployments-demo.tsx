@@ -2,6 +2,7 @@
 import {
   type DeploymentSummary,
   DeploymentsListPage,
+  type DeploymentTab,
   type ScopeValue,
   scopedNamespaces,
   summarize,
@@ -11,28 +12,31 @@ import {
   createContext,
   type Dispatch,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
   useReducer,
   useRef,
+  useState,
 } from 'react'
 import { ConsoleFrame } from '@/components/console/console-frame'
 import {
+  CLOCK_TICK_MS,
   checkCreate,
   checkSave,
   type DeploymentItem,
   type DeploymentsAction,
   type DeploymentsState,
   deploymentsReducer,
+  heldRollouts,
   initialState,
+  ROLLOUT_MS,
 } from '@/lib/deployments-reducer'
 import { clusters } from '@/lib/mock-deployments'
 
 /** Where the list's scope is kept between visits. */
 const SCOPE_KEY = 'kemo.deployments.scope'
-/** How long a restart's rollout runs before every pod is replaced. */
-const ROLLOUT_MS = 3000
 /** How long the mock "API" takes to save or create. */
 const SAVE_MS = 300
 
@@ -59,11 +63,17 @@ function storedScope(): ScopeValue | undefined {
 }
 
 /** Whether the scope covers `item`; `[]` means "All". */
-export function inScope(item: DeploymentItem, scope: ScopeValue): boolean {
+function inScope(item: DeploymentItem, scope: ScopeValue): boolean {
   return (
     (scope.clusters.length === 0 || scope.clusters.includes(item.cluster)) &&
     (scope.namespaces.length === 0 || scope.namespaces.includes(item.resource.metadata.namespace))
   )
+}
+
+/** A detail page the demo showed: which Deployment, which tab. */
+interface ShownTab {
+  id: string
+  tab: DeploymentTab
 }
 
 interface DeploymentsDemoValue {
@@ -73,12 +83,16 @@ interface DeploymentsDemoValue {
   setScope: (scope: ScopeValue) => void
   /** Restart `ids`; their rollouts finish after `ROLLOUT_MS`. */
   restart: (ids: string[]) => void
-  /** Pause or resume `ids`; a rollout a pause stopped carries on and finishes on resume. */
+  /** Pause or resume `ids`; a rollout a pause held carries on and finishes on resume. */
   setPaused: (ids: string[], paused: boolean) => void
   /** The YAML tab's Save: rejects with what is wrong, so the tab shows it. */
   saveYaml: (id: string, text: string) => Promise<void>
   /** Create mode's Create: resolves to the new Deployment's id. */
   create: (cluster: string, text: string) => Promise<string>
+  /** A reader is on the live events: the clock holds still meanwhile. */
+  setReaderPaused: (paused: boolean) => void
+  /** Record the detail page now shown and return the one before, to tell a tab switch apart. */
+  swapShown: (shown: ShownTab) => ShownTab | null
 }
 
 const DeploymentsDemoContext = createContext<DeploymentsDemoValue | null>(null)
@@ -92,7 +106,8 @@ export function useDeploymentsDemo(): DeploymentsDemoValue {
 /**
  * The shell of every `/deployments/*` route: the console frame and the demo's in-memory state,
  * kept while the list, the detail tabs and the create page change underneath, so a YAML draft
- * survives a trip to another tab or page. Also owns the rollout timers and the saved scope.
+ * survives a trip to another tab or page. Also owns the rollout timers (one per Deployment), the
+ * clock's tick and the saved scope.
  */
 export function DeploymentsDemoShell({ children }: Readonly<{ children: ReactNode }>) {
   const [state, dispatch] = useReducer(deploymentsReducer, initialState)
@@ -108,22 +123,44 @@ export function DeploymentsDemoShell({ children }: Readonly<{ children: ReactNod
     if (saved) dispatch({ type: 'setScope', scope: saved })
   }, [])
 
-  // Every rollout's finishing timer, cleared if the demo goes away first.
-  const timers = useRef(new Set<number>())
+  // Time passes while the page shows, so the ages move; not while a reader holds the events still.
+  const [readerPaused, setReaderPaused] = useState(false)
+  useEffect(() => {
+    if (readerPaused) return
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') dispatch({ type: 'tick' })
+    }, CLOCK_TICK_MS)
+    return () => window.clearInterval(timer)
+  }, [readerPaused])
+
+  // Each Deployment's rollout timer: a new rollout replaces the one under way. Cleared if the demo
+  // goes away first.
+  const timers = useRef(new Map<string, number>())
   useEffect(() => {
     const pending = timers.current
     return () => {
-      for (const timer of pending) window.clearTimeout(timer)
+      for (const timer of pending.values()) window.clearTimeout(timer)
       pending.clear()
     }
   }, [])
-  const finishRollout = (ids: string[]) => {
-    const timer = window.setTimeout(() => {
-      timers.current.delete(timer)
-      dispatch({ type: 'restartDone', ids })
-    }, ROLLOUT_MS)
-    timers.current.add(timer)
+  const finishRollouts = (ids: string[]) => {
+    for (const id of ids) {
+      window.clearTimeout(timers.current.get(id))
+      const timer = window.setTimeout(() => {
+        timers.current.delete(id)
+        dispatch({ type: 'restartDone', ids: [id] })
+      }, ROLLOUT_MS)
+      timers.current.set(id, timer)
+    }
   }
+
+  // Stable, so a page's effect runs once per page, not once per render.
+  const shown = useRef<ShownTab | null>(null)
+  const swapShown = useCallback((next: ShownTab) => {
+    const previous = shown.current
+    shown.current = next
+    return previous
+  }, [])
 
   const value: DeploymentsDemoValue = {
     state,
@@ -138,11 +175,13 @@ export function DeploymentsDemoShell({ children }: Readonly<{ children: ReactNod
     },
     restart: (ids) => {
       dispatch({ type: 'restart', ids })
-      finishRollout(ids)
+      // A paused Deployment takes the new template but rolls it out only when resumed.
+      finishRollouts(ids.filter((id) => !state.items[id]?.resource.spec.paused))
     },
     setPaused: (ids, paused) => {
+      const held = paused ? [] : heldRollouts(state, ids)
       dispatch({ type: 'setPaused', ids, paused })
-      if (!paused) finishRollout(ids)
+      finishRollouts(held)
     },
     saveYaml: async (id, text) => {
       await wait(SAVE_MS)
@@ -150,7 +189,7 @@ export function DeploymentsDemoShell({ children }: Readonly<{ children: ReactNod
       if ('error' in checked) throw new Error(checked.error)
       dispatch({ type: 'saveYaml', id, text })
       // A new pod template rolls out like a restart.
-      if (checked.rollout) finishRollout([id])
+      if (checked.rolloutStarts) finishRollouts([id])
     },
     create: async (cluster, text) => {
       await wait(SAVE_MS)
@@ -159,6 +198,8 @@ export function DeploymentsDemoShell({ children }: Readonly<{ children: ReactNod
       dispatch({ type: 'create', cluster, text })
       return checked.id
     },
+    setReaderPaused,
+    swapShown,
   }
 
   return (

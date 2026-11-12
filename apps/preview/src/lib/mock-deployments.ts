@@ -3,9 +3,11 @@ import {
   type Container,
   CREATED_BY_ANNOTATION,
   type DeploymentResource,
+  type IngressRef,
   type K8sEvent,
   type PodRef,
   type RelatedObjects,
+  type ServiceRef,
   type Volume,
 } from '@kemo/ui'
 
@@ -28,7 +30,7 @@ export function shiftTime(from: string, ms: number): string {
 const ago = (ms: number) => shiftTime(now, -ms)
 
 /** FNV-1a: a stable 32-bit number for a string, the seed of every "random" choice below. */
-export function hash(text: string): number {
+function hash(text: string): number {
   let h = 0x811c9dc5
   for (let i = 0; i < text.length; i++) {
     h ^= text.charCodeAt(i)
@@ -200,6 +202,9 @@ const HEALTH: Record<string, { health: Health; ready: number }> = {
   'staging-us-east/checkout/payment-gateway': { health: 'degraded', ready: 0 },
   'prod-us-east/billing/billing-worker': { health: 'paused', ready: 2 },
 }
+
+/** Replica counts the mockups show; staging otherwise runs half of production's. */
+const REPLICAS: Record<string, number> = { 'staging-us-east/auth/auth-service': 2 }
 
 /** Ages the mockups show; the rest come from the seed. */
 const CREATED_DAYS: Record<string, number> = {
@@ -391,16 +396,7 @@ function conditionsFor(
     case 'progressing':
       return [available, progressingCondition(rs, at)]
     case 'paused':
-      return [
-        available,
-        {
-          type: 'Progressing',
-          status: 'Unknown',
-          reason: 'DeploymentPaused',
-          message: 'Deployment is paused',
-          lastTransitionTime: at,
-        },
-      ]
+      return [available, pausedCondition(at)]
     case 'degraded':
       return [
         {
@@ -443,6 +439,17 @@ export function progressed(rs: string, at: string) {
   }
 }
 
+/** The Progressing condition of a paused Deployment. */
+export function pausedCondition(at: string) {
+  return {
+    type: 'Progressing' as const,
+    status: 'Unknown' as const,
+    reason: 'DeploymentPaused',
+    message: 'Deployment is paused',
+    lastTransitionTime: at,
+  }
+}
+
 /** The Progressing condition of a rollout under way. */
 export function progressingCondition(rs: string, at: string) {
   return {
@@ -455,7 +462,7 @@ export function progressingCondition(rs: string, at: string) {
 }
 
 /** The pod-template-hash: what a ReplicaSet and its pods are named after; a new template, a new one. */
-export function templateHash(resource: DeploymentResource): string {
+function templateHash(resource: DeploymentResource): string {
   return suffix(JSON.stringify(resource.spec.template), 10)
 }
 
@@ -471,7 +478,8 @@ function generate(cluster: string, namespace: string, name: string): DeploymentR
   const id = `${cluster}/${namespace}/${name}`
   const seed = APPS[name]!
   const { health, ready } = HEALTH[id] ?? { health: 'available' as const, ready: undefined }
-  const replicas = cluster === 'staging-us-east' ? Math.ceil(seed.replicas / 2) : seed.replicas
+  const replicas =
+    REPLICAS[id] ?? (cluster === 'staging-us-east' ? Math.ceil(seed.replicas / 2) : seed.replicas)
   const days = CREATED_DAYS[id] ?? pick(`${id}:age`, AGE_DAYS)
   const created = ago(days * DAY_MS + (hash(`${id}:minute`) % 600) * MINUTE_MS)
   // checkout-api finished its last rollout 4 minutes ago (the mockup); the others, hours to days
@@ -567,6 +575,59 @@ export const deployments: { cluster: string; resource: DeploymentResource }[] = 
   ),
 )
 
+// --- Services and Ingresses --------------------------------------------------------------------
+
+/** A Service: it fronts the pods in its namespace whose labels carry every pair of its selector. */
+interface MockService extends ServiceRef {
+  cluster: string
+  namespace: string
+  selector: Record<string, string>
+}
+
+/** One Service per app that listens on a port, selecting `app: {name}`. */
+const SERVICES: MockService[] = Object.entries(PLACEMENT).flatMap(([cluster, namespaces]) =>
+  Object.entries(namespaces).flatMap(([namespace, names]) =>
+    names.flatMap((name): MockService[] => {
+      const port = APPS[name]?.port
+      if (!port) return []
+      const id = `${cluster}/${namespace}/${name}`
+      const gateway = name === 'ingress-gateway'
+      return [
+        {
+          cluster,
+          namespace,
+          name,
+          selector: { app: name },
+          type: gateway ? 'LoadBalancer' : 'ClusterIP',
+          clusterIP: `10.96.${hash(`${id}:ip3`) % 256}.${1 + (hash(`${id}:ip4`) % 254)}`,
+          ports: gateway ? ['80/TCP', '443/TCP'] : [`${port}/TCP`],
+        },
+      ]
+    }),
+  ),
+)
+
+/**
+ * One Ingress per namespace that serves web traffic, named after the namespace, at
+ * `{namespace}.{cluster domain}`: `/` to the web app's Service, `/api` to the `-api` app's.
+ */
+const INGRESS_RULES: (IngressRef & { cluster: string; namespace: string })[] = SERVICES.flatMap(
+  ({ cluster, namespace, name }) => {
+    const web = APPS[name]?.tier === 'web'
+    if (!web && !name.endsWith('-api')) return []
+    return [
+      {
+        cluster,
+        namespace,
+        name: namespace,
+        host: `${namespace}.${DOMAINS[cluster] ?? 'acme.dev'}`,
+        path: web ? '/' : '/api',
+        service: name,
+      },
+    ]
+  },
+)
+
 // --- Related objects ---------------------------------------------------------------------------
 
 /** The time of the Deployment's current rollout: its Progressing condition's last change. */
@@ -581,10 +642,14 @@ const NODES = 12
 const podName = (rs: string, index: number) => `${rs}-${suffix(`${rs}/${index}`, 5)}`
 const nodeOf = (pod: string) => `node-${1 + (hash(pod) % NODES)}`
 
+/** How many pods the Deployment runs: what its status reports, else what it asks for. */
+const podCount = (resource: DeploymentResource) =>
+  resource.status?.replicas ?? resource.spec.replicas ?? 1
+
 /** The pods of the current ReplicaSet: `{name}-{hash}-{5 chars}`, one per replica. */
 function podsFor(resource: DeploymentResource): PodRef[] {
   const status = resource.status ?? {}
-  const replicas = status.replicas ?? resource.spec.replicas ?? 1
+  const replicas = podCount(resource)
   const ready = Math.min(status.readyReplicas ?? 0, replicas)
   const rs = replicaSetName(resource)
   const degraded = isDegraded(resource)
@@ -614,44 +679,32 @@ const keysOf = (name: string) => 1 + (hash(`keys:${name}`) % 8)
 
 /**
  * The objects around a Deployment, derived the way a console would find them: its ReplicaSets
- * (current and one old) and their pods; the Service whose selector matches the pod labels (when a
- * container has a port) and an Ingress for web and `-api` apps (`{part-of}.{cluster domain}`); the
- * ConfigMaps and Secrets its containers read through env, envFrom and volumes; the PVCs it mounts;
- * an autoscaler for a few; and its service account.
+ * (current and one old) and their pods; the Services in its namespace whose selectors match its
+ * pod labels, and the Ingress rules that route to them; the ConfigMaps and Secrets its containers
+ * read through env, envFrom and volumes; the PVCs it mounts; an autoscaler for a few; and its
+ * service account.
  */
 export function relatedFor(resource: DeploymentResource, cluster: string): RelatedObjects {
-  const { name, namespace, labels = {} } = resource.metadata
+  const { name, namespace } = resource.metadata
   const podSpec = resource.spec.template.spec
+  const podLabels = resource.spec.template.metadata?.labels ?? {}
   const replicas = resource.spec.replicas ?? 1
   const rs = replicaSetName(resource)
   const id = `${cluster}/${namespace}/${name}`
 
-  const ports = podSpec.containers.flatMap((c) => c.ports ?? [])
-  const services: RelatedObjects['services'] =
-    ports.length > 0
-      ? [
-          {
-            name,
-            type: name === 'ingress-gateway' ? 'LoadBalancer' : 'ClusterIP',
-            clusterIP: `10.96.${hash(`${id}:ip3`) % 256}.${1 + (hash(`${id}:ip4`) % 254)}`,
-            ports: ports.map((p) => `${p.containerPort}/TCP`),
-          },
-        ]
-      : []
-
-  const tier = labels.tier
-  const partOf = labels['app.kubernetes.io/part-of'] ?? name
-  const ingresses: RelatedObjects['ingresses'] =
-    services.length > 0 && (tier === 'web' || name.endsWith('-api'))
-      ? [
-          {
-            name: partOf,
-            host: `${partOf}.${DOMAINS[cluster] ?? 'acme.dev'}`,
-            path: tier === 'web' ? '/' : '/api',
-            service: name,
-          },
-        ]
-      : []
+  const services: ServiceRef[] = SERVICES.filter(
+    (service) =>
+      service.cluster === cluster &&
+      service.namespace === namespace &&
+      Object.entries(service.selector).every(([key, value]) => podLabels[key] === value),
+  ).map(({ name, type, clusterIP, ports }) => ({ name, type, clusterIP, ports }))
+  const serviceNames = services.map((service) => service.name)
+  const ingresses: IngressRef[] = INGRESS_RULES.filter(
+    (rule) =>
+      rule.cluster === cluster &&
+      rule.namespace === namespace &&
+      serviceNames.includes(rule.service),
+  ).map(({ name, host, path, service }) => ({ name, host, path, service }))
 
   // ConfigMaps and Secrets by name, with every way the pod reads them.
   type Use = 'env' | 'envFrom' | 'volume'
@@ -737,11 +790,15 @@ export function relatedFor(resource: DeploymentResource, cluster: string): Relat
 /** An event without what the stream stamps on it (its id and times). */
 export type EventTemplate = Omit<K8sEvent, 'id' | 'firstSeen' | 'lastSeen'>
 
-/** The names an event can mention: the current and an old ReplicaSet, three pods, a node. */
+/**
+ * The names an event can mention: the current and an old ReplicaSet, three of the pods
+ * `relatedFor` lists (the same pod more than once when there are fewer), and pod 0's node.
+ */
 function eventNames(resource: DeploymentResource) {
   const { name } = resource.metadata
   const rs = replicaSetName(resource)
-  const pods = [podName(rs, 0), podName(rs, 1), podName(rs, 2)] as const
+  const count = Math.max(1, podCount(resource))
+  const pods = [podName(rs, 0), podName(rs, 1 % count), podName(rs, 2 % count)] as const
   const container = resource.spec.template.spec.containers[0]
   return {
     name,
@@ -778,11 +835,11 @@ const isDegraded = (resource: DeploymentResource) =>
  * creation and start, two warnings (a failed readiness probe, an unschedulable pod), and on a
  * degraded Deployment the crash loop.
  */
-export function eventsFor(resource: DeploymentResource): K8sEvent[] {
+export function eventsFor(resource: DeploymentResource, cluster: string): K8sEvent[] {
   const n = eventNames(resource)
   const replicas = resource.spec.replicas ?? 1
   const { namespace } = resource.metadata
-  const id = `${namespace}/${n.name}`
+  const id = `${cluster}/${namespace}/${n.name}`
   const deployment: [Kind, string] = ['Deployment', n.name]
   const rs: [Kind, string] = ['ReplicaSet', n.rs]
   const oldRs: [Kind, string] = ['ReplicaSet', n.oldRs]
