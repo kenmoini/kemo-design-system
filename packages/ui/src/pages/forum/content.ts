@@ -246,9 +246,9 @@ export function sortTopics(
     case 'unanswered':
       return list
         .filter((t) => (variant === 'qa' ? !isSolved(t) : replyCountOf(t) === 0))
-        .sort(latestOrder)
+        .sort(activityOrder)
     case 'solved':
-      return list.filter(isSolved).sort(latestOrder)
+      return list.filter(isSolved).sort(activityOrder)
     case 'newest':
       return list.sort(
         (a, b) =>

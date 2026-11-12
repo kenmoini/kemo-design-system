@@ -315,12 +315,20 @@ describe('sortTopics', () => {
   })
 
   it('filters unanswered by replies, or by solved state in qa', () => {
-    expect(slugs(sortTopics(all, 'unanswered', 'boards'))).toEqual(['pinned', 'fresh'])
-    expect(slugs(sortTopics(all, 'unanswered', 'qa'))).toEqual(['pinned', 'fresh', 'hot'])
+    expect(slugs(sortTopics(all, 'unanswered', 'boards'))).toEqual(['fresh', 'pinned'])
+    expect(slugs(sortTopics(all, 'unanswered', 'qa'))).toEqual(['fresh', 'hot', 'pinned'])
   })
 
   it('filters solved without pinning', () => {
-    expect(slugs(sortTopics(all, 'solved', 'qa'))).toEqual(['solved'])
+    const pinnedSolved = topic('pinned-solved', {
+      pinned: true,
+      lastActivityAt: ago(20 * DAY),
+      posts: [post('1', ada, ago(21 * DAY)), post('2', bo, ago(20 * DAY), { accepted: true })],
+    })
+    expect(slugs(sortTopics([...all, pinnedSolved], 'solved', 'qa'))).toEqual([
+      'solved',
+      'pinned-solved',
+    ])
   })
 
   it('breaks ties by slug and does not mutate', () => {
