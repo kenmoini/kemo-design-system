@@ -36,7 +36,6 @@ export function BoardsTopic(props: ForumTopicPageProps) {
   const replies = replyCountOf(topic)
   const composerRef = useRef<HTMLTextAreaElement | HTMLInputElement | null>(null)
   const [quoted, setQuoted] = useState<Quoted | null>(null)
-  const [following, setFollowing] = useState(topic.following ?? false)
   const categoryHref = props.categoryHref(category)
 
   function focusComposer() {
@@ -117,16 +116,9 @@ export function BoardsTopic(props: ForumTopicPageProps) {
             </Box>
             <HStack gap="2" flexShrink="0">
               <FollowButton
-                following={following}
+                following={topic.following}
                 labels={{ off: vocabulary.boards.followOff, on: vocabulary.boards.followOn }}
-                onFollow={
-                  props.onFollow
-                    ? async (next) => {
-                        await props.onFollow!(topic.id, next)
-                        setFollowing(next)
-                      }
-                    : undefined
-                }
+                onFollow={props.onFollow ? (next) => props.onFollow!(topic.id, next) : undefined}
               />
               <ShareButton />
               {onReply ? (

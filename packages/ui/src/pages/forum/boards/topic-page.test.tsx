@@ -94,10 +94,11 @@ describe('BoardsTopic', () => {
   it('toggles Watch to Watching', async () => {
     const user = userEvent.setup()
     const onFollow = vi.fn().mockResolvedValue(undefined)
-    render(<BoardsTopic {...props} onFollow={onFollow} />)
+    const { rerender } = render(<BoardsTopic {...props} onFollow={onFollow} />)
     await user.click(screen.getByRole('button', { name: 'Watch' }))
     expect(onFollow).toHaveBeenCalledWith(topic.id, true)
-    expect(await screen.findByRole('button', { name: 'Watching' })).toBeInTheDocument()
+    rerender(<BoardsTopic {...props} topic={{ ...topic, following: true }} onFollow={onFollow} />)
+    expect(screen.getByRole('button', { name: 'Watching' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('shows a sign-in line instead of the composer without onReply', () => {
