@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship a blog as three example variations ("Editorial list", "Magazine grid", "Journal with a rail"), each an index page and a post page, outside the console shell, with preview routes, a "Blog" panel section, README and e2e.
+**Goal:** Ship a blog as three example variations ("Editorial list", "Magazine grid", "Journal with a rail"), each an index page and a post page with a comments section, outside the console shell, with preview routes, a "Blog" panel section, README and e2e.
 
-**Architecture:** A new family `packages/ui/src/pages/blog/`. Pure content helpers (`content.ts`) and shared parts (`BlogLayout`, `BlogProse`, `BlogCover`, byline, `SubscribeForm`, copy link, topic filter hook) carry everything the variations have in common; six internal variation components (index and post for each) only arrange them. Two public pages, `BlogIndexPage` and `BlogPostPage`, switch on `variant`. The preview adds `/blog/[variant]` and `/blog/[variant]/[slug]` driven by one mock data file.
+**Architecture:** A new family `packages/ui/src/pages/blog/`. Pure content helpers (`content.ts`) and shared parts (`BlogLayout`, `BlogProse`, `BlogCover`, `BlogComments`, byline, `SubscribeForm`, copy link, topic filter hook) carry everything the variations have in common; six internal variation components (index and post for each) only arrange them. Two public pages, `BlogIndexPage` and `BlogPostPage`, switch on `variant`. The preview adds `/blog/[variant]` and `/blog/[variant]/[slug]` driven by one mock data file.
 
 **Tech Stack:** React 19, Park UI (Ark UI 5.40) on Panda CSS 2.5, react-hook-form + zod 4, lucide-react, Next.js 16 App Router, Vitest + Testing Library, Playwright. No new dependencies.
 
@@ -28,11 +28,12 @@
 
 ## Review Focus
 
-1. An index given `posts: []`: the title and description render, an `EmptyState` reads "No posts yet." with no action, no featured block or hero, nothing throws (Tasks 6, 7, 8 each test it).
-2. A controlled `topic` naming a topic no post has: the list is empty, `EmptyState` reads "No posts in this topic." with "Show all posts" calling `onTopicChange(undefined)`, the live region reads "No posts in this topic" (Task 5 hook test; Task 6 page test).
-3. A post whose body has no headings, or is empty, in "Journal with a rail": the "On this page" nav is omitted, the details block and the rest render (Task 8).
+1. An index given `posts: []`: the title and description render, an `EmptyState` reads "No posts yet." with no action, no featured block or hero, nothing throws (Tasks 7, 8, 9 each test it).
+2. A controlled `topic` naming a topic no post has: the list is empty, `EmptyState` reads "No posts in this topic." with "Show all posts" calling `onTopicChange(undefined)`, the live region reads "No posts in this topic" (Task 5 hook test; Task 7 page test).
+3. A post whose body has no headings, or is empty, in "Journal with a rail": the "On this page" nav is omitted, the details block and the rest render (Task 9).
 4. Two headings with the same text in one post: their ids are unique (`results`, `results-2`) so anchors and tracking work (Task 1).
-5. A post page when `posts` holds only that post: no "More posts" nav, no "Keep reading" section, no footer previous link, nothing throws (Tasks 6, 7, 8).
+5. A post page when `posts` holds only that post: no "More posts" nav, no "Keep reading" section, no footer previous link, nothing throws (Tasks 7, 8, 9).
+6. A comment whose body contains markup (`<img src=x onerror=…>`) or one very long unbroken string: it renders as visible text, never as elements, and wraps without widening the page at 375px (Task 6 test; Task 11 e2e width check on a post with comments).
 
 ---
 
@@ -46,7 +47,7 @@
 
 **Interfaces:**
 
-- Produces (`types.ts`): `BlogVariant`, `BlogAuthor`, `BlogTopic`, `BlogCoverSpec`, `BlogBlock`, `BlogPost`, `BlogChromeProps` (exported), `BlogIndexPageProps`, `BlogPostPageProps`, exactly as the spec's API block.
+- Produces (`types.ts`): `BlogVariant`, `BlogAuthor`, `BlogTopic`, `BlogCoverSpec`, `BlogBlock`, `BlogPost`, `BlogComment`, `BlogChromeProps` (exported), `BlogIndexPageProps`, `BlogPostPageProps`, exactly as the spec's API block.
 - Produces (`content.ts`), all pure, none mutate their input:
   - `blogVariants: Record<BlogVariant, { title: string; description: string }>` — titles from Global Constraints; descriptions one sentence each from the spec's intent table.
   - `sortPosts(posts: BlogPost[]): BlogPost[]` — `publishedAt` descending, ties by `slug` ascending.
@@ -58,6 +59,7 @@
   - `groupByMonth(sorted: BlogPost[]): { key: string; label: string; posts: BlogPost[] }[]` — `key` "2026-11", `label` "November 2026" (UTC).
   - `coverPreset(post: BlogPost): 1 | 2 | 3 | 4 | 5 | 6` — the explicit `preset` if set, else a stable hash of `slug`; `hasExplicitCover(post): boolean`.
   - `formatDate(iso): string` "11 Nov 2026"; `formatShortDate(iso)` "04 Nov"; `formatDay(iso): { day: string; weekday: string }` `{ day: '11', weekday: 'Wed' }`; `countLabel(n)` "8 posts" / "1 post" / "0 posts"; `readingLabel(n)` "9 min read".
+  - `countComments(comments: BlogComment[]): number` — top-level plus one level of replies.
   - `tocOf(body: BlogBlock[]): { id: string; text: string; level: 2 | 3 }[]` — `id` is the block's `id` or a slug of `text`; a repeat gets `-2`, `-3`.
 - `index.ts` re-exports the types and `blogVariants` only for now; later tasks append to it.
 
@@ -85,6 +87,7 @@ it('formats dates in UTC', () => {
 })
 it('labels counts', ...)                                  // 8 posts, 1 post, 0 posts
 it('keeps an explicit preset and derives a stable one from the slug', ...) // same slug twice → same value in 1..6
+it('counts comments and their replies, ignoring deeper nesting', ...) // 3 top-level, one with 2 replies (one of which has its own reply) → 5
 it('builds a table of contents with unique ids', () => {
   expect(tocOf([
     { type: 'heading', level: 2, text: 'Results' },
@@ -270,22 +273,74 @@ it('clears its timer on unmount', ...)                            // unmount the
 - [ ] **Step 4: Run** — PASS; green chain.
 - [ ] **Step 5: Commit** `feat(ui): add blog topic filtering and copy link`.
 
-### Task 6: "Editorial list" index and post
+### Task 6: `BlogComments`
+
+**Files:**
+
+- Create: `packages/ui/src/pages/blog/{blog-comments.tsx,comment-form.tsx}`
+- Modify: `packages/ui/src/pages/blog/index.ts` (export `BlogComments` and its props type)
+- Test: `packages/ui/src/pages/blog/blog-comments.test.tsx`
+
+**Interfaces:**
+
+- Consumes: `BlogComment`, `countComments`, `formatDate` (Task 1); Park `Avatar`, `Button`, `Field`, `Input`, `Textarea`; react-hook-form + zod as in Task 4.
+- Produces: `BlogComments({ comments: BlogComment[]; onAddComment?: (input: { name: string; body: string; parentId?: string }) => Promise<void> })` — `<section id="comments" aria-labelledby>` with `maxW="40rem"`, `scrollMarginTop="6"`, a top hairline and `pt="10" mt="10"`. Structure and copy, exact:
+  - `h2` whose accessible name is "Comments ({n})" (visible: "Comments" and the number in `fg.muted`), `n = countComments(comments)`.
+  - Top-level form (only with `onAddComment`), then the list (`<ol>`, oldest first by `postedAt`, replies likewise) or, when empty, the text "No comments yet.".
+  - A comment: `<article>` with a 2rem `Avatar` (initials fallback), name (medium weight), `<time dateTime>` `formatDate`, the body in a `<p>` with `whiteSpace="pre-wrap" overflowWrap="anywhere"`, and (top-level only, with `onAddComment`) a `Button variant="plain" size="xs"` "Reply" with `aria-expanded`.
+  - Replies: an `<ol>` under the parent, `pl="6"` behind a left hairline. Only `comment.replies` of top-level comments render.
+  - "Reply" toggles an inline form under that comment (after its replies); opening one closes any other; "Cancel" closes it and returns focus to that "Reply" button.
+- Produces (internal): `CommentForm({ onSubmit: (v: { name: string; body: string }) => Promise<void>; onCancel?: () => void; submitLabel?: string; idPrefix: string; autoFocus?: boolean })`. Fields "Name" (max 80) and "Comment" (`Textarea rows={4}`, max 2000), both trimmed and required; errors "Enter your name.", "Enter a comment.", "Keep your name under 80 characters.", "Keep your comment under 2000 characters."; submit "Post comment" (reply form: "Post reply"); loading while pending, no double submit; on resolve: clear the comment field, keep the name, show `role="status"` "Comment posted."; on reject: `role="alert"` with the rejection's `message` or "Your comment could not be posted. Try again.", values kept. A posted reply closes its form (the status is announced from the section, not the unmounted form). A name typed in one form is remembered for the next form opened in the same section (section state).
+
+- [ ] **Step 1: Write the failing tests.** Fixture: three top-level comments (out of date order), the second with two replies.
+
+```tsx
+it('names the section with the total including replies', ...)   // getByRole('heading', { level: 2, name: 'Comments (5)' }); section has id 'comments'
+it('lists comments oldest first with their replies nested once', ...) // top-level article order by date; within(second).getAllByRole('article') length 2; a reply's own `replies` are not rendered
+it('shows the empty message', ...)                               // comments=[] → 'No comments yet.', heading 'Comments (0)'
+it('is read-only without onAddComment', ...)                     // no textbox, no 'Reply' buttons
+it('renders markup in a body as text', () => {
+  render(<BlogComments comments={[{ ...c, body: '<img src=x onerror=alert(1)> <b>hi</b>' }]} />)
+  expect(screen.getByText('<img src=x onerror=alert(1)> <b>hi</b>')).toBeInTheDocument()
+  expect(document.querySelector('#comments img, #comments b')).toBeNull()
+})
+it('validates name and comment', ...)                            // submit empty → both required messages, host not called; 81-char name and 2001-char body → the two length messages
+it('posts a trimmed comment, clears the text, keeps the name and confirms', async () => {
+  const onAddComment = vi.fn().mockResolvedValue(undefined)
+  // type '  Ada ' and ' Nice write-up. ', submit
+  expect(onAddComment).toHaveBeenCalledWith({ name: 'Ada', body: 'Nice write-up.' })
+  expect(await screen.findByRole('status')).toHaveTextContent('Comment posted.')
+  expect(screen.getByLabelText('Comment')).toHaveValue('')
+  expect(screen.getByLabelText('Name')).toHaveValue('Ada')
+})
+it('does not submit twice while pending', ...)
+it('keeps the text and shows the reason when the host rejects', ...) // Error('Comments are closed') → alert with that text; generic message for a non-Error
+it('opens one reply form at a time and posts with the parent id', ...) // Reply on first → aria-expanded true, 2 'Comment' fields; Reply on second → first closes; submit → onAddComment called with parentId of the second; form closes; status 'Comment posted.'
+it('cancels a reply and returns focus to its button', ...)
+it('carries the name into a reply form', ...)
+```
+
+- [ ] **Step 2: Run** `pnpm --filter @kemo/ui exec vitest run src/pages/blog/blog-comments.test.tsx` — FAIL.
+- [ ] **Step 3: Implement.**
+- [ ] **Step 4: Run** — PASS; green chain.
+- [ ] **Step 5: Commit** `feat(ui): add BlogComments`.
+
+### Task 7: "Editorial list" index and post
 
 **Files:**
 
 - Create: `packages/ui/src/pages/blog/editorial-list/{index-page.tsx,post-page.tsx}`
 - Test: `packages/ui/src/pages/blog/editorial-list/{index-page.test.tsx,post-page.test.tsx}`
-- Create (shared test data, used by Tasks 6–8): `packages/ui/src/pages/blog/test-posts.tsx` — exports `testPosts` (8 posts: Engineering 4, Releases 2, Incidents 1, Design 1; dated 9 Sep–11 Nov 2026; the newest `featured`, slug `cold-start`, with a body holding two `h2` and one `h3`), `chrome` (`{ brand: 'Kemo', indexHref: '/blog', postHref: (p) => '/blog/' + p.slug }`).
+- Create (shared test data, used by Tasks 7–9): `packages/ui/src/pages/blog/test-posts.tsx` — exports `testPosts` (8 posts: Engineering 4, Releases 2, Incidents 1, Design 1; dated 9 Sep–11 Nov 2026; the newest `featured`, slug `cold-start`, with a body holding two `h2` and one `h3`), `chrome` (`{ brand: 'Kemo', indexHref: '/blog', postHref: (p) => '/blog/' + p.slug }`).
 
 **Interfaces:**
 
-- Consumes: everything from Tasks 1–5; `EmptyState` from `../../../widgets`.
+- Consumes: everything from Tasks 1–6; `EmptyState` from `../../../widgets`.
 - Produces: `EditorialListIndex(props: BlogIndexPageProps)` and `EditorialListPost(props: BlogPostPageProps)`; each renders its own `BlogLayout` from the chrome props. Layout and breakpoints per the spec's "Editorial list" section and mockup card A (both files). Pinned details:
   - Index: column `maxW="45rem"`; `h1` is `title`; feature block is one link (`aria-label` not needed: the title is the link text, stretched) on `bgGradient="auth"` forced dark, with badges "Featured" and the topic; chips are `<button aria-pressed>` in a `role="group" aria-label="Topics"`, first chip "All"; count text uses `countLabel(visible.length)` (the list count, featured included when it is shown above); the list is `<ul>` of `<article>` rows with `h2` titles linking to `postHref(post)`; `useReveal(rows.length, 6, topic)`; button "Older posts".
   - Feature rules: shown only when no topic is selected and there is at least one post; the featured post is then excluded from the rows.
   - Empty: `posts` empty → `EmptyState message="No posts yet."` (no action, no chips row). Filter with no match → `EmptyState message="No posts in this topic." action={{ label: 'Show all posts', onSelect: () => setTopic(undefined) }}`.
-  - Post: band on `bgGradient="auth"` forced dark, inner column `maxW="40rem"`: link "← All posts" (text `← {indexTitle ?? 'All posts'}`) to `indexHref`, `TopicBadge`, `h1`, summary, `Byline`; body `<article>` with `BlogProse`; then `AuthorBlock` and `CopyLinkButton`; then `<nav aria-label="More posts">` with up to two outlined cells: left "← Previous" + older title, right "Next →" + newer title; a missing side is not rendered and the other keeps its column (`gridColumn`); the nav is omitted when both are missing.
+  - Post: band on `bgGradient="auth"` forced dark, inner column `maxW="40rem"`: link "← All posts" (text `← {indexTitle ?? 'All posts'}`) to `indexHref`, `TopicBadge`, `h1`, summary, `Byline`; body `<article>` with `BlogProse`; then `AuthorBlock` and `CopyLinkButton`; then `BlogComments comments onAddComment` when `props.comments` is defined; then `<nav aria-label="More posts">` with up to two outlined cells: left "← Previous" + older title, right "Next →" + newer title; a missing side is not rendered and the other keeps its column (`gridColumn`); the nav is omitted when both are missing.
 
 - [ ] **Step 1: Write the failing tests.**
 
@@ -311,6 +366,7 @@ it('links the older and newer posts', ...)                                // mid
 it('omits the newer side on the newest post and the older side on the oldest', ...)
 it('renders without neighbours when it is the only post', ...)            // posts=[post] → queryByRole('navigation', { name: 'More posts' }) null
 it('uses indexTitle for the back link', ...)
+it('shows comments between the author row and More posts, and none without the prop', ...) // comments=[…2] → heading 'Comments (2)' follows 'Copy link' and precedes the nav in document order (compareDocumentPosition); without `comments` → no such heading; onAddComment is passed through (submit calls it)
 ```
 
 - [ ] **Step 2: Run** `pnpm --filter @kemo/ui exec vitest run src/pages/blog/editorial-list` — FAIL.
@@ -318,7 +374,7 @@ it('uses indexTitle for the back link', ...)
 - [ ] **Step 4: Run** — PASS; green chain.
 - [ ] **Step 5: Commit** `feat(ui): add the Editorial list blog variation`.
 
-### Task 7: "Magazine grid" index and post
+### Task 8: "Magazine grid" index and post
 
 **Files:**
 
@@ -327,13 +383,13 @@ it('uses indexTitle for the back link', ...)
 
 **Interfaces:**
 
-- Consumes: Tasks 1–5, `test-posts.tsx`; Park `Tabs`, `Pagination`, `Badge`.
+- Consumes: Tasks 1–6, `test-posts.tsx`; Park `Tabs`, `Pagination`, `Badge`.
 - Produces: `MagazineGridIndex(props: BlogIndexPageProps)`, `MagazineGridPost(props: BlogPostPageProps)`, internal `PostCard({ post, href, linkComponent, headingLevel: 'h2' | 'h3' })` — `<article>`: `BlogCover` (`aspectRatio="16 / 9"`), `TopicBadge`, title heading whose link is stretched over the card (`_before` inset 0 on a `position: relative` article), summary, `Byline show={['avatar','author','shortDate']}`.
 - Pinned details:
   - Index: `maxW="72rem"`. The blog `title` is the `h1` but visually hidden (the mockup has no visible page title; the hero leads). Hero = `sorted[0]` (newest), an `<article>` with `h2`; shown only with no topic and at least one post; excluded from the grid then. Park `Tabs` `variant="line"`, values `'all'` and each topic id, labels "All posts" and the topic labels; one `Tabs.Content` per value with `lazyMount` and `unmountOnExit` on the root, so every tab has a valid panel and only the selected grid is in the DOM. The tabs' value maps to the filter: `'all'` ↔ `undefined`.
   - Grid: `gridTemplateColumns` 1 / 2 (`sm`) / 3 (`lg`), `gap="6"`. Page size 6; Park `Pagination` (`count` = grid items, `pageSize` 6) rendered only when there is more than one page; changing topic resets to page 1; `aria-label="Pagination"`.
-  - Empty states as Task 6 (same two messages).
-  - Post: header column `maxW="48rem"` centred: `TopicBadge`, `h1`, summary, `AuthorBlock detail="{date} · {reading}"`; cover `maxW="72rem" aspectRatio="3 / 1"` (min height `40`); `<article>` with `BlogProse` centred; row: tags as `Badge variant="outline"` in a `<ul aria-label="Tags">` (omitted when no tags), `CopyLinkButton`, and "Share" (`navigator.share({ title, url })`), rendered only after mount when `typeof navigator.share === 'function'`; a rejected or cancelled share is swallowed. Then `<section aria-labelledby>` "Keep reading" with `relatedPosts(sorted, post, 3)` as `PostCard headingLevel="h3"`; the section is omitted when there are none.
+  - Empty states as Task 7 (same two messages).
+  - Post: header column `maxW="48rem"` centred: `TopicBadge`, `h1`, summary, `AuthorBlock detail="{date} · {reading}"`; cover `maxW="72rem" aspectRatio="3 / 1"` (min height `40`); `<article>` with `BlogProse` centred; row: tags as `Badge variant="outline"` in a `<ul aria-label="Tags">` (omitted when no tags), `CopyLinkButton`, and "Share" (`navigator.share({ title, url })`), rendered only after mount when `typeof navigator.share === 'function'`; a rejected or cancelled share is swallowed. Then `BlogComments` when `props.comments` is defined. Then `<section aria-labelledby>` "Keep reading" with `relatedPosts(sorted, post, 3)` as `PostCard headingLevel="h3"`; the section is omitted when there are none.
 
 - [ ] **Step 1: Write the failing tests.**
 
@@ -356,6 +412,7 @@ it('renders the centred header, cover, body and tags', ...)                  // 
 it('offers Share only where the browser supports it', ...)                   // absent by default in jsdom; with navigator.share stubbed → present, click calls it with { title, url }
 it('swallows a cancelled share', ...)                                        // share rejects AbortError → no unhandled rejection
 it('suggests three other posts, same topic first, never itself', ...)        // region 'Keep reading' has 3 articles; first ones share the topic
+it('shows comments between the tags row and Keep reading, and none without the prop', ...) // document order: 'Copy link' < 'Comments (2)' < 'Keep reading'
 it('omits Keep reading and tags when there is nothing to show', ...)         // posts=[post], tags undefined
 ```
 
@@ -364,7 +421,7 @@ it('omits Keep reading and tags when there is nothing to show', ...)         // 
 - [ ] **Step 4: Run** — PASS; green chain.
 - [ ] **Step 5: Commit** `feat(ui): add the Magazine grid blog variation`.
 
-### Task 8: "Journal with a rail" index and post, and the public pages
+### Task 9: "Journal with a rail" index and post, and the public pages
 
 **Files:**
 
@@ -375,13 +432,13 @@ it('omits Keep reading and tags when there is nothing to show', ...)         // 
 
 **Interfaces:**
 
-- Consumes: Tasks 1–7; `useCurrentSection(ids: string[], topOffsetPx?: number): string | undefined` from `../../console/use-current-section` (it also follows `location.hash`).
+- Consumes: Tasks 1–8; `useCurrentSection(ids: string[], topOffsetPx?: number): string | undefined` from `../../console/use-current-section` (it also follows `location.hash`).
 - Produces: `JournalRailIndex(props: BlogIndexPageProps)`, `JournalRailPost(props: BlogPostPageProps)`, internal `OnThisPage({ items: { id; text; level }[] })`; and the public `BlogIndexPage(props: BlogIndexPageProps)` / `BlogPostPage(props: BlogPostPageProps)`, each an exhaustive `switch (props.variant)` over the three variation components.
 - Pinned details:
   - Both Journal pages pass `hideSubscribe` to `BlogLayout`.
   - Index: `maxW="72rem"`; from `lg` a grid `14rem 1fr`, `gap="10"`; rail `<aside>` `position="sticky" top="6"` from `lg`. Rail: `h1` = `title`, description; `<nav aria-label="Topics">` list of `<button aria-pressed>`: "All posts" and each topic, each with its count on the right (counts from all posts, not the filtered set); subscribe card (heading "Get new posts by email", `SubscribeForm layout="stacked"`) only when `onSubscribe`. Below `lg`: title and description, topics as a wrapping chip row, the feed, then the subscribe card (render the card once and move it with `order`, not twice).
-  - Feed: `groupByMonth(shown)` where `shown` is the first `useReveal(visible.length, 5, topic)` posts; each group a `<section aria-labelledby>` with an `h2` month label and `countLabel(group.posts.length)` on the right (the count of posts shown in that group); items are `<article>` with `formatDay` (day number, weekday beneath, both inside one `<time dateTime>`), `h3` title link, summary, `TopicBadge` + `Byline show={['author','reading']}`, and a thumbnail `BlogCover` (`w="24" h="16"`, hidden below `sm`) only when `hasExplicitCover(post)`. Button "Load older posts". Empty states as Task 6.
-  - Post: same grid. Rail: back link `← {indexTitle ?? 'All posts'}`; `OnThisPage` from `tocOf(post.body)` — `<nav aria-label="On this page">`, h3 entries indented, links `#{id}`, the current one `aria-current="location"` with a darker left rule; omitted entirely when there are no headings, and hidden below `lg`; "Details" `<dl>`: Author, Published (`formatDate`), Topic, Reading ("9 min"); `CopyLinkButton`. Main: `TopicBadge`, `h1`, summary, hairline, `<article>` `BlogProse`. Footer slot of `BlogLayout`: a link "← {older.title}" when an older post exists. Below `lg`: back link and details above the title, `CopyLinkButton` after the prose (render once, reorder).
+  - Feed: `groupByMonth(shown)` where `shown` is the first `useReveal(visible.length, 5, topic)` posts; each group a `<section aria-labelledby>` with an `h2` month label and `countLabel(group.posts.length)` on the right (the count of posts shown in that group); items are `<article>` with `formatDay` (day number, weekday beneath, both inside one `<time dateTime>`), `h3` title link, summary, `TopicBadge` + `Byline show={['author','reading']}`, and a thumbnail `BlogCover` (`w="24" h="16"`, hidden below `sm`) only when `hasExplicitCover(post)`. Button "Load older posts". Empty states as Task 7.
+  - Post: same grid. Rail: back link `← {indexTitle ?? 'All posts'}`; `OnThisPage` from `tocOf(post.body)` — `<nav aria-label="On this page">`, h3 entries indented, links `#{id}`, the current one `aria-current="location"` with a darker left rule; omitted entirely when there are no headings, and hidden below `lg`; "Details" `<dl>`: Author, Published (`formatDate`), Topic, Reading ("9 min"); `CopyLinkButton`. Main: `TopicBadge`, `h1`, summary, hairline, `<article>` `BlogProse`, then `BlogComments` when `props.comments` is defined; in that case `OnThisPage` gets a last item `{ id: 'comments', text: 'Comments', level: 2 }` (and is then shown even when the body has no headings). Footer slot of `BlogLayout`: a link "← {older.title}" when an older post exists. Below `lg`: back link and details above the title, `CopyLinkButton` after the prose (render once, reorder).
 
 - [ ] **Step 1: Write the failing tests.**
 
@@ -397,6 +454,7 @@ it('renders an empty blog', ...)
 it('lists the sections and marks the current one', ...)              // nav 'On this page' links = tocOf texts, hrefs '#id'; first has aria-current="location" initially
 it('follows the hash', ...)                                          // set location.hash to the second id, dispatch hashchange → that link is current
 it('omits On this page when the body has no headings', ...)          // also body: [] → no nav, details still render
+it('shows comments after the body and lists Comments last in On this page', ...) // with comments: last link 'Comments' href '#comments'; heading 'Comments (2)' in main; without: neither
 it('renders the details and the back link', ...)                     // dl terms Author/Published/Topic/Reading with '11 Nov 2026', '9 min'; link '← Platform journal' when indexTitle set
 it('links the older post in the footer, and nothing when alone', ...)
 // blog-pages.test.tsx
@@ -406,7 +464,7 @@ it.each([
   ['journal-rail', 'Load older posts'],
 ] as const)('BlogIndexPage renders the %s variation', ...)           // marker text present, exactly one h1
 it.each(['editorial-list', 'magazine-grid', 'journal-rail'] as const)('BlogPostPage renders the %s variation with one h1 and one article body', ...)
-it('exports the public API from the package index', ...)             // import * as ui from '../../index': BlogIndexPage, BlogPostPage, BlogLayout, BlogProse, BlogCover, SubscribeForm are functions; blogVariants has 3 keys
+it('exports the public API from the package index', ...)             // import * as ui from '../../index': BlogIndexPage, BlogPostPage, BlogLayout, BlogProse, BlogCover, BlogComments, SubscribeForm are functions; blogVariants has 3 keys
 ```
 
 - [ ] **Step 2: Run** `pnpm --filter @kemo/ui exec vitest run src/pages/blog` — FAIL.
@@ -414,7 +472,7 @@ it('exports the public API from the package index', ...)             // import *
 - [ ] **Step 4: Run** — PASS; green chain.
 - [ ] **Step 5: Commit** `feat(ui): add the Journal with a rail variation and the blog pages`.
 
-### Task 9: Preview routes, mock content and panel section
+### Task 10: Preview routes, mock content and panel section
 
 **Files:**
 
@@ -425,7 +483,7 @@ it('exports the public API from the package index', ...)             // import *
 
 **Interfaces:**
 
-- Consumes: `BlogIndexPage`, `BlogPostPage`, `blogVariants`, `BlogVariant`, `BlogPost`, `Code`, `Link` from `@kemo/ui`; `BrandMark`; `NextLink`.
+- Consumes: `BlogIndexPage`, `BlogPostPage`, `blogVariants`, `BlogVariant`, `BlogPost`, `BlogComment`, `Code`, `Link` from `@kemo/ui`; `BrandMark`; `NextLink`.
 - Produces (`mock-blog.tsx`): `blogPosts: BlogPost[]` (8), `blogSlugs: string[]`, `FEATURED_SLUG = 'cold-start-62'`, `blogTitles: Record<BlogVariant, { title: string; description: string }>` (`editorial-list` and `magazine-grid`: "Notes from the platform team"; `journal-rail`: "Platform journal"; description "Engineering write-ups, release notes and the occasional post-incident review from the people who run Kemo Console."), `mockSubscribe(email: string): Promise<void>` (resolves after 600 ms; rejects with `new Error('We could not subscribe that address. Try again.')` when the address contains "fail").
 - Content, exact for titles/authors/dates/topics (summaries from the mockups; reading minutes 9, 4, 12, 6, 7, 8, 5, 6 in this order):
   1. "How we cut cold-start time for cluster consoles by 62%" — Priya Raman, 2026-11-11, Engineering, featured, slug `cold-start-62`, cover preset 1, tags performance / kubernetes / caching. Full body using every block type, with `h2` sections "Where the time went", "One discovery document" (with `h3` "Cache invalidation" and "Older clusters"), "Results", "What we would do differently"; include the mockup's code block, pull quote, stats (4.1s → 1.6s p50 cold start; 38 → 1 discovery requests; −62% time to interactive) and note.
@@ -437,6 +495,8 @@ it('exports the public API from the package index', ...)             // import *
   7. "What a year of on-call taught us about alerts" — Mei Tanaka, 2026-09-15, Engineering, no cover.
   8. "Console 4.1: deployments, rewritten" — Mei Tanaka, 2026-09-09, Releases, cover 1.
      Posts 2–8: four to eight blocks each, at least one `h2`, written as plausible prose (no lorem ipsum). Author roles: Priya Raman "Staff engineer, Console platform"; Dan Okafor "Product engineer"; Mei Tanaka "Site reliability engineer"; Ana Souza "Product designer". Slugs are kebab-case of a short form of the title.
+- Produces (`mock-blog.tsx`, comments): `blogComments: Record<string, BlogComment[]>` keyed by slug — `cold-start-62`: four comments dated 11–12 Nov 2026, one of them a reply from Priya Raman to the first; "Console 4.2…": two; "Role bindings…": one; every other slug absent (treated as `[]`). Fictional commenters, plausible text. `mockAddComment(text: string): Promise<void>` resolves after 400 ms, rejects with `new Error('Your comment could not be posted. Try again.')` when the text contains "fail".
+- `BlogDemo` on a post keeps `comments` in `useState` seeded from `blogComments[slug] ?? []`; its `onAddComment` awaits `mockAddComment(body)` then appends `{ id: crypto.randomUUID(), author: { name }, postedAt: new Date().toISOString(), body }` to the top level or to the parent's `replies`.
 - Produces: `BlogDemo({ variant, slug }: { variant: BlogVariant; slug?: string })` — `'use client'`; chrome: `logo={<BrandMark letter="K" />}`, `brand="Kemo"`, `nav={[{ label: 'Posts', href: indexHref, current: !slug }]}`, `indexHref={'/blog/' + variant}`, `postHref={(p) => '/blog/' + variant + '/' + p.slug}`, `onSubscribe={mockSubscribe}`, `linkComponent={NextLink}`; renders `BlogPostPage` (with `indexTitle` = that variation's title from `blogTitles`) when `slug`, else `BlogIndexPage`.
 - Routes: `/blog/page.tsx` → `redirect('/blog/editorial-list')`. `[variant]/page.tsx`: `generateStaticParams` over `Object.keys(blogVariants)`; unknown variant → `notFound()`; `generateMetadata` title = the variation title. `[variant]/[slug]/page.tsx`: `generateStaticParams` over variants × `blogSlugs`; unknown variant or slug → `notFound()`; title = the post title. Follow `app/access/[[...tab]]/page.tsx` for the async `params` pattern. Both set `export const dynamicParams = false` only if the existing 404 page still renders for unknown paths with it (check in the build); otherwise rely on `notFound()`.
 - Panel entries, in order: "Editorial list" `/blog/editorial-list`; "Editorial list: post" `/blog/editorial-list/cold-start-62`; "Magazine grid" …; "Magazine grid: post" …; "Journal with a rail" …; "Journal with a rail: post" ….
@@ -467,7 +527,7 @@ test('the preview panel lists the blog between pages and status pages', ...) // 
 - [ ] **Step 4: Look at it.** Screenshot all six pages at 1280 and 375 wide in light and dark (Playwright `page.screenshot` into the scratchpad) and compare with the mockups; fix what is visibly off (spacing, overflow, contrast on Nightfall, sticky rails).
 - [ ] **Step 5: Commit** `feat(preview): add the blog example pages` (explicit paths; `preview-panel.tsx` per the shared-file rule).
 
-### Task 10: Behaviour e2e and README
+### Task 11: Behaviour e2e and README
 
 **Files:**
 
@@ -484,12 +544,18 @@ test('magazine grid paginates', ...)                     // page 2 shows 'Consol
 test('subscribe through the dialog', ...)                // editorial-list: Subscribe → fill ada@example.com → 'Thanks. Check ada@example.com to confirm.'
 test('subscribe failure keeps the form', ...)            // fail@example.com → alert 'We could not subscribe that address. Try again.'; field still visible
 test('subscribe from the journal rail', ...)             // journal-rail at 1280 wide: form inside the aside → confirmation
+for (const variant of ['editorial-list', 'magazine-grid', 'journal-rail']) {
+  test(`${variant}: post a comment and a reply`, ...)   // on cold-start-62: heading 'Comments (4)'; fill Name 'Ada', Comment 'Great write-up.' → 'Comment posted.', heading 'Comments (5)', the text visible; Reply on it → 'Thanks!' → heading 'Comments (6)', nested under the first
+}
+test('a failed comment keeps its text', ...)              // body 'please fail' → alert 'Your comment could not be posted. Try again.'; textarea still holds it
+test('a post without comments shows the empty state', ...) // a post with no seed comments → 'No comments yet.' and the form
+test('a long unbroken comment does not widen the page at 375px', ...) // post 300 'a' characters at 375 wide → scrollWidth === 375
 test('journal post tracks the current section', ...)     // 1280x800: click 'Results' in On this page → URL hash #results, that link has aria-current="location"
 test('copy link confirms', ...)                          // grant clipboard permissions on the context; click 'Copy link' → 'Copied'; clipboard text equals page.url()
 test('dark theme renders an index and a post', ...)      // emulate colorScheme dark (or set the theme through the panel toggle); h1 visible; body background is dark (luminance < 0.2); no console errors
 ```
 
 - [ ] **Step 2: Run** build + Playwright on :3100 — all of `blog.spec.ts` passes. Fix product bugs these expose in the owning files (and add a unit test there for each).
-- [ ] **Step 3: Write the README section**: the three variations and their titles (table), the content model (`BlogPost`, `BlogBlock` block types), a minimal host example of `BlogIndexPage` and `BlogPostPage` with `linkComponent`, `postHref` and `onSubscribe`, how to write inline code and links in a body (Park `Code` / `Link`), covers (generated presets or `{ src, alt }`), what is not included (search, topic and author pages, RSS, Markdown). Match the tone and depth of the "Status pages and console pages" section. Update any list of preview routes and the e2e count if the README states one.
+- [ ] **Step 3: Write the README section**: the three variations and their titles (table), the content model (`BlogPost`, `BlogBlock` block types), a minimal host example of `BlogIndexPage` and `BlogPostPage` with `linkComponent`, `postHref` and `onSubscribe`, how to write inline code and links in a body (Park `Code` / `Link`), covers (generated presets or `{ src, alt }`), comments (`comments`, `onAddComment`, `BlogComment`, plain-text bodies, one level of replies, the host adds the posted comment), what is not included (search, topic and author pages, RSS, Markdown, comment moderation or sign-in). Match the tone and depth of the "Status pages and console pages" section. Update any list of preview routes and the e2e count if the README states one.
 - [ ] **Step 4: Run** the green chain (`format:check` covers the README).
 - [ ] **Step 5: Commit** `test(preview): cover blog behaviour end to end` and `docs: document the blog pages` (two commits, explicit paths).
