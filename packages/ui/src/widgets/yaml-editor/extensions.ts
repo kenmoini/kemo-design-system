@@ -69,6 +69,9 @@ export interface YamlEditorInstance {
   setSchema(schema: object | undefined): void
   /** Puts the cursor on the key at `path` and focuses the editor; `false` if the path is absent. */
   moveToPath(path: Path): boolean
+  /** Puts the cursor at `offset` (clamped to the text), scrolls it into view and focuses the editor:
+   * a problem's `from`, say. */
+  moveToOffset(offset: number): void
   destroy(): void
 }
 
@@ -288,6 +291,12 @@ export function createEditor(options: CreateEditorOptions): YamlEditorInstance {
       view.dispatch({ selection: { anchor }, scrollIntoView: true })
       view.focus()
       return true
+    },
+    moveToOffset(offset) {
+      if (destroyed) return
+      const anchor = Math.min(Math.max(Math.trunc(offset) || 0, 0), view.state.doc.length)
+      view.dispatch({ selection: { anchor }, scrollIntoView: true })
+      view.focus()
     },
     destroy() {
       if (destroyed) return

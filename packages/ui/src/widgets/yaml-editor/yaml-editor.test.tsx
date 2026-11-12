@@ -232,6 +232,17 @@ describe('YamlEditor', () => {
     expect(textbox).toHaveFocus()
   })
 
+  it('moves the cursor to an offset, clamped to the text, and focuses the editor', async () => {
+    const { textbox, editor } = await mount()
+    act(() => editor.moveToOffset(deployment.indexOf('RollingUpdate')))
+    expect(editor.view.state.selection.main.head).toBe(deployment.indexOf('RollingUpdate'))
+    expect(textbox).toHaveFocus()
+    act(() => editor.moveToOffset(deployment.length + 100))
+    expect(editor.view.state.selection.main.head).toBe(deployment.length)
+    act(() => editor.moveToOffset(-5))
+    expect(editor.view.state.selection.main.head).toBe(0)
+  })
+
   it('indents with Tab, saves with Mod-s and lets focus out with Escape', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
