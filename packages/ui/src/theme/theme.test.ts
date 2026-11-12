@@ -9,6 +9,10 @@ describe('theme tokens', () => {
     )
     expect(token('fonts.heading')).toBe(token('fonts.body'))
   })
+  it("defines the 'code' font Park's Code recipe uses, matching mono", () => {
+    expect(token('fonts.code')).toBe(token('fonts.mono'))
+    expect(token('fonts.code')).toContain('monospace')
+  })
   it('defines the emphasized drawer easings', () => {
     expect(token('easings.emphasized-in')).toBeDefined()
     expect(token('easings.emphasized-out')).toBeDefined()
