@@ -70,7 +70,8 @@ export function MagazineGridPost({
           aspectRatio="3 / 1"
           minH="40"
         />
-        <Box maxW="48rem" mx="auto">
+        {/* The reading column: prose, tags row and comments share one centred 40rem column. */}
+        <Box maxW="40rem" mx="auto">
           <Box as="article" pt="8">
             <BlogProse blocks={post.body} />
           </Box>
