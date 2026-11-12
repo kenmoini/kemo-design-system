@@ -24,6 +24,15 @@ const pageRoutes: Route[] = [
   { href: '/complete-profile', label: 'Complete your profile' },
 ]
 
+const blogRoutes: Route[] = [
+  { href: '/blog/editorial-list', label: 'Editorial list' },
+  { href: '/blog/editorial-list/cold-start-62', label: 'Editorial list: post' },
+  { href: '/blog/magazine-grid', label: 'Magazine grid' },
+  { href: '/blog/magazine-grid/cold-start-62', label: 'Magazine grid: post' },
+  { href: '/blog/journal-rail', label: 'Journal with a rail' },
+  { href: '/blog/journal-rail/cold-start-62', label: 'Journal with a rail: post' },
+]
+
 const statusRoutes: Route[] = [
   { href: '/maintenance', label: 'Maintenance' },
   { href: '/errors/401', label: '401 Unauthorized' },
@@ -92,6 +101,9 @@ export function PreviewPanel() {
               <Stack as="nav" aria-label="Preview routes" gap="8" width="full">
                 <PanelSection title="Pages">
                   <RouteList routes={pageRoutes} pathname={pathname} onNavigate={close} />
+                </PanelSection>
+                <PanelSection title="Blog">
+                  <RouteList routes={blogRoutes} pathname={pathname} onNavigate={close} />
                 </PanelSection>
                 <PanelSection title="Status pages">
                   <RouteList routes={statusRoutes} pathname={pathname} onNavigate={close} />
