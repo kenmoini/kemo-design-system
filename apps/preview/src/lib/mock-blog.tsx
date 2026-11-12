@@ -342,9 +342,8 @@ export const blogPosts: BlogPost[] = [
       ),
       h3('Dropping politely'),
       p(
-        'A slow tab never slows the others: its queue is capped, and overflow is replaced by a single "refresh" marker.',
+        'A slow tab never slows the others: its queue is capped, and overflow is replaced by a single "refresh" marker. The result is one connection per tab and flat memory use on the gateway.',
       ),
-      p('The result is one connection per tab and flat memory use on the gateway.'),
     ],
   ),
   rest(

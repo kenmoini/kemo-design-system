@@ -41,7 +41,7 @@ export function BlogDemo({ variant, slug }: Readonly<{ variant: BlogVariant; slu
         {...chrome}
         post={post}
         posts={blogPosts}
-        indexTitle={blogTitles[variant].title}
+        indexTitle={variant === 'journal-rail' ? 'Platform journal' : undefined}
         comments={comments}
         onAddComment={async ({ name, body, parentId }) => {
           await mockAddComment(body)
