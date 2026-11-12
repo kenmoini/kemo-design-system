@@ -132,7 +132,7 @@ additionally capped at `68ch` so the line-length anti-goal holds.
 ### Comments (`BlogComments`), identical in all three post pages
 
 Requested by the owner after the mockup rounds ("a comments section down below the content in the different
-post views"); the design below is our call and was not mocked up.
+post views"); the design below was our call, then mocked up and approved (see the end of this section).
 
 A `<section id="comments">` in the reading column (max 40rem), separated from what is above by a hairline and
 generous space:
@@ -154,6 +154,15 @@ Where it sits: **Editorial list**: after the author row, before previous / next.
 tags and share row, before "Keep reading". **Journal with a rail**: after the prose in the main column (after
 "Copy link" below `lg`), and the rail's "On this page" gains a last entry "Comments" linking to `#comments`,
 tracked like any other section.
+
+Approved by the owner from the mockup `docs/superpowers/specs/assets/2026-11-12-blog-comments.html`, which
+is the visual reference for this section, including three details it added:
+
+- an "Author" tag (small subtle badge) after the name of a comment whose `author.isAuthor` is true;
+- a hint "Plain text. Be kind." on the left of the top-level form's button row (the status and error
+  messages take its place when shown); placeholders "Your name", "Add to the discussion" and, in a reply
+  form, "Reply to {parent's name}";
+- the Journal rail's last "On this page" entry reads "Comments" followed by the count ("Comments 4").
 
 ### Editorial list
 
@@ -273,7 +282,7 @@ export type BlogBlock =
 /** `replies` is one level deep; replies of replies are ignored. `body` is plain text. */
 export interface BlogComment {
   id: string
-  author: { name: string; avatarSrc?: string }
+  author: { name: string; avatarSrc?: string; isAuthor?: boolean } // isAuthor: the post's author
   postedAt: string // ISO 8601
   body: string
   replies?: BlogComment[]

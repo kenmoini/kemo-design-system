@@ -1,0 +1,186 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .bl { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; max-width: 1040px; }
+  .bl * { box-sizing: border-box; }
+  .pg { --canvas:#fcfcfc; --card:#fff; --ink:#202020; --muted:#646464; --subtle:#838383; --line:#e8e8e8; --sub:#f0f0f0;
+        background: var(--canvas); color: var(--ink); font-size: 13px; line-height: 1.5; text-align: left; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; }
+  .pg p, .pg h4, .pg h5 { margin: 0; }
+  .night { background: linear-gradient(115deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 28%), linear-gradient(135deg, #4a0f26 0%, #5d1f7e 48%, #140b2a 100%); color: #f3eef6; }
+  .cv { background: linear-gradient(135deg,#4a0f26,#5d1f7e); border-radius: 3px; }
+  .btn { height: 30px; padding: 0 12px; border-radius: 2px; display: inline-flex; align-items: center; font-size: 12px; border: 1px solid var(--line); background: var(--card); white-space: nowrap; }
+  .btn.solid { background: #000; color: #fff; border-color: #000; }
+  .btn.plain { border-color: transparent; background: transparent; color: var(--muted); padding: 0 6px; height: 24px; font-size: 11.5px; }
+  .av { width: 30px; height: 30px; border-radius: 50%; background: #e4dfee; color: #4a3a6b; display: grid; place-items: center; font-size: 11px; font-weight: 600; flex: none; }
+  .av.b { background: #f1e1d8; color: #7a3d1f; } .av.c { background: #dbe7f3; color: #24507a; } .av.d { background: #e0eee4; color: #23603a; }
+
+  /* the section */
+  .wrap { max-width: 640px; margin: 0 auto; padding: 26px 24px 30px; }
+  .tail { color: #2c2c2c; font-size: 14px; line-height: 1.65; padding-bottom: 26px; border-bottom: 1px solid var(--line); position: relative; }
+  .tail::before { content: ''; position: absolute; inset: 0 0 26px; background: linear-gradient(var(--canvas), rgba(252,252,252,0) 70%); }
+  .cm-h { display: flex; align-items: baseline; gap: 8px; margin: 28px 0 16px; }
+  .cm-h h4 { font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+  .cm-h span { color: var(--subtle); font-size: 14px; }
+  .form { display: flex; flex-direction: column; gap: 12px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+  .fld label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 5px; }
+  .in { border: 1px solid #d6d6d6; border-radius: 2px; background: var(--card); padding: 0 10px; height: 32px; display: flex; align-items: center; color: var(--subtle); }
+  .in.ta { height: 84px; align-items: flex-start; padding-top: 8px; }
+  .in.sm { max-width: 280px; }
+  .in.val { color: var(--ink); }
+  .row { display: flex; justify-content: space-between; align-items: center; }
+  .hint { color: var(--subtle); font-size: 11.5px; }
+  .c { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding: 18px 0 0; }
+  .c .who { display: flex; gap: 8px; align-items: baseline; }
+  .c .who b { font-weight: 600; } .c .who time { color: var(--subtle); font-size: 11.5px; }
+  .c .who i { font-style: normal; font-size: 10px; font-weight: 500; background: var(--sub); color: var(--muted); padding: 1px 6px; border-radius: 2px; }
+  .c p { margin-top: 3px; color: #2c2c2c; }
+  .c .act { margin: 4px 0 0 -6px; }
+  .replies { margin: 6px 0 0 14px; padding-left: 26px; border-left: 1px solid var(--line); }
+  .replies .c { padding-top: 14px; }
+  .rform { margin: 14px 0 0 42px; padding: 14px; border: 1px solid var(--line); border-radius: 3px; background: var(--card); display: flex; flex-direction: column; gap: 10px; }
+  .ok { font-size: 12px; color: #1d6b3a; display: flex; align-items: center; gap: 6px; }
+  .ok::before { content: '✓'; font-weight: 700; }
+  .lbl { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #6b6b6b; margin: 0 0 8px; }
+  .cols { display: grid; grid-template-columns: 1.55fr 1fr; gap: 24px; align-items: start; }
+  .side { display: flex; flex-direction: column; gap: 22px; }
+  .empty { color: var(--muted); padding: 16px 0 2px; }
+
+  /* placement thumbnails */
+  .place { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 8px; }
+  .th { border: 1px solid #ddd; border-radius: 6px; overflow: hidden; background: #fcfcfc; font-size: 10px; color: #646464; }
+  .th .bar { height: 14px; border-bottom: 1px solid #e8e8e8; background: #fff; }
+  .th .in2 { padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .blk { border-radius: 2px; background: #ececec; height: 10px; }
+  .blk.t { height: 38px; } .blk.s { height: 16px; }
+  .blk.cm { height: 64px; background: #efe6f7; border: 1.5px solid #5d1f7e; color: #4a0f6b; display: grid; place-items: center; font-weight: 600; font-size: 11px; }
+  .blk.lab { background: transparent; border: 1px dashed #cfcfcf; height: 20px; display: grid; place-items: center; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .three { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+  .rail { display: grid; grid-template-columns: 58px 1fr; gap: 12px; }
+  .rail .r { display: flex; flex-direction: column; gap: 4px; }
+  .rail .r span { height: 7px; background: #ececec; border-radius: 2px; } .rail .r span.on { background: #5d1f7e; }
+  .rail .m { display: flex; flex-direction: column; gap: 6px; }
+  .th h5 { margin: 10px 14px 0; font-size: 13px; font-weight: 600; color: #202020; }
+  .th p { margin: 2px 14px 12px; font-size: 12px; color: #646464; line-height: 1.4; }
+</style>
+
+<h2>Comments section on the post pages</h2>
+<p class="subtitle">One comments design, shared by all three post variations, sitting in the same 640px reading column as the article. Left: the section with comments and an open reply form. Right: the two other states. Below: where it sits in each variation. Tell me what to change.</p>
+
+<div class="bl">
+  <div class="cols">
+    <div>
+      <div class="lbl">With comments (featured post)</div>
+      <div class="pg"><div class="wrap">
+        <div class="tail">…Aggregated discovery needs Kubernetes 1.30 or newer. Older clusters fall back to the batched path, which is still three times faster than where we started.</div>
+
+        <div class="cm-h"><h4>Comments</h4><span>4</span></div>
+
+        <div class="form">
+          <div class="fld"><label>Name</label><div class="in sm">Your name</div></div>
+          <div class="fld"><label>Comment</label><div class="in ta">Add to the discussion</div></div>
+          <div class="row"><span class="hint">Plain text. Be kind.</span><span class="btn solid">Post comment</span></div>
+        </div>
+
+        <div class="c"><span class="av">JL</span><div>
+          <div class="who"><b>Jonas Lindqvist</b><time>11 Nov 2026</time></div>
+          <p>Did the aggregated document change how you handle CRDs that get installed after the cache is warm? We hit stale kinds for up to the TTL.</p>
+          <div class="act"><span class="btn plain">Reply</span></div>
+        </div></div>
+        <div class="replies">
+          <div class="c"><span class="av b">PR</span><div>
+            <div class="who"><b>Priya Raman</b><i>Author</i><time>11 Nov 2026</time></div>
+            <p>Yes. We watch CustomResourceDefinitions and drop the cluster's entry on any add or delete, so the TTL is only the fallback.</p>
+          </div></div>
+        </div>
+        <div class="rform">
+          <div class="fld"><label>Name</label><div class="in sm val">Jonas Lindqvist</div></div>
+          <div class="fld"><label>Comment</label><div class="in ta" style="height:60px">Reply to Jonas Lindqvist</div></div>
+          <div class="row"><span></span><span style="display:flex;gap:8px"><span class="btn">Cancel</span><span class="btn solid">Post reply</span></span></div>
+        </div>
+
+        <div class="c"><span class="av c">TN</span><div>
+          <div class="who"><b>Thandi Nkosi</b><time>12 Nov 2026</time></div>
+          <p>The 38 → 1 number is wild. Would love a follow-up on how you measured time to interactive.</p>
+          <div class="act"><span class="btn plain">Reply</span></div>
+        </div></div>
+        <div class="c"><span class="av d">RB</span><div>
+          <div class="who"><b>Rafael Bastos</b><time>12 Nov 2026</time></div>
+          <p>Upgraded this morning and the difference on our largest cluster is obvious. Thanks for writing it up.</p>
+          <div class="act"><span class="btn plain">Reply</span></div>
+        </div></div>
+      </div></div>
+    </div>
+
+    <div class="side">
+      <div>
+        <div class="lbl">No comments yet</div>
+        <div class="pg"><div class="wrap" style="padding-top:4px">
+          <div class="cm-h"><h4>Comments</h4><span>0</span></div>
+          <div class="form">
+            <div class="fld"><label>Name</label><div class="in">Your name</div></div>
+            <div class="fld"><label>Comment</label><div class="in ta" style="height:60px">Add to the discussion</div></div>
+            <div class="row"><span></span><span class="btn solid">Post comment</span></div>
+          </div>
+          <div class="empty">No comments yet.</div>
+        </div></div>
+      </div>
+      <div>
+        <div class="lbl">Just posted</div>
+        <div class="pg"><div class="wrap" style="padding-top:4px">
+          <div class="cm-h"><h4>Comments</h4><span>5</span></div>
+          <div class="form">
+            <div class="fld"><label>Name</label><div class="in val">Ada Marsh</div></div>
+            <div class="fld"><label>Comment</label><div class="in ta" style="height:60px">Add to the discussion</div></div>
+            <div class="row"><span class="ok">Comment posted.</span><span class="btn solid">Post comment</span></div>
+          </div>
+          <div class="c"><span class="av">AM</span><div>
+            <div class="who"><b>Ada Marsh</b><time>12 Nov 2026</time></div>
+            <p>Great write-up.</p>
+            <div class="act"><span class="btn plain">Reply</span></div>
+          </div></div>
+        </div></div>
+        <p class="hint" style="margin:8px 0 0;color:#6b6b6b">The name is kept for the next comment; the text clears. A failed post keeps the text and shows the reason in red above the button.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:32px">Where it sits in each variation</h3>
+  <div class="place">
+    <div class="th">
+      <div class="bar"></div>
+      <div class="in2">
+        <div class="blk t night"></div>
+        <div class="blk"></div><div class="blk"></div><div class="blk" style="width:70%"></div>
+        <div class="blk lab">Author · Copy link</div>
+        <div class="blk cm">Comments</div>
+        <div class="two"><div class="blk lab">← Previous</div><div class="blk lab">Next →</div></div>
+      </div>
+      <h5>Editorial list</h5><p>After the author row, before previous / next.</p>
+    </div>
+    <div class="th">
+      <div class="bar"></div>
+      <div class="in2">
+        <div class="blk s" style="width:60%;margin:0 auto"></div>
+        <div class="blk t cv"></div>
+        <div class="blk"></div><div class="blk" style="width:70%"></div>
+        <div class="blk lab">Tags · Copy link · Share</div>
+        <div class="blk cm">Comments</div>
+        <div class="blk lab" style="border:0;height:12px;justify-content:start">Keep reading</div>
+        <div class="three"><div class="blk s"></div><div class="blk s"></div><div class="blk s"></div></div>
+      </div>
+      <h5>Magazine grid</h5><p>After the tags row, before "Keep reading".</p>
+    </div>
+    <div class="th">
+      <div class="bar"></div>
+      <div class="in2"><div class="rail">
+        <div class="r"><span></span><span></span><span></span><span></span><span class="on"></span><div style="font-size:9px;color:#5d1f7e;font-weight:600">Comments 4</div></div>
+        <div class="m">
+          <div class="blk s" style="width:80%"></div>
+          <div class="blk"></div><div class="blk"></div><div class="blk"></div><div class="blk" style="width:70%"></div>
+          <div class="blk cm">Comments</div>
+        </div>
+      </div></div>
+      <h5>Journal with a rail</h5><p>After the article; "On this page" ends with a Comments entry that follows the scroll.</p>
+    </div>
+  </div>
+</div>
