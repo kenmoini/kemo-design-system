@@ -242,7 +242,7 @@ export function ResourceYamlTab({
           {schema ? (
             <Button
               ref={schemaToggleRef}
-              variant="outline"
+              variant={schemaOpen ? 'subtle' : 'outline'}
               size="sm"
               aria-pressed={schemaOpen}
               onClick={toggleSchema}

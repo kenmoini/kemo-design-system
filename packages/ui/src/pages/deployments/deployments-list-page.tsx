@@ -104,7 +104,7 @@ function columnsFor(
     {
       id: 'labels',
       header: 'Labels',
-      cell: (row) => <LabelChips labels={row.labels} />,
+      cell: (row) => <LabelChips labels={row.labels} max={2} wrap={false} />,
     },
     {
       id: 'age',

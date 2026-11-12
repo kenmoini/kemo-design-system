@@ -121,6 +121,22 @@ describe('DeploymentOverview', () => {
     expect(within(annotations).queryByText(/kemo\.dev\/created-by/)).toBeNull()
   })
 
+  it('shows a long condition reason and message in full', () => {
+    const reason = 'ProgressDeadlineExceededWhileWaitingForTheReplicaSetToBecomeAvailable'
+    const message = 'x'.repeat(120)
+    const base = checkoutApi.status?.conditions?.[0]
+    if (!base) throw new Error('fixture has no condition')
+    renderOverview({
+      deployment: {
+        ...checkoutApi,
+        status: { ...checkoutApi.status, conditions: [{ ...base, reason, message }] },
+      },
+    })
+    const section = screen.getByRole('region', { name: 'Conditions' })
+    expect(within(section).getByText(reason)).toBeInTheDocument()
+    expect(within(section).getByText(message)).toBeInTheDocument()
+  })
+
   it('lists the conditions with their status', () => {
     renderOverview()
     const section = screen.getByRole('region', { name: 'Conditions' })

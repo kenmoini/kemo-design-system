@@ -103,9 +103,9 @@ describe('DeploymentsListPage', () => {
     expect(within(checkout).getByText('6/6')).toBeInTheDocument()
     expect(within(checkout).getByText('app=checkout-api')).toBeInTheDocument()
     expect(within(checkout).getByText('tier=api')).toBeInTheDocument()
-    expect(within(checkout).getByText('team=payments')).toBeInTheDocument()
+    expect(within(checkout).queryByText('team=payments')).toBeNull()
     expect(within(checkout).queryByText('app.kubernetes.io/part-of=checkout')).toBeNull()
-    expect(within(checkout).getByText('+1')).toBeInTheDocument()
+    expect(within(checkout).getByText('+2')).toBeInTheDocument()
     expect(within(checkout).getByText('42d')).toBeInTheDocument()
 
     expect(within(rowOf('web-frontend')).getByText('Progressing')).toBeInTheDocument()

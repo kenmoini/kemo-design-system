@@ -278,6 +278,15 @@ describe('DataTable', () => {
     expect(onAction).toHaveBeenCalledWith('disable', users[0])
   })
 
+  it('shows no range line on a single page, and one on several', () => {
+    const { unmount } = renderTable({ rows: users.slice(0, 4) })
+    expect(screen.queryByText(/ of 4$/)).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Next page' })).toBeNull()
+    unmount()
+    renderTable()
+    expect(screen.getByText('1–10 of 25')).toBeInTheDocument()
+  })
+
   it('paginates', async () => {
     const user = userEvent.setup()
     renderTable()

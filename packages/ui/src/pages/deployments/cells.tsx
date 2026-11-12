@@ -129,10 +129,12 @@ export interface LabelChipsProps {
   max?: number
   /** Shown when there are no labels; defaults to "None". */
   empty?: string
+  /** Let the chips flow onto more rows; defaults to `true`. `false` keeps one row. */
+  wrap?: boolean
 }
 
 /** `key=value` chips in the mono face, the first `max` of them and "+N" for the rest. */
-export function LabelChips({ labels, max = 3, empty = 'None' }: LabelChipsProps) {
+export function LabelChips({ labels, max = 3, empty = 'None', wrap = true }: LabelChipsProps) {
   const pairs = Object.entries(labels).map(([key, value]) => `${key}=${value}`)
   if (pairs.length === 0) {
     return (
@@ -144,7 +146,7 @@ export function LabelChips({ labels, max = 3, empty = 'None' }: LabelChipsProps)
   const shown = pairs.slice(0, max)
   const hidden = pairs.slice(max)
   return (
-    <HStack gap="1" flexWrap="wrap" minW="0">
+    <HStack gap="1" flexWrap={wrap ? 'wrap' : 'nowrap'} minW="0">
       {shown.map((pair) => (
         <Code key={pair} size="sm" whiteSpace="nowrap">
           {pair}

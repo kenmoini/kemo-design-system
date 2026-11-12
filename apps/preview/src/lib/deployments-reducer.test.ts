@@ -121,6 +121,18 @@ describe('deploymentsReducer', () => {
     expect(resourceOf(state, WEB).status?.readyReplicas).toBe(6)
   })
 
+  it('clears the draft and the server-changed note when the draft is dropped (Reload)', () => {
+    const flagged = run(
+      initialState,
+      { type: 'setDraft', id: CHECKOUT, text: 'edited' },
+      { type: 'scale', id: CHECKOUT, replicas: 8 },
+    )
+    expect(flagged.items[CHECKOUT]!.serverChanged).toBe(true)
+    const reloaded = run(flagged, { type: 'setDraft', id: CHECKOUT, text: undefined })
+    expect(reloaded.items[CHECKOUT]!.draft).toBeUndefined()
+    expect(reloaded.items[CHECKOUT]!.serverChanged).toBeUndefined()
+  })
+
   it('saves YAML, rolling out a new pod template, and rejects what it cannot apply', () => {
     const yaml = toYaml(resourceOf(initialState, CHECKOUT))
     expect(checkSave(initialState, CHECKOUT, 'kind: [')).toMatchObject({

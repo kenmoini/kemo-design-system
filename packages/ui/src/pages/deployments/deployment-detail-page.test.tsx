@@ -137,6 +137,30 @@ describe('DeploymentDetailPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('streaming · paused on hover')
   })
 
+  it('tells the host when the events reader pauses the stream', async () => {
+    const user = userEvent.setup()
+    const onEventsPauseChange = vi.fn<(paused: boolean) => void>()
+    renderPage({ tab: 'events', liveEvents: true, onEventsPauseChange })
+    const region = screen.getByRole('region', { name: 'Events' })
+    await user.hover(region)
+    expect(onEventsPauseChange).toHaveBeenLastCalledWith(true)
+    await user.unhover(region)
+    expect(onEventsPauseChange).toHaveBeenLastCalledWith(false)
+  })
+
+  it('tells the host when the YAML is reloaded', async () => {
+    const user = userEvent.setup()
+    const onReloadYaml = vi.fn<() => void>()
+    const draft = toYaml(checkoutApi).replace('replicas: 6', 'replicas: 8')
+    const { onDraftChange } = renderPage({ tab: 'yaml', draft, onReloadYaml })
+    await screen.findByRole('textbox', { name: 'checkout-api.yaml' })
+    await user.click(screen.getByRole('button', { name: 'Reload' }))
+    const confirm = await screen.findByRole('alertdialog', { name: 'Discard your changes?' })
+    await user.click(within(confirm).getByRole('button', { name: 'Discard' }))
+    expect(onDraftChange).toHaveBeenLastCalledWith(undefined)
+    expect(onReloadYaml).toHaveBeenCalledTimes(1)
+  })
+
   it('scales the deployment', async () => {
     const user = userEvent.setup()
     const { onScale } = renderPage()

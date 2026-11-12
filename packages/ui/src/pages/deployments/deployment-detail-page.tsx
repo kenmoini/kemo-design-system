@@ -55,6 +55,10 @@ export interface DeploymentDetailPageProps {
   onSaveYaml: (text: string) => void | Promise<void>
   /** The server copy changed under the draft: the YAML tab says so. */
   serverChanged?: boolean
+  /** The Events reader pauses (pointer or focus on the live table) or resumes the stream. */
+  onEventsPauseChange?: (paused: boolean) => void
+  /** Reload on the YAML tab: the host drops its draft and any "server changed" note. */
+  onReloadYaml?: () => void
   /** Scale…: the summary's id and the new replica count. */
   onScale: (id: string, replicas: number) => void | Promise<void>
   onRestart: (ids: string[]) => void
@@ -88,6 +92,8 @@ export function DeploymentDetailPage({
   onDraftChange,
   onSaveYaml,
   serverChanged,
+  onEventsPauseChange,
+  onReloadYaml,
   onScale,
   onRestart,
   onSetPaused,
@@ -156,9 +162,16 @@ export function DeploymentDetailPage({
             fileName={`${name}.yaml`}
             cleanText={() => cleanYaml(deployment)}
             serverChanged={serverChanged}
+            onReload={onReloadYaml}
           />
         ) : (
-          <ResourceEventsTab events={events} live={liveEvents} now={now} parentKind="Deployment" />
+          <ResourceEventsTab
+            events={events}
+            live={liveEvents}
+            now={now}
+            parentKind="Deployment"
+            onPauseChange={onEventsPauseChange}
+          />
         )}
       </ResourceDetailShell>
       <ScaleDialog

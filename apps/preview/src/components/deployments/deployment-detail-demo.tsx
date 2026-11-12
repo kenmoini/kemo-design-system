@@ -21,9 +21,6 @@ const schema = schemaFor(defaultSchemaRegistry, 'apps/v1', 'Deployment') ?? depl
 
 const EMPTY: never[] = []
 
-/** The live events table `ResourceEventsTab` draws: the pointer or focus on it pauses its rows. */
-const EVENTS_REGION = '[role="region"][aria-label="Events"]'
-
 const noSubscription = () => () => {}
 /** False on the server and while hydrating, true after: the browser's state is only known then. */
 const useHydrated = () =>
@@ -93,7 +90,9 @@ function DeploymentDetail({
 
   // While a reader is on the live events their rows hold still; so do the stream and the clock,
   // or the ages of the rows held would change under them.
-  const reading = useReaderOnEvents(tab === 'events')
+  // Off the Events tab the table is gone, and with it the reader's pause.
+  const [paused, setReading] = useState(false)
+  const reading = paused && tab === 'events'
   useLiveEvents(id, resource, tab === 'events' && !deleted && !reading)
   useEffect(() => {
     setReaderPaused(reading)
@@ -130,6 +129,8 @@ function DeploymentDetail({
       onDraftChange={(text) => dispatch({ type: 'setDraft', id, text })}
       onSaveYaml={(text) => saveYaml(id, text)}
       serverChanged={item.serverChanged}
+      onEventsPauseChange={setReading}
+      onReloadYaml={() => dispatch({ type: 'setDraft', id, text: undefined })}
       onScale={(target, replicas) => dispatch({ type: 'scale', id: target, replicas })}
       onRestart={restart}
       onSetPaused={setPaused}
@@ -139,41 +140,6 @@ function DeploymentDetail({
       }}
     />
   )
-}
-
-/**
- * Whether the pointer or focus is on the live events table while `active`. `DeploymentDetailPage`
- * doesn't pass on the table's own pause, so the page watches for it: pointer and focus moves
- * into and out of the table's region.
- */
-function useReaderOnEvents(active: boolean): boolean {
-  const [pointer, setPointer] = useState(false)
-  const [focus, setFocus] = useState(false)
-  useEffect(() => {
-    if (!active) return
-    const inRegion = (target: EventTarget | null) =>
-      target instanceof Element && target.closest(EVENTS_REGION) !== null
-    const over = (event: PointerEvent) => setPointer(inRegion(event.target))
-    // Leaving the window: no element is entered.
-    const out = (event: PointerEvent) => {
-      if (event.relatedTarget === null) setPointer(false)
-    }
-    const focusIn = (event: FocusEvent) => setFocus(inRegion(event.target))
-    const focusOut = (event: FocusEvent) => {
-      if (!inRegion(event.relatedTarget)) setFocus(false)
-    }
-    document.addEventListener('pointerover', over)
-    document.addEventListener('pointerout', out)
-    document.addEventListener('focusin', focusIn)
-    document.addEventListener('focusout', focusOut)
-    return () => {
-      document.removeEventListener('pointerover', over)
-      document.removeEventListener('pointerout', out)
-      document.removeEventListener('focusin', focusIn)
-      document.removeEventListener('focusout', focusOut)
-    }
-  }, [active])
-  return active && (pointer || focus)
 }
 
 /**

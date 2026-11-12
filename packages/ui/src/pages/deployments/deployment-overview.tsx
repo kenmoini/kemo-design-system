@@ -196,10 +196,18 @@ function conditionColumns(now: string): DataTableColumn<ConditionRow>[] {
       header: 'Reason',
       accessor: (c) => c.reason,
       cell: (c) => (
-        <Stack gap="0.5" minW="48">
-          <Text as="span">{c.reason ?? '—'}</Text>
+        <Stack gap="0.5" minW="32">
+          <Text as="span" whiteSpace="normal" overflowWrap="anywhere">
+            {c.reason ?? '—'}
+          </Text>
           {c.message ? (
-            <Text as="span" textStyle="xs" color="fg.muted" whiteSpace="normal">
+            <Text
+              as="span"
+              textStyle="xs"
+              color="fg.muted"
+              whiteSpace="normal"
+              overflowWrap="anywhere"
+            >
               {c.message}
             </Text>
           ) : null}
