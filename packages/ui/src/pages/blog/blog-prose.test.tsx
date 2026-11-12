@@ -40,6 +40,11 @@ describe('BlogProse', () => {
     expect(explicit.firstElementChild?.className).toBe(mdClass)
     expect(sm.firstElementChild?.className).not.toBe(mdClass)
     expect(sm.firstElementChild?.className).toContain('sm')
+    // The gap class must be the variant's alone; a default `gap_8px` would outrank it.
+    expect(md.firstElementChild).toHaveClass('gap_4')
+    expect(sm.firstElementChild).toHaveClass('gap_3')
+    expect(md.firstElementChild?.className).not.toContain('gap_8px')
+    expect(sm.firstElementChild?.className).not.toContain('gap_8px')
   })
 
   it('gives headings the ids from tocOf', () => {

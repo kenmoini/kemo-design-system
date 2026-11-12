@@ -36,6 +36,8 @@ const Quote = styled('blockquote', {
 
 // Panda extracts these literal variants; a conditional style object would not be.
 const proseSize = cva({
+  // A plain flex column: `Stack` would add its own default gap class that outranks the variant's.
+  base: { display: 'flex', flexDirection: 'column' },
   variants: {
     size: {
       md: { textStyle: 'md', lineHeight: '1.7', gap: '4' },
@@ -51,7 +53,7 @@ export function BlogProse({ blocks, size = 'md' }: { blocks: BlogBlock[]; size?:
   let headingIndex = 0
 
   return (
-    <Stack maxW="40rem" className={proseSize({ size })}>
+    <Box maxW="40rem" className={proseSize({ size })}>
       {blocks.map((block, index) => {
         switch (block.type) {
           case 'paragraph':
@@ -220,6 +222,6 @@ export function BlogProse({ blocks, size = 'md' }: { blocks: BlogBlock[]; size?:
             )
         }
       })}
-    </Stack>
+    </Box>
   )
 }
