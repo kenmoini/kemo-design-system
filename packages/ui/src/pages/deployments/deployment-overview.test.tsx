@@ -135,6 +135,17 @@ describe('DeploymentOverview', () => {
     expect(conditionRows[1]).toHaveTextContent('4m')
   })
 
+  it("draws the related objects as one card, the table's own", () => {
+    renderOverview()
+    const section = relatedSection()
+    expect(section.tagName).toBe('SECTION')
+    expect(section).not.toHaveClass('card__root')
+    expect(section.querySelectorAll('.card__root')).toHaveLength(1)
+    expect(
+      within(section).getByRole('heading', { level: 2, name: 'Related objects' }),
+    ).toBeInTheDocument()
+  })
+
   it('offers every related kind with its count and starts on Pods', () => {
     renderOverview()
     const kinds = within(relatedSection())

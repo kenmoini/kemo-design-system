@@ -163,7 +163,7 @@ interface DialogState {
  * `DataTable` of the scoped rows (name and where it runs, status, ready, labels, age) with a filter
  * rail (search, Status, Labels `key=value`, Namespace), per-row actions (Scale…, Restart,
  * Pause|Resume, Edit YAML, Delete) and bulk Restart, Pause, Resume and Delete, each confirmed. The
- * toolbar names the scope; a Namespace filter outside a new scope is cleared.
+ * toolbar's count line names the scope; a Namespace filter outside a new scope is cleared.
  */
 export function DeploymentsListPage({
   scope,
@@ -185,6 +185,14 @@ export function DeploymentsListPage({
   const show = (view: View) => setDialog({ open: true, view })
   const close = () => setDialog((current) => ({ ...current, open: false }))
   const confirm = (confirmation: Confirmation) => show({ kind: 'confirm', ...confirmation })
+
+  // A host-held selection without the ids whose rows left `rows` (the scope narrowed, say).
+  const selection = useMemo(() => {
+    if (!selectedIds) return undefined
+    const ids = new Set(rows.map((row) => row.id))
+    const kept = selectedIds.filter((id) => ids.has(id))
+    return kept.length === selectedIds.length ? selectedIds : kept
+  }, [selectedIds, rows])
 
   // The namespaces the scope covers: the chosen ones, else those of the chosen (or all) clusters.
   const inScope = useMemo(
@@ -333,13 +341,13 @@ export function DeploymentsListPage({
     ]
   }
 
-  const clusterCount = scope.clusters.length || clusters.length
-  const scopeText = [
-    `${count(rows.length)} in ${plural(clusterCount, 'cluster', 'clusters')}`,
+  // One line names the count (of the rows the filters keep) and the scope.
+  const clusterText = plural(scope.clusters.length || clusters.length, 'cluster', 'clusters')
+  const namespaceText =
     scope.namespaces.length > 0
       ? plural(scope.namespaces.length, 'namespace', 'namespaces')
-      : 'all namespaces',
-  ].join(' · ')
+      : 'all namespaces'
+  const countLabel = (n: number) => `${count(n)} in ${clusterText} · ${namespaceText}`
 
   const view = dialog.view
   return (
@@ -378,16 +386,12 @@ export function DeploymentsListPage({
           onFilterValuesChange={setFilterValues}
           search={search}
           selectable
-          selectedIds={selectedIds}
+          selectedIds={selection}
           onSelectionChange={onSelectionChange}
           rowActions={rowActions}
           bulkActions={bulkActions}
           linkComponent={HostLink}
-          toolbarStart={
-            <Text textStyle="sm" color="fg.muted">
-              {scopeText}
-            </Text>
-          }
+          countLabel={countLabel}
           initialSort={{ id: 'name' }}
           emptyMessage="No deployments in this scope"
         />

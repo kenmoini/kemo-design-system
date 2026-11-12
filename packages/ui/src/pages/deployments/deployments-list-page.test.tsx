@@ -91,7 +91,9 @@ describe('DeploymentsListPage', () => {
       '/deployments/prod-us-east/checkout/checkout-api',
     )
     expect(within(checkout).getByText('prod-us-east · checkout')).toBeInTheDocument()
+    // One line names the count and the scope.
     expect(screen.getByText('5 deployments in 3 clusters · all namespaces')).toBeInTheDocument()
+    expect(screen.queryByText('5 deployments')).toBeNull()
   })
 
   it('shows status by word and colour, ready counts, label chips and age', () => {
@@ -123,6 +125,7 @@ describe('DeploymentsListPage', () => {
     await user.type(within(rail).getByPlaceholderText('key=value…'), 'tier=api{Enter}')
     expect(bodyRows()).toHaveLength(1)
     expect(bodyRows()[0]).toHaveTextContent('checkout-api')
+    expect(screen.getByText('1 deployment in 3 clusters · all namespaces')).toBeInTheDocument()
     await user.click(within(rail).getByRole('button', { name: 'Clear filters' }))
 
     await user.click(within(rail).getByRole('combobox', { name: 'Namespace' }))
@@ -165,16 +168,14 @@ describe('DeploymentsListPage', () => {
     await user.click(namespace())
     await user.click(await screen.findByRole('option', { name: 'checkout' }))
 
-    const scoped = rows.filter((row) => row.cluster === 'prod-us-east')
-    rerender(
-      pageElement({
-        scope: { clusters: ['prod-us-east'], namespaces: ['checkout'] },
-        rows: scoped,
-      }),
+    const scope = { clusters: ['prod-us-east'], namespaces: ['checkout'] }
+    const scoped = rows.filter(
+      (row) => row.cluster === 'prod-us-east' && row.namespace === 'checkout',
     )
+    rerender(pageElement({ scope, rows: scoped }))
     expect(namespace()).toHaveTextContent('checkout')
     expect(bodyRows()).toHaveLength(2)
-    expect(screen.getByText('3 deployments in 1 cluster · 1 namespace')).toBeInTheDocument()
+    expect(screen.getByText('2 deployments in 1 cluster · 1 namespace')).toBeInTheDocument()
   })
 
   it('keeps a chosen namespace on show once its last deployment is gone', async () => {
@@ -334,6 +335,22 @@ describe('DeploymentsListPage', () => {
     const onSelectionChange = vi.fn<(ids: string[]) => void>()
     renderPage({ selectedIds: ['prod-us-east/checkout/checkout-api'], onSelectionChange })
     expect(screen.getByRole('checkbox', { name: 'Select checkout-api' })).toBeChecked()
+    await user.click(screen.getByRole('checkbox', { name: 'Select web-frontend' }))
+    expect(onSelectionChange).toHaveBeenLastCalledWith([
+      'prod-us-east/checkout/checkout-api',
+      'prod-us-east/checkout/web-frontend',
+    ])
+  })
+
+  it('drops host-held selected ids whose rows left the scope', async () => {
+    const user = userEvent.setup()
+    const onSelectionChange = vi.fn<(ids: string[]) => void>()
+    renderPage({
+      rows: rows.filter((row) => row.cluster === 'prod-us-east'),
+      selectedIds: ['prod-eu-west/search/search-indexer', 'prod-us-east/checkout/checkout-api'],
+      onSelectionChange,
+    })
+    expect(screen.getByText('· 1 selected')).toBeInTheDocument()
     await user.click(screen.getByRole('checkbox', { name: 'Select web-frontend' }))
     expect(onSelectionChange).toHaveBeenLastCalledWith([
       'prod-us-east/checkout/checkout-api',

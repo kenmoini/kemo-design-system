@@ -3,8 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Stack } from '../../../styled-system/jsx'
-import { EntityDialog, FormError, FormFooter, NumberField } from '../access'
-import { useFormSubmit } from '../access/forms/form-fields'
+import { EntityDialog, FormError, FormFooter, NumberField, useFormSubmit } from '../access'
 
 const RANGE = 'Enter a number from 0 to 100.'
 

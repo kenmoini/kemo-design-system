@@ -7,7 +7,15 @@ import {
   useTable,
 } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
-import { type ReactNode, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { Box, Grid, Stack, styled } from '../../../styled-system/jsx'
 import { Button, Card, Checkbox, Table, Text } from '../../components/ui'
 import { MEDIA_LG, useMediaQuery } from '../../layouts/app-shell'
@@ -159,6 +167,7 @@ export function DataTable<T extends { id: string }>({
   rowLabel = defaultRowLabel,
   bulkActions,
   addAction,
+  countLabel,
   toolbarStart,
   toolbarEnd,
   pageSize = 10,
@@ -194,6 +203,10 @@ export function DataTable<T extends { id: string }>({
     () => (filterValues ? toColumnFilters(filterValues) : undefined),
     [filterValues],
   )
+  // A host's change to the values goes back to the first page, as a change in the rail does. By
+  // content, so a new record with the same values (an inline object) keeps the page.
+  const filterKey = controlledFilters ? JSON.stringify(controlledFilters) : undefined
+  const shownFilterKey = useRef(filterKey)
   const filterState = controlledFilters
     ? {
         state: { rowSelection, columnFilters: controlledFilters },
@@ -239,6 +252,13 @@ export function DataTable<T extends { id: string }>({
     setOwnSelection(kept)
     onSelectionChange?.(Object.keys(kept))
   }, [controlledSelection, ownSelection, rowIds, onSelectionChange])
+
+  // Before paint, so the old page of the new filter result never shows.
+  useLayoutEffect(() => {
+    if (shownFilterKey.current === filterKey) return
+    shownFilterKey.current = filterKey
+    table.setPageIndex(0)
+  }, [filterKey, table])
 
   const pagination = table.state.pagination
   // Rows can shrink under the current page (the last rows of the last page deleted): render the
@@ -291,7 +311,7 @@ export function DataTable<T extends { id: string }>({
   const main = (
     <Stack gap="3" minW="0">
       <DataTableToolbar
-        count={count}
+        count={countLabel ? countLabel(filteredCount) : count}
         selected={selectable ? selectedCount : undefined}
         start={toolbarStart}
       >

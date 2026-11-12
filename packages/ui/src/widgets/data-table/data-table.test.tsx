@@ -539,6 +539,12 @@ describe('DataTable controlled filter values', () => {
         <button type="button" onClick={() => setValues({})}>
           Reset from the host
         </button>
+        <button type="button" onClick={() => setValues({ status: ['active'] })}>
+          Show active from the host
+        </button>
+        <button type="button" onClick={() => setValues({ ...values })}>
+          Same values from the host
+        </button>
         {tableElement({
           filterValues: values,
           onFilterValuesChange: (next) => {
@@ -579,6 +585,22 @@ describe('DataTable controlled filter values', () => {
     expect(screen.getByRole('combobox', { name: 'Role' })).toHaveTextContent('All roles')
     expect(screen.getByRole('checkbox', { name: /^Active/ })).not.toBeChecked()
     expect(screen.getByText('25 users')).toBeInTheDocument()
+  })
+
+  it('goes back to the first page when the host changes the values', async () => {
+    const user = userEvent.setup()
+    render(<Host initial={{}} onChange={() => {}} />)
+    await user.click(screen.getByRole('button', { name: 'Next page' }))
+    expect(screen.getByText('11–20 of 25')).toBeInTheDocument()
+
+    // An equal record is no change: the page stays.
+    await user.click(screen.getByRole('button', { name: 'Same values from the host' }))
+    expect(screen.getByText('11–20 of 25')).toBeInTheDocument()
+
+    const active = users.filter((u) => u.status === 'active').length
+    await user.click(screen.getByRole('button', { name: 'Show active from the host' }))
+    expect(screen.getByText(`1–10 of ${active}`)).toBeInTheDocument()
+    expect(bodyRows()[0]).toHaveTextContent('Priya Natarajan')
   })
 
   it('reports an empty record when Clear filters runs', async () => {
@@ -631,5 +653,35 @@ describe('DataTable link actions', () => {
     const open = within(menu).getByRole('menuitem', { name: 'Open' })
     expect(open).toHaveAttribute('data-host-link')
     expect(open).toHaveAttribute('href', '/users/u1')
+  })
+})
+
+describe('DataTable count label', () => {
+  beforeEach(() => {
+    setMediaMatches(MEDIA_LG, true)
+  })
+
+  it('replaces the count text and keeps the selection suffix and toolbarStart', async () => {
+    const user = userEvent.setup()
+    renderTable({
+      countLabel: (n) => `${n} users in 2 teams`,
+      toolbarStart: <span>Extra</span>,
+    })
+    expect(screen.getByText('25 users in 2 teams')).toBeInTheDocument()
+    expect(screen.queryByText('25 users')).toBeNull()
+    expect(screen.getByText('Extra')).toBeInTheDocument()
+
+    await user.type(searchBox(), 'priya')
+    expect(screen.getByText('1 users in 2 teams')).toBeInTheDocument()
+    await user.click(screen.getByRole('checkbox', { name: 'Select Priya Natarajan' }))
+    expect(screen.getByText('· 1 selected')).toBeInTheDocument()
+    // The live region still announces the plain count.
+    expect(screen.getByText(/^1 user, 1 selected/)).toBeInTheDocument()
+  })
+
+  it('keeps the default count beside toolbarStart without a countLabel', () => {
+    renderTable({ toolbarStart: <span>Extra</span> })
+    expect(screen.getByText('25 users')).toBeInTheDocument()
+    expect(screen.getByText('Extra')).toBeInTheDocument()
   })
 })

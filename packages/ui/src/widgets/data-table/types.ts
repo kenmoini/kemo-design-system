@@ -97,6 +97,9 @@ export interface DataTableProps<T extends { id: string }> {
   bulkActions?: (selected: T[]) => ActionItem[]
   /** A solid "+ {label}" button; `label` defaults to "Add {singular}". */
   addAction?: { label?: string; onSelect: () => void }
+  /** Replaces the toolbar's "{n} {plural}" with the filtered count's own text (the count and the
+   * scope in one line, say); the " · {k} selected" suffix, `toolbarStart` and the announcement stay. */
+  countLabel?: (filteredCount: number) => ReactNode
   toolbarStart?: ReactNode
   toolbarEnd?: ReactNode
   /** Rows per page; defaults to 10. */
@@ -105,7 +108,8 @@ export interface DataTableProps<T extends { id: string }> {
   /** Replaces "No {plural} yet" when there are no rows at all. */
   emptyMessage?: string
   /** The filters' values by filter id; omit it to let the table hold them. When given, reflect
-   * every `onFilterValuesChange` back into it. A filter without a value is absent from the record. */
+   * every `onFilterValuesChange` back into it. A filter without a value is absent from the record.
+   * A change to the values (by content) goes back to the first page. */
   filterValues?: DataTableFilterValues
   onFilterValuesChange?: (values: DataTableFilterValues) => void
   /** The host's link (Next's `Link`, say) for action items with an `href`; defaults to an anchor. */

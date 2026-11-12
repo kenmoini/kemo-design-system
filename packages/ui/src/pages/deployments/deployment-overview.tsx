@@ -407,7 +407,7 @@ function KindTable<T extends { id: string }>({
   )
 }
 
-function RelatedObjectsCard({ related, now }: { related: RelatedObjects; now: string }) {
+function RelatedObjectsSection({ related, now }: { related: RelatedObjects; now: string }) {
   const headingId = useId()
   const [kind, setKind] = useState<KindId>('pods')
   const pods = useMemo(() => podColumns(now), [now])
@@ -472,28 +472,27 @@ function RelatedObjectsCard({ related, now }: { related: RelatedObjects; now: st
   }
 
   return (
-    <Card.Root variant="outline" as="section" aria-labelledby={headingId}>
-      <Card.Header>
-        <HStack justify="space-between" alignItems="center" flexWrap="wrap" gap="3">
-          <Heading as="h2" id={headingId} textStyle="md" fontWeight="semibold">
-            Related objects
-          </Heading>
-          {/* Nine kinds: the strip scrolls sideways when the card is narrower. */}
-          <Box overflowX="auto" maxW="full" py="0.5">
-            <SegmentGroup.Root
-              size="sm"
-              value={kind}
-              onValueChange={(details) => setKind((details.value as KindId | null) ?? 'pods')}
-            >
-              <SegmentGroup.Label srOnly>Kind</SegmentGroup.Label>
-              <SegmentGroup.Indicator />
-              <SegmentGroup.Items items={items} whiteSpace="nowrap" />
-            </SegmentGroup.Root>
-          </Box>
-        </HStack>
-      </Card.Header>
-      <Card.Body>{table}</Card.Body>
-    </Card.Root>
+    // One card, the table's own: the header row sits above it, as the Conditions heading does.
+    <styled.section aria-labelledby={headingId} display="flex" flexDirection="column" gap="3">
+      <HStack justify="space-between" alignItems="center" flexWrap="wrap" gap="3">
+        <Heading as="h2" id={headingId} textStyle="md" fontWeight="semibold">
+          Related objects
+        </Heading>
+        {/* Nine kinds: the strip scrolls sideways when the row is narrower. */}
+        <Box overflowX="auto" maxW="full" py="0.5">
+          <SegmentGroup.Root
+            size="sm"
+            value={kind}
+            onValueChange={(details) => setKind((details.value as KindId | null) ?? 'pods')}
+          >
+            <SegmentGroup.Label srOnly>Kind</SegmentGroup.Label>
+            <SegmentGroup.Indicator />
+            <SegmentGroup.Items items={items} whiteSpace="nowrap" />
+          </SegmentGroup.Root>
+        </Box>
+      </HStack>
+      {table}
+    </styled.section>
   )
 }
 
@@ -502,8 +501,8 @@ function RelatedObjectsCard({ related, now }: { related: RelatedObjects; now: st
 /**
  * A Deployment's Overview tab: three tiles (Ready with a bar, Updated · Available with the rollout,
  * Restarts with the image), a details card (labels, annotations, selector, strategy, replicas,
- * images, service account, node selector, created), the conditions and one Related objects card
- * whose segments switch the table between the kinds around the Deployment.
+ * images, service account, node selector, created), the conditions and the Related objects, whose
+ * segments switch one table between the kinds around the Deployment.
  */
 export function DeploymentOverview({ deployment, summary, related, now }: DeploymentOverviewProps) {
   const conditionsId = useId()
@@ -627,7 +626,7 @@ export function DeploymentOverview({ deployment, summary, related, now }: Deploy
         />
       </styled.section>
 
-      <RelatedObjectsCard related={related} now={now} />
+      <RelatedObjectsSection related={related} now={now} />
     </Stack>
   )
 }

@@ -9,7 +9,7 @@ import { DataTableFilters, type DataTableFiltersProps } from './data-table-filte
 
 export interface DataTableToolbarProps {
   /** "{n} {plural}": the rows that pass the filters. */
-  count: string
+  count: ReactNode
   /** Selected rows, including hidden ones; `undefined` when the table is not selectable. */
   selected?: number
   start?: ReactNode
