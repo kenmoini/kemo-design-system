@@ -81,7 +81,7 @@ function PostRow({
         display="grid"
         py="4"
         gap={{ base: '1', sm: '4' }}
-        gridTemplateColumns={{ base: '1fr', sm: '5.25rem 1fr auto' }}
+        gridTemplateColumns={{ base: '1fr', sm: '6.25rem 1fr auto' }}
         alignItems="start"
       >
         <styled.span
@@ -90,7 +90,7 @@ function PostRow({
           pt={{ sm: '0.5' }}
           style={{ fontVariantNumeric: 'tabular-nums' }}
         >
-          <PostDate iso={post.publishedAt} short />
+          <PostDate iso={post.publishedAt} />
         </styled.span>
         <Stack gap="1">
           <Heading as="h2" textStyle="md" letterSpacing="-0.01em">

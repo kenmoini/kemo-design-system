@@ -19,6 +19,13 @@ describe('EditorialListIndex', () => {
     expect(screen.getByRole('status')).toHaveTextContent('8 posts')
   })
 
+  it('shows the long absolute date in each row, inside a time element', () => {
+    render(<EditorialListIndex {...props} />)
+    const time = within(screen.getAllByRole('article')[0]!).getAllByText('04 Nov 2026')[0]!
+    expect(time.tagName).toBe('TIME')
+    expect(time).toHaveAttribute('datetime', '2026-11-04T09:00:00Z')
+  })
+
   it('reveals the rest', async () => {
     const user = userEvent.setup()
     render(<EditorialListIndex {...props} />)
