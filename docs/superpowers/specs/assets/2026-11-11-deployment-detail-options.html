@@ -1,0 +1,251 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .sh { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; }
+  .sh .card-image { display: block; aspect-ratio: auto; }
+  .sh .mockup-body { padding: 0; }
+  .fr { position: relative; width: 100%; height: 480px; overflow: hidden; background: #fcfcfc; color: #202020; display: grid; grid-template-rows: 36px 1fr; grid-template-columns: 56px 1fr; font-size: 10.5px; box-sizing: border-box; }
+  .tb { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-bottom: 1px solid #e3e3e3; background: #fff; }
+  .tb .brand { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 11px; }
+  .tb .mark { width: 16px; height: 16px; border-radius: 2px; background: #202020; color: #fff; display: grid; place-items: center; font-size: 9px; font-weight: 700; }
+  .tb .sp { flex: 1; }
+  .tb .av { width: 18px; height: 18px; border-radius: 50%; background: #e8e8e8; display: grid; place-items: center; font-size: 8px; font-weight: 600; }
+  .rail { border-right: 1px solid #e3e3e3; background: #fff; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .rail .i { width: 18px; height: 18px; border-radius: 3px; background: #ececec; }
+  .rail .i.on { background: #202020; }
+  .main { padding: 12px 16px; overflow: hidden; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .crumbs { color: #7a7a7a; font-size: 10px; }
+  .crumbs b { color: #202020; font-weight: 500; }
+  .ph { display: flex; justify-content: space-between; align-items: flex-start; }
+  .ph h1 { font-size: 16px; font-weight: 600; letter-spacing: -.02em; margin: 0; display: flex; align-items: center; gap: 6px; }
+  .ph .ctx { color: #7a7a7a; font-size: 10px; margin-top: 2px; }
+  .ph .acts { display: flex; gap: 4px; }
+  .btn { font-size: 10px; font-weight: 500; padding: 4px 8px; border-radius: 2px; border: 1px solid #d9d9d9; background: #fff; color: #202020; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .btn.solid { background: #202020; color: #fff; border-color: #202020; }
+  .btn.plain { border-color: transparent; }
+  .tabs { display: flex; gap: 14px; border-bottom: 1px solid #e3e3e3; font-size: 10.5px; color: #6b6b6b; }
+  .tabs span { padding: 4px 0 6px; }
+  .tabs .on { color: #202020; font-weight: 500; border-bottom: 2px solid #202020; margin-bottom: -1px; }
+  .bdg { font-size: 9px; padding: 1px 5px; border-radius: 2px; background: #eef7f1; color: #1a7f4b; display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; }
+  .bdg.warn { background: #fff6e5; color: #9a6400; } .bdg.err { background: #fdecec; color: #b42318; } .bdg.off { background: #f2f2f2; color: #7a7a7a; } .bdg.info { background: #eef3fb; color: #2a5db0; }
+  .bdg .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .card { background: #fff; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden; }
+  .card h3 { margin: 0; font-size: 11px; font-weight: 600; padding: 8px 10px; border-bottom: 1px solid #ececec; display: flex; justify-content: space-between; align-items: center; }
+  .card h3 .n { color: #8d8d8d; font-weight: 400; }
+  .kv { display: grid; grid-template-columns: 90px 1fr; gap: 4px 8px; padding: 8px 10px; font-size: 10px; }
+  .kv .k { color: #6b6b6b; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5px; }
+  .chip { font-size: 9px; padding: 1px 5px; background: #f0f0f0; border-radius: 2px; margin-right: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .list { font-size: 10px; }
+  .list .r { display: flex; justify-content: space-between; align-items: center; padding: 5px 10px; border-bottom: 1px solid #f0f0f0; }
+  .list .r:last-child { border-bottom: 0; }
+  .list a { color: #202020; font-weight: 500; }
+  .list .m { color: #8d8d8d; font-size: 9.5px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-height: 0; }
+  .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .stat { padding: 8px 10px; }
+  .stat .l { color: #7a7a7a; font-size: 9.5px; }
+  .stat .v { font-size: 16px; font-weight: 600; letter-spacing: -.02em; margin-top: 1px; }
+  .bar { height: 5px; width: 100%; background: #e8e8e8; border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .bar i { display: block; height: 100%; background: #1baf7a; }
+  .seg { display: inline-flex; border: 1px solid #d9d9d9; border-radius: 2px; overflow: hidden; font-size: 10px; }
+  .seg span { padding: 3px 8px; color: #3a3a3a; }
+  .seg .on { background: #f0f0f0; font-weight: 500; }
+  .rel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .relcard { padding: 8px 10px; }
+  .relcard .h { font-size: 9.5px; color: #6b6b6b; font-weight: 500; margin-bottom: 4px; }
+  .relcard .it { display: flex; justify-content: space-between; font-size: 10px; padding: 2px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  th { text-align: left; font-weight: 500; color: #6b6b6b; padding: 5px 8px; border-bottom: 1px solid #e3e3e3; white-space: nowrap; }
+  td { padding: 5px 8px; border-bottom: 1px solid #efefef; white-space: nowrap; }
+  /* yaml */
+  .ytool { display: flex; align-items: center; gap: 4px; }
+  .ytool .grow { flex: 1; }
+  .ed { display: grid; grid-template-columns: 1fr 200px; gap: 8px; min-height: 0; }
+  .code { background: #fff; border: 1px solid #e3e3e3; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5px; line-height: 1.5; padding: 6px 0; overflow: hidden; position: relative; }
+  .code .ln { display: grid; grid-template-columns: 28px 1fr; }
+  .code .ln span:first-child { color: #b0b0b0; text-align: right; padding-right: 8px; user-select: none; }
+  .k { color: #2a5db0; } .s { color: #1a7f4b; } .n { color: #b45309; } .c { color: #8d8d8d; } .err { text-decoration: underline wavy #e5484d; }
+  .code .ln.hl { background: #f6f3ff; }
+  .problems { border-top: 1px solid #ececec; padding: 4px 10px; font-size: 9.5px; color: #b42318; background: #fff; }
+  .schema { background: #fff; border: 1px solid #e3e3e3; border-radius: 4px; padding: 8px; font-size: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .schema .path { color: #7a7a7a; font-size: 9.5px; }
+  .schema .path b { color: #202020; font-weight: 500; }
+  .schema .f { border-top: 1px solid #f0f0f0; padding-top: 5px; }
+  .schema .f .nm { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 500; }
+  .schema .f .ty { color: #2a5db0; font-size: 9px; margin-left: 4px; }
+  .schema .f .rq { color: #b42318; font-size: 9px; margin-left: 4px; }
+  .schema .f .ds { color: #6b6b6b; margin-top: 2px; }
+  .schema .f .en { color: #6b6b6b; font-size: 9px; margin-top: 2px; }
+  .note { font-size: 12px; color: #6b6b6b; margin-top: 8px; }
+  .note b { color: #333; font-weight: 600; }
+  .split3 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 1100px) { .split3 { grid-template-columns: 1fr 1fr; } }
+</style>
+
+<h2>Deployment detail · the Overview tab</h2>
+<p class="subtitle">Shared header on every option: breadcrumb (Deployments › checkout-api), the name with its status, "prod-us-east · checkout", actions (Scale…, Restart, Pause, Edit YAML, Delete), and the tab strip Overview · YAML · Events. Three ways to lay out the Overview.</p>
+
+<div class="cards sh">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div><div class="i"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="crumbs">Deployments › <b>checkout-api</b></div>
+          <div class="ph"><div><h1>checkout-api <span class="bdg"><span class="dot"></span>Available</span></h1><div class="ctx">prod-us-east · checkout · apps/v1</div></div><div class="acts"><span class="btn">Scale…</span><span class="btn">Restart</span><span class="btn">Pause</span><span class="btn">Edit YAML</span><span class="btn" style="color:#b42318">Delete</span></div></div>
+          <div class="tabs"><span class="on">Overview</span><span>YAML</span><span>Events</span></div>
+          <div class="two">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="card"><h3>Details</h3><div class="kv"><span class="k">Labels</span><span><span class="chip">app=checkout-api</span><span class="chip">tier=api</span><span class="chip">part-of=checkout</span></span><span class="k">Selector</span><span class="mono">app=checkout-api</span><span class="k">Strategy</span><span>RollingUpdate · 25% / 25%</span><span class="k">Replicas</span><span>6 desired · 6 updated · 6 available</span><span class="k">Image</span><span class="mono">ghcr.io/acme/checkout-api:2.14.0</span><span class="k">Service account</span><span>checkout-api</span><span class="k">Created</span><span>42 days ago by Priya</span></div></div>
+              <div class="card"><h3>Conditions</h3><table><tr><th>Type</th><th>Status</th><th>Reason</th><th>Updated</th></tr><tr><td>Available</td><td><span class="bdg">True</span></td><td>MinimumReplicasAvailable</td><td>4 min ago</td></tr><tr><td>Progressing</td><td><span class="bdg">True</span></td><td>NewReplicaSetAvailable</td><td>4 min ago</td></tr></table></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="card"><h3>Pods <span class="n">6</span></h3><div class="list"><div class="r"><a>checkout-api-7d9f-x2k4q</a><span class="m">Running · 0 restarts · node-3</span></div><div class="r"><a>checkout-api-7d9f-b81mn</a><span class="m">Running · 0 restarts · node-5</span></div><div class="r"><span class="m">+ 4 more</span></div></div></div>
+              <div class="card"><h3>Services &amp; Ingresses <span class="n">3</span></h3><div class="list"><div class="r"><a>checkout-api</a><span class="m">Service · ClusterIP · 8080</span></div><div class="r"><a>checkout</a><span class="m">Ingress · checkout.acme.dev/api</span></div><div class="r"><a>checkout-api-hpa</a><span class="m">HPA · 3–10 · cpu 70%</span></div></div></div>
+              <div class="card"><h3>Config &amp; storage <span class="n">4</span></h3><div class="list"><div class="r"><a>checkout-api-config</a><span class="m">ConfigMap · envFrom</span></div><div class="r"><a>checkout-api-secrets</a><span class="m">Secret · env</span></div><div class="r"><a>tls-checkout</a><span class="m">Secret · volume</span></div><div class="r"><a>checkout-cache</a><span class="m">PVC · 20Gi · Bound</span></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · Details left, related objects right</h3>
+      <p>A details key/value card and the conditions table on the left; on the right, one card per relation group (Pods, Services &amp; Ingresses, Config &amp; storage) listing the related objects with how they relate. Closest to the OpenShift overview.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div><div class="i"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="crumbs">Deployments › <b>checkout-api</b></div>
+          <div class="ph"><div><h1>checkout-api <span class="bdg"><span class="dot"></span>Available</span></h1><div class="ctx">prod-us-east · checkout · apps/v1</div></div><div class="acts"><span class="btn">Scale…</span><span class="btn">Restart</span><span class="btn">Pause</span><span class="btn">Edit YAML</span><span class="btn" style="color:#b42318">Delete</span></div></div>
+          <div class="tabs"><span class="on">Overview</span><span>YAML</span><span>Events</span></div>
+          <div class="three">
+            <div class="card stat"><div class="l">Ready</div><div class="v">6 / 6</div><div class="bar"><i style="width:100%"></i></div></div>
+            <div class="card stat"><div class="l">Updated · Available</div><div class="v">6 · 6</div><div class="l" style="margin-top:3px">rollout complete 4 min ago</div></div>
+            <div class="card stat"><div class="l">Restarts · last 24 h</div><div class="v">0</div><div class="l" style="margin-top:3px">image 2.14.0</div></div>
+          </div>
+          <div class="card"><h3>Details</h3><div class="kv" style="grid-template-columns:90px 1fr 90px 1fr"><span class="k">Labels</span><span><span class="chip">app=checkout-api</span><span class="chip">tier=api</span></span><span class="k">Strategy</span><span>RollingUpdate · 25% / 25%</span><span class="k">Selector</span><span class="mono">app=checkout-api</span><span class="k">Service account</span><span>checkout-api</span><span class="k">Image</span><span class="mono">ghcr.io/acme/checkout-api:2.14.0</span><span class="k">Created</span><span>42 days ago by Priya</span></div></div>
+          <div class="card">
+            <h3>Related objects <span class="seg"><span class="on">Pods 6</span><span>ReplicaSets 2</span><span>Services 1</span><span>Ingresses 1</span><span>ConfigMaps 1</span><span>Secrets 2</span><span>PVCs 1</span><span>HPA 1</span></span></h3>
+            <table><tr><th>Name</th><th>Status</th><th>Restarts</th><th>Node</th><th>Age</th></tr><tr><td>checkout-api-7d9f-x2k4q</td><td><span class="bdg">Running</span></td><td>0</td><td>node-3</td><td>4m</td></tr><tr><td>checkout-api-7d9f-b81mn</td><td><span class="bdg">Running</span></td><td>0</td><td>node-5</td><td>4m</td></tr><tr><td>checkout-api-7d9f-q0ls2</td><td><span class="bdg">Running</span></td><td>0</td><td>node-1</td><td>4m</td></tr></table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · Summary tiles + one related-objects table</h3>
+      <p>Three stat tiles (ready, rollout, restarts), a two-column details card, then a single "Related objects" card whose segmented control switches the kind (Pods, ReplicaSets, Services, …) and shows a proper table for it. Compact; one table at a time.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="fr">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div><div class="i"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="crumbs">Deployments › <b>checkout-api</b></div>
+          <div class="ph"><div><h1>checkout-api <span class="bdg"><span class="dot"></span>Available</span></h1><div class="ctx">prod-us-east · checkout · apps/v1</div></div><div class="acts"><span class="btn">Scale…</span><span class="btn">Restart</span><span class="btn">Pause</span><span class="btn">Edit YAML</span><span class="btn" style="color:#b42318">Delete</span></div></div>
+          <div class="tabs"><span class="on">Overview</span><span>YAML</span><span>Events</span></div>
+          <div class="rel">
+            <div class="card relcard"><div class="h">Serves traffic</div><div class="it"><span>Ingress checkout</span><span class="mono">checkout.acme.dev/api</span></div><div class="it"><span>Service checkout-api</span><span class="mono">ClusterIP :8080</span></div></div>
+            <div class="card relcard" style="border-color:#202020"><div class="h">Deployment · checkout-api</div><div class="it"><span>ReplicaSet 7d9f</span><span class="bdg">6 / 6</span></div><div class="it"><span>ReplicaSet 5c1a</span><span class="bdg off">0 / 0</span></div><div class="it"><span>HPA checkout-api-hpa</span><span class="mono">3–10 · cpu 70%</span></div></div>
+            <div class="card relcard"><div class="h">Configured by</div><div class="it"><span>ConfigMap checkout-api-config</span><span class="mono">envFrom</span></div><div class="it"><span>Secret checkout-api-secrets</span><span class="mono">env</span></div><div class="it"><span>Secret tls-checkout</span><span class="mono">volume</span></div></div>
+            <div class="card relcard"><div class="h">Runs as</div><div class="it"><span>ServiceAccount checkout-api</span><span class="mono">2 roles</span></div><div class="it"><span>Node selector</span><span class="mono">pool=general</span></div></div>
+            <div class="card relcard"><div class="h">Pods · 6 running</div><div class="it"><span>checkout-api-7d9f-x2k4q</span><span class="bdg">Running</span></div><div class="it"><span>checkout-api-7d9f-b81mn</span><span class="bdg">Running</span></div><div class="it"><span class="mono">+ 4 more</span></div></div>
+            <div class="card relcard"><div class="h">Storage</div><div class="it"><span>PVC checkout-cache</span><span class="mono">20Gi · Bound</span></div></div>
+          </div>
+          <div class="card"><h3>Details</h3><div class="kv" style="grid-template-columns:90px 1fr 90px 1fr"><span class="k">Labels</span><span><span class="chip">app=checkout-api</span><span class="chip">tier=api</span></span><span class="k">Strategy</span><span>RollingUpdate · 25% / 25%</span><span class="k">Image</span><span class="mono">ghcr.io/acme/checkout-api:2.14.0</span><span class="k">Created</span><span>42 days ago by Priya</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C · Relationship cards</h3>
+      <p>The related objects first, as a grid of small cards grouped by how they relate (Serves traffic, the Deployment itself with its ReplicaSets and HPA, Configured by, Runs as, Pods, Storage), then the details card. Reads like a map of the workload.</p>
+    </div>
+  </div>
+</div>
+
+<h2 style="margin-top:28px">YAML and Events tabs (playbacks, not choices)</h2>
+<div class="split3 sh">
+  <div class="mockup">
+    <div class="mockup-header">YAML tab · CodeMirror editor with the schema browser Drawer open</div>
+    <div class="mockup-body">
+      <div class="fr" style="height:440px">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div><div class="i"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="crumbs">Deployments › <b>checkout-api</b></div>
+          <div class="tabs"><span>Overview</span><span class="on">YAML</span><span>Events</span></div>
+          <div class="ytool"><span class="btn solid">Save</span><span class="btn">Reload</span><span class="btn">Download ▾</span><span class="btn plain" style="color:#9a6400">● Unsaved changes · 1 problem</span><span class="grow"></span><span class="btn">Schema</span><span class="btn plain">Shortcuts</span></div>
+          <div class="ed">
+            <div class="code">
+              <div class="ln"><span>1</span><span><span class="k">apiVersion</span>: <span class="s">apps/v1</span></span></div>
+              <div class="ln"><span>2</span><span><span class="k">kind</span>: <span class="s">Deployment</span></span></div>
+              <div class="ln"><span>3</span><span><span class="k">metadata</span>:</span></div>
+              <div class="ln"><span>4</span><span>  <span class="k">name</span>: <span class="s">checkout-api</span></span></div>
+              <div class="ln"><span>5</span><span>  <span class="k">namespace</span>: <span class="s">checkout</span></span></div>
+              <div class="ln"><span>6</span><span>  <span class="k">labels</span>:</span></div>
+              <div class="ln"><span>7</span><span>    <span class="k">app</span>: <span class="s">checkout-api</span></span></div>
+              <div class="ln"><span>8</span><span><span class="k">spec</span>:</span></div>
+              <div class="ln"><span>9</span><span>  <span class="k">replicas</span>: <span class="n">6</span></span></div>
+              <div class="ln hl"><span>10</span><span>  <span class="k">strategy</span>:</span></div>
+              <div class="ln hl"><span>11</span><span>    <span class="k">type</span>: <span class="s err">RollingUpdat</span></span></div>
+              <div class="ln"><span>12</span><span>    <span class="k">rollingUpdate</span>:</span></div>
+              <div class="ln"><span>13</span><span>      <span class="k">maxSurge</span>: <span class="s">25%</span></span></div>
+              <div class="ln"><span>14</span><span>      <span class="k">maxUnavailable</span>: <span class="s">25%</span></span></div>
+              <div class="ln"><span>15</span><span>  <span class="k">template</span>:</span></div>
+              <div class="ln"><span>16</span><span>    <span class="k">spec</span>:</span></div>
+              <div class="ln"><span>17</span><span>      <span class="k">containers</span>:</span></div>
+              <div class="ln"><span>18</span><span>        - <span class="k">name</span>: <span class="s">api</span></span></div>
+              <div class="ln"><span>19</span><span>          <span class="k">image</span>: <span class="s">ghcr.io/acme/checkout-api:2.14.0</span></span></div>
+              <div class="problems">⚠ Line 11 · type must be one of Recreate, RollingUpdate</div>
+            </div>
+            <div class="schema">
+              <div class="path"><b>Deployment</b> › spec › <b>strategy</b></div>
+              <div style="color:#6b6b6b">The deployment strategy to use to replace existing pods with new ones.</div>
+              <div class="f"><span class="nm">type</span><span class="ty">string</span><div class="ds">Type of deployment. Can be "Recreate" or "RollingUpdate".</div><div class="en">enum: Recreate · RollingUpdate · default: RollingUpdate</div></div>
+              <div class="f"><span class="nm">rollingUpdate</span><span class="ty">object ›</span><div class="ds">Rolling update config params. Present only if type = RollingUpdate.</div></div>
+              <div class="f" style="color:#7a7a7a;font-size:9.5px">Fields follow the cursor; click a name to jump; "object ›" drills in.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Events tab · events emitted for the Deployment and its ReplicaSets/Pods</div>
+    <div class="mockup-body">
+      <div class="fr" style="height:440px">
+        <div class="tb"><span class="brand"><span class="mark">K</span>Kemo Console</span><span class="sp"></span><span class="av">KM</span></div>
+        <div class="rail"><div class="i"></div><div class="i"></div><div class="i on"></div><div class="i"></div><div class="i"></div><div class="i"></div></div>
+        <div class="main">
+          <div class="crumbs">Deployments › <b>checkout-api</b></div>
+          <div class="tabs"><span>Overview</span><span>YAML</span><span class="on">Events</span></div>
+          <div class="ytool"><span class="seg"><span class="on">All 14</span><span>Warning 2</span></span><span class="seg"><span class="on">Deployment + children</span><span>Deployment only</span></span><span class="grow"></span><span style="color:#6b6b6b">● streaming · paused on hover</span></div>
+          <div class="card">
+            <table>
+              <tr><th>Type</th><th>Reason</th><th>Message</th><th>Object</th><th>Count</th><th>Last seen</th></tr>
+              <tr><td><span class="bdg info">Normal</span></td><td>ScalingReplicaSet</td><td>Scaled up replica set checkout-api-7d9f to 6 from 5</td><td class="mono">deployment/checkout-api</td><td>1</td><td>4 min ago</td></tr>
+              <tr><td><span class="bdg info">Normal</span></td><td>SuccessfulCreate</td><td>Created pod: checkout-api-7d9f-x2k4q</td><td class="mono">replicaset/checkout-api-7d9f</td><td>1</td><td>4 min ago</td></tr>
+              <tr><td><span class="bdg warn">Warning</span></td><td>Unhealthy</td><td>Readiness probe failed: HTTP 503 (connect: timeout) · x3</td><td class="mono">pod/checkout-api-7d9f-b81mn</td><td>3</td><td>6 min ago</td></tr>
+              <tr><td><span class="bdg info">Normal</span></td><td>Pulled</td><td>Container image "ghcr.io/acme/checkout-api:2.14.0" already present</td><td class="mono">pod/checkout-api-7d9f-b81mn</td><td>1</td><td>6 min ago</td></tr>
+              <tr><td><span class="bdg warn">Warning</span></td><td>FailedScheduling</td><td>0/12 nodes are available: insufficient cpu · x2</td><td class="mono">pod/checkout-api-7d9f-q0ls2</td><td>2</td><td>9 min ago</td></tr>
+              <tr><td><span class="bdg info">Normal</span></td><td>Started</td><td>Started container api</td><td class="mono">pod/checkout-api-7d9f-x2k4q</td><td>1</td><td>12 min ago</td></tr>
+            </table>
+            <div style="padding:5px 8px;color:#7a7a7a;font-size:9.5px">1–10 of 14 · sorted by last seen</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="note"><b>YAML playback:</b> Save (solid, applies the mock), Reload (restores the server copy, confirms if dirty), Download ▾ (Download · Download clean, the clean copy without <code>metadata.resourceVersion / uid / managedFields / creationTimestamp / generation</code> and <code>status</code>), a dirty/problems indicator, "Schema" toggles the browser Drawer on the end side, "Shortcuts" a small dialog. The editor is CodeMirror 6 themed with Park tokens, YAML highlighting, folding, line numbers, and JSON-Schema lint/hover/completion from the bundled apps/v1 Deployment schema. The schema browser follows the cursor's path and lets you drill into objects and arrays; it shows type, required, description, enum and default. <b>Events playback:</b> a DataTable without selection, Normal/Warning badges, filter by type and by scope (deployment only vs including its ReplicaSets and Pods), live with the same hover/focus pause as the streams. Click the Overview you prefer and tell me what's off in the playbacks.</p>
