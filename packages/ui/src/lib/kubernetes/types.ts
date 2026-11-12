@@ -184,7 +184,11 @@ export interface K8sEvent {
   type: 'Normal' | 'Warning'
   reason: string
   message: string
-  involvedObject: { kind: 'Deployment' | 'ReplicaSet' | 'Pod'; name: string }
+  involvedObject: {
+    /** Any kind: commonly "Deployment" | "ReplicaSet" | "Pod" on a Deployment's page. */
+    kind: string
+    name: string
+  }
   count: number
   firstSeen: string
   lastSeen: string

@@ -243,6 +243,34 @@ describe('YamlEditor', () => {
     expect(editor.view.state.selection.main.head).toBe(0)
   })
 
+  it('reports the problems of the text as it is now, without waiting for the linter', async () => {
+    const onProblems = vi.fn()
+    const { editor } = await mount({ schema, onProblems })
+    await waitFor(() => expect(onProblems).toHaveBeenCalled())
+    onProblems.mockClear()
+    expect(editor.problemsNow()).toEqual([])
+    const at = deployment.indexOf('RollingUpdate') + 'RollingUpdat'.length
+    act(() => editor.view.dispatch({ changes: { from: at, to: at + 1 } }))
+    // The edit is not linted yet, but the check sees it.
+    expect(onProblems).not.toHaveBeenCalled()
+    expect(editor.problemsNow()).toEqual([
+      expect.objectContaining({
+        from: deployment.indexOf('RollingUpdate'),
+        to: at,
+        line: 6,
+        severity: 'error',
+        message: expect.stringContaining('RollingUpdate'),
+      }),
+    ])
+    // Syntax errors replace the schema's, as in the linter, which reports the same list once it runs.
+    const end = editor.view.state.doc.length
+    act(() => editor.view.dispatch({ changes: { from: end, insert: ' bad: [\n' } }))
+    const now = editor.problemsNow()
+    expect(now.length).toBeGreaterThan(0)
+    expect(now.some((problem) => problem.message.includes('RollingUpdate'))).toBe(false)
+    await waitFor(() => expect(onProblems).toHaveBeenLastCalledWith(now), { timeout: 2000 })
+  })
+
   it('indents with Tab, saves with Mod-s and lets focus out with Escape', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()

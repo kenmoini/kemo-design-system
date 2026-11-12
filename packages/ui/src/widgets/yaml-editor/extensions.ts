@@ -72,6 +72,10 @@ export interface YamlEditorInstance {
   /** Puts the cursor at `offset` (clamped to the text), scrolls it into view and focuses the editor:
    * a problem's `from`, say. */
   moveToOffset(offset: number): void
+  /** The problems of the text as it is now, from the linter's sources (syntax, then schema). The
+   * linter reports half a second after an edit; this does not wait, so a save can check the very
+   * text it is about to send. */
+  problemsNow(): YamlProblem[]
   destroy(): void
 }
 
@@ -119,18 +123,21 @@ function minimalChange(from: string, to: string) {
   return { from: start, to: from.length - end, insert: to.slice(start, to.length - end) }
 }
 
+function toProblem(state: EditorState, d: Diagnostic, from: number, to: number): YamlProblem {
+  return {
+    from,
+    to,
+    line: state.doc.lineAt(from).number,
+    // Schema messages are Markdown (`code` spans) for the tooltip; problems are plain text.
+    message: d.message.replaceAll('`', ''),
+    severity: d.severity === 'error' ? 'error' : 'warning',
+  }
+}
+
+/** The problems of the last lint run, in document order. */
 function toProblems(state: EditorState): YamlProblem[] {
   const problems: YamlProblem[] = []
-  forEachDiagnostic(state, (d, from, to) => {
-    problems.push({
-      from,
-      to,
-      line: state.doc.lineAt(from).number,
-      // Schema messages are Markdown (`code` spans) for the tooltip; problems are plain text.
-      message: d.message.replaceAll('`', ''),
-      severity: d.severity === 'error' ? 'error' : 'warning',
-    })
-  })
+  forEachDiagnostic(state, (d, from, to) => problems.push(toProblem(state, d, from, to)))
   return problems
 }
 
@@ -169,6 +176,12 @@ export function createEditor(options: CreateEditorOptions): YamlEditorInstance {
   }
 
   const schemaLint = yamlSchemaLinter()
+  // One source: syntax errors when the YAML does not parse, otherwise the schema violations (the
+  // schema linter skips documents that do not parse).
+  const lintSource = (v: EditorView): Diagnostic[] => {
+    const syntax = syntaxDiagnostics(v.state)
+    return syntax.length > 0 ? syntax : schemaLint(v)
+  }
 
   const view: EditorView = new EditorView({
     parent,
@@ -216,15 +229,7 @@ export function createEditor(options: CreateEditorOptions): YamlEditorInstance {
         stateExtensions(schema as Schema),
         yamlLanguage.data.of({ autocomplete: schemaCompletion }),
         hoverTooltip(yamlSchemaHover()),
-        // One source: syntax errors when the YAML does not parse, otherwise the schema violations
-        // (the schema linter skips documents that do not parse).
-        linter(
-          (v) => {
-            const syntax = syntaxDiagnostics(v.state)
-            return syntax.length > 0 ? syntax : schemaLint(v)
-          },
-          { delay: LINT_DELAY, needsRefresh: handleRefresh },
-        ),
+        linter(lintSource, { delay: LINT_DELAY, needsRefresh: handleRefresh }),
         lintGutter(),
         accessCompartment.of(access(readOnly, ariaLabel)),
         EditorView.updateListener.of((update) => {
@@ -297,6 +302,13 @@ export function createEditor(options: CreateEditorOptions): YamlEditorInstance {
       const anchor = Math.min(Math.max(Math.trunc(offset) || 0, 0), view.state.doc.length)
       view.dispatch({ selection: { anchor }, scrollIntoView: true })
       view.focus()
+    },
+    problemsNow() {
+      if (destroyed) return []
+      const { state } = view
+      return lintSource(view)
+        .map((d) => toProblem(state, d, d.from, d.to))
+        .sort((a, b) => a.from - b.from || a.to - b.to)
     },
     destroy() {
       if (destroyed) return

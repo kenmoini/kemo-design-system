@@ -1,9 +1,9 @@
 'use client'
 import { Portal } from '@ark-ui/react/portal'
 import { TriangleAlert } from 'lucide-react'
-import { type ReactNode, useRef, useState } from 'react'
-import { HStack, Stack, styled } from '../../../styled-system/jsx'
-import { Button, CloseButton, Drawer, Text, Tooltip } from '../../components/ui'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { Box, Grid, HStack, Stack, styled } from '../../../styled-system/jsx'
+import { Button, CloseButton, Drawer, Heading, Text, Tooltip } from '../../components/ui'
 import { MEDIA_LG, useMediaQuery } from '../../layouts/app-shell'
 import {
   ActionMenu,
@@ -19,6 +19,9 @@ import { ShortcutsDialog } from './shortcuts-dialog'
 import type { ResourceYamlTabProps } from './types'
 
 type Path = (string | number)[]
+
+/** The editor fills the tab (min 32rem); the `lg` schema panel beside it matches it. */
+const EDITOR_HEIGHT = 'max(32rem, calc(100dvh - 22rem))'
 
 /** "web.yaml" → "web.clean.yaml". */
 const cleanFileName = (fileName: string) => `${fileName.replace(/\.ya?ml$/i, '')}.clean.yaml`
@@ -40,10 +43,10 @@ function sameProblems(a: YamlProblem[], b: YamlProblem[]): boolean {
 }
 
 /**
- * The YAML of any resource in a CodeMirror editor: Save (blocked while the schema reports a
- * problem), Reload (asks before discarding edits), Download (as is, or clean), a status line, the
- * problems under the editor, and a schema browser Drawer that follows the cursor (beside the editor
- * on `lg`, modal below). The host owns the draft, so edits survive tab and route changes.
+ * The YAML of any resource in a CodeMirror editor: Save (blocked while the text has a problem),
+ * Reload (asks before discarding edits), Download (as is, or clean), a status line, the problems
+ * under the editor, and a schema browser that follows the cursor (a panel beside the editor on
+ * `lg`, a modal Drawer below). The host owns the draft, so edits survive tab and route changes.
  */
 export function ResourceYamlTab({
   yamlText,
@@ -64,14 +67,15 @@ export function ResourceYamlTab({
   // The browser's path: the cursor's, until the reader drills elsewhere (the next move resets it).
   const [browserPath, setBrowserPath] = useState<Path>([])
   const cursorPath = useRef<Path>([])
-  // A new array per request: the editor moves on every new reference.
-  const [cursorRequest, setCursorRequest] = useState<Path>()
   const [confirmReload, setConfirmReload] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  // Save checks the editor's text itself, so it waits for CodeMirror.
+  const [editorReady, setEditorReady] = useState(false)
   const editor = useRef<YamlEditorInstance | null>(null)
   const saveRef = useRef<HTMLButtonElement>(null)
+  const schemaToggleRef = useRef<HTMLButtonElement>(null)
   // A field picked in the modal Drawer closes it and hands focus to the editor at that key.
   const focusEditorOnClose = useRef(false)
   useRefocusAfter(saveRef, saving)
@@ -81,14 +85,33 @@ export function ResourceYamlTab({
   const dirty = draft !== undefined && draft !== yamlText
   const ready = create ? text.trim().length > 0 : dirty
   const blocked = ready && problems.length > 0
+  const schemaPanel = schema !== undefined && schemaOpen && isLg
+
+  // The newest text: edits land here at once, ahead of the host's re-render.
+  const latestText = useRef(text)
+  useEffect(() => {
+    latestText.current = text
+  }, [text])
+
+  const showProblems = (next: YamlProblem[]) =>
+    setProblems((prev) => (sameProblems(prev, next) ? prev : next))
 
   const save = async () => {
-    if (!ready || blocked || saving) return
+    const instance = editor.current
+    if (!ready || saving || !instance) return
+    // The linter runs half a second after an edit: check the text being sent, not the last run.
+    const now = instance.problemsNow()
+    if (now.length > 0) {
+      showProblems(now)
+      return
+    }
+    const saved = instance.view.state.doc.toString()
     setSaving(true)
     setSaveError(null)
     try {
-      await onSave(text)
-      onDraftChange(undefined)
+      await onSave(saved)
+      // Edits made while the save ran stay as the draft.
+      if (latestText.current === saved) onDraftChange(undefined)
     } catch (cause) {
       setSaveError(errorMessage(cause))
     } finally {
@@ -97,6 +120,7 @@ export function ResourceYamlTab({
   }
 
   const reload = () => {
+    setSaveError(null)
     if (dirty) {
       setConfirmReload(true)
       return
@@ -116,13 +140,30 @@ export function ResourceYamlTab({
     setSchemaOpen(!schemaOpen)
   }
 
+  const closeSchemaPanel = () => {
+    setSchemaOpen(false)
+    schemaToggleRef.current?.focus()
+  }
+
+  // Moves the editor to the field's key when the text has it; below `lg` the modal Drawer then
+  // closes so the editor can take focus there.
   const selectField = (path: Path) => {
-    setCursorRequest([...path])
-    if (!isLg) {
+    const moved = editor.current?.moveToPath(path) ?? false
+    if (moved && !isLg) {
       focusEditorOnClose.current = true
       setSchemaOpen(false)
     }
   }
+
+  const browser = schema ? (
+    <SchemaBrowser
+      schema={schema}
+      path={browserPath}
+      onPathChange={setBrowserPath}
+      onSelectField={selectField}
+      headingLevel={3}
+    />
+  ) : null
 
   const status: { key: string; tone?: 'amber' | 'red'; text: ReactNode }[] = []
   if (dirty) {
@@ -147,8 +188,7 @@ export function ResourceYamlTab({
   }
 
   return (
-    // On `lg` the Drawer sits beside the tab instead of over the editor.
-    <Stack gap="3" pe={schemaOpen && isLg ? '22rem' : undefined}>
+    <Stack gap="3">
       <HStack justify="space-between" gap="3" flexWrap="wrap">
         <HStack gap="2" flexWrap="wrap">
           <Tooltip content="Fix the problems first" disabled={!blocked}>
@@ -156,7 +196,7 @@ export function ResourceYamlTab({
               ref={saveRef}
               variant="solid"
               size="sm"
-              disabled={!ready}
+              disabled={!ready || !editorReady}
               aria-disabled={blocked || undefined}
               loading={saving}
               onClick={() => void save()}
@@ -200,7 +240,13 @@ export function ResourceYamlTab({
         </HStack>
         <HStack gap="2">
           {schema ? (
-            <Button variant="outline" size="sm" aria-pressed={schemaOpen} onClick={toggleSchema}>
+            <Button
+              ref={schemaToggleRef}
+              variant="outline"
+              size="sm"
+              aria-pressed={schemaOpen}
+              onClick={toggleSchema}
+            >
               Schema
             </Button>
           ) : null}
@@ -213,58 +259,98 @@ export function ResourceYamlTab({
       <FormError message={saveError} />
       {create && createControls ? createControls : null}
 
-      <YamlEditor
-        value={text}
-        onChange={(next) => onDraftChange(next === yamlText ? undefined : next)}
-        schema={schema}
-        onProblems={(next) => setProblems((prev) => (sameProblems(prev, next) ? prev : next))}
-        onCursorPath={(path) => {
-          cursorPath.current = path
-          if (schemaOpen) setBrowserPath(path)
-        }}
-        onSave={() => void save()}
-        height="max(32rem, calc(100dvh - 22rem))"
-        ariaLabel={fileName}
-        cursorPathRequest={cursorRequest}
-        onReady={(instance) => {
-          editor.current = instance
-        }}
-      />
+      <Grid
+        gridTemplateColumns={schemaPanel ? 'minmax(0, 1fr) 22rem' : 'minmax(0, 1fr)'}
+        gap="4"
+        alignItems="start"
+      >
+        <Stack gap="3" minW="0">
+          <YamlEditor
+            value={text}
+            onChange={(next) => {
+              latestText.current = next
+              setSaveError(null)
+              onDraftChange(next === yamlText ? undefined : next)
+            }}
+            schema={schema}
+            onProblems={showProblems}
+            onCursorPath={(path) => {
+              cursorPath.current = path
+              if (schemaOpen) setBrowserPath(path)
+            }}
+            onSave={() => void save()}
+            height={EDITOR_HEIGHT}
+            ariaLabel={fileName}
+            onReady={(instance) => {
+              editor.current = instance
+              setEditorReady(true)
+            }}
+          />
 
-      {problems.length > 0 ? (
-        // `listStyle: none` drops the implicit list role in Safari/VoiceOver; set it back.
-        <styled.ul
-          role="list"
-          aria-label="Problems"
-          listStyle="none"
-          display="flex"
-          flexDirection="column"
-          gap="0.5"
-          maxH="40"
-          overflowY="auto"
-        >
-          {problems.map((problem, index) => (
-            <li key={`${problem.from}:${index}`}>
-              <Button
-                variant="plain"
-                size="xs"
-                h="auto"
-                minH="6"
-                py="1"
-                px="1"
-                whiteSpace="normal"
-                textAlign="start"
-                fontWeight="normal"
-                color={problem.severity === 'error' ? 'red.11' : 'amber.11'}
-                onClick={() => editor.current?.moveToOffset(problem.from)}
-              >
-                <TriangleAlert />
-                {`Line ${problem.line} · ${problem.message}`}
-              </Button>
-            </li>
-          ))}
-        </styled.ul>
-      ) : null}
+          {problems.length > 0 ? (
+            // `listStyle: none` drops the implicit list role in Safari/VoiceOver; set it back.
+            <styled.ul
+              role="list"
+              aria-label="Problems"
+              listStyle="none"
+              display="flex"
+              flexDirection="column"
+              gap="0.5"
+              maxH="40"
+              overflowY="auto"
+            >
+              {problems.map((problem, index) => (
+                <li key={`${problem.from}:${index}`}>
+                  <Button
+                    variant="plain"
+                    size="xs"
+                    h="auto"
+                    minH="6"
+                    py="1"
+                    px="1"
+                    whiteSpace="normal"
+                    textAlign="start"
+                    fontWeight="normal"
+                    color={problem.severity === 'error' ? 'red.11' : 'amber.11'}
+                    onClick={() => editor.current?.moveToOffset(problem.from)}
+                  >
+                    <TriangleAlert />
+                    {`Line ${problem.line} · ${problem.message}`}
+                  </Button>
+                </li>
+              ))}
+            </styled.ul>
+          ) : null}
+        </Stack>
+
+        {/* On `lg` the browser sits beside the editor, outside any dialog: Escape stays with the
+            editor and both stay usable. It scrolls on its own. */}
+        {schemaPanel ? (
+          <styled.aside
+            role="complementary"
+            aria-label="Schema"
+            display="flex"
+            flexDirection="column"
+            gap="3"
+            minH="0"
+            p="4"
+            borderWidth="1px"
+            borderColor="border"
+            borderRadius="l2"
+            style={{ height: EDITOR_HEIGHT }}
+          >
+            <HStack justify="space-between" gap="2">
+              <Heading as="h2" textStyle="md" fontWeight="semibold">
+                Schema
+              </Heading>
+              <CloseButton size="xs" aria-label="Close schema" onClick={closeSchemaPanel} />
+            </HStack>
+            <Box flex="1" minH="0">
+              {browser}
+            </Box>
+          </styled.aside>
+        ) : null}
+      </Grid>
 
       <ConfirmDialog
         open={confirmReload}
@@ -276,12 +362,11 @@ export function ResourceYamlTab({
       />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
 
-      {schema ? (
+      {/* Below `lg` the browser is a modal Drawer over the editor. */}
+      {schema && !isLg ? (
         <Drawer.Root
           open={schemaOpen}
           onOpenChange={(details) => setSchemaOpen(details.open)}
-          // Beside the editor on `lg` (it stays usable); over it, with a backdrop, below.
-          modal={!isLg}
           placement="end"
           finalFocusEl={() => {
             if (!focusEditorOnClose.current) return null
@@ -290,7 +375,7 @@ export function ResourceYamlTab({
           }}
         >
           <Portal>
-            {isLg ? null : <Drawer.Backdrop />}
+            <Drawer.Backdrop />
             <Drawer.Positioner>
               <Drawer.Content maxW="22rem">
                 <Drawer.Header>
@@ -300,13 +385,7 @@ export function ResourceYamlTab({
                   <CloseButton size="sm" />
                 </Drawer.CloseTrigger>
                 <Drawer.Body alignItems="stretch" minH="0" pt="0">
-                  <SchemaBrowser
-                    schema={schema}
-                    path={browserPath}
-                    onPathChange={setBrowserPath}
-                    onSelectField={selectField}
-                    headingLevel={3}
-                  />
+                  {browser}
                 </Drawer.Body>
               </Drawer.Content>
             </Drawer.Positioner>

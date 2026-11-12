@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, HStack, Stack, styled } from '../../../styled-system/jsx'
 import { Badge, Code, SegmentGroup, Text } from '../../components/ui'
 import { type K8sEvent, relativeAge } from '../../lib/kubernetes'
@@ -62,6 +62,33 @@ function eventColumns(now: string): DataTableColumn<K8sEvent>[] {
 }
 
 /**
+ * The live table's frame: a named region a keyboard can reach (focus inside pauses, as the pointer
+ * over it does). It unmounts when the stream stops, which reports the end of any pause.
+ */
+function PauseRegion({
+  onPauseChange,
+  children,
+}: {
+  onPauseChange: (paused: boolean) => void
+  children: ReactNode
+}) {
+  const pause = useReaderPause(onPauseChange)
+  return (
+    <Box
+      role="region"
+      aria-label="Events"
+      tabIndex={0}
+      outline="none"
+      borderRadius="l3"
+      focusVisibleRing="outside"
+      {...pause}
+    >
+      {children}
+    </Box>
+  )
+}
+
+/**
  * The events of a resource and its children (a Deployment's ReplicaSets and Pods, say), newest
  * first: by type (all or warnings) and by scope (with the children or the resource only). Live,
  * it says it is streaming and holds its rows still while the pointer or focus is on them.
@@ -83,11 +110,11 @@ export function ResourceEventsTab({
   useEffect(() => {
     latest.current = events
   })
-  const pause = useReaderPause((next) => {
+  const changePause = (next: boolean) => {
     setPaused(next)
     setHeld(next ? latest.current : null)
     onPauseChange?.(next)
-  })
+  }
 
   const shown = live && held ? held : events
   const inScope = useMemo(
@@ -103,6 +130,16 @@ export function ResourceEventsTab({
   const warnings = useMemo(() => inScope.filter((event) => event.type === 'Warning'), [inScope])
   const rows = type === 'warning' ? warnings : inScope
   const columns = useMemo(() => eventColumns(now), [now])
+  const table = (
+    <DataTable
+      entity={entity}
+      columns={columns}
+      rows={rows}
+      initialSort={{ id: 'lastSeen', desc: true }}
+      pageSize={10}
+      emptyMessage={shown.length === 0 ? 'No events yet' : 'No events match these filters'}
+    />
+  )
 
   return (
     <Stack gap="4">
@@ -141,29 +178,12 @@ export function ResourceEventsTab({
         </HStack>
         {live ? (
           <Text role="status" textStyle="sm" color="fg.muted">
-            {paused ? '● paused' : '● streaming · paused on hover'}
+            <span aria-hidden="true">● </span>
+            {paused ? 'paused' : 'streaming · paused on hover'}
           </Text>
         ) : null}
       </HStack>
-      {/* Focusable, so a keyboard can reach the events and hold them still (focus inside pauses). */}
-      <Box
-        role="region"
-        aria-label="Events"
-        tabIndex={0}
-        outline="none"
-        borderRadius="l3"
-        focusVisibleRing="outside"
-        {...pause}
-      >
-        <DataTable
-          entity={entity}
-          columns={columns}
-          rows={rows}
-          initialSort={{ id: 'lastSeen', desc: true }}
-          pageSize={10}
-          emptyMessage={shown.length === 0 ? 'No events yet' : 'No events match these filters'}
-        />
-      </Box>
+      {live ? <PauseRegion onPauseChange={changePause}>{table}</PauseRegion> : table}
     </Stack>
   )
 }

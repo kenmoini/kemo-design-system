@@ -138,13 +138,41 @@ describe('ResourceYamlTab', () => {
     expect(onSave).toHaveBeenCalledWith(scaled)
   })
 
-  it('shows why a save was rejected and keeps the draft', async () => {
+  it('shows why a save was rejected, keeps the draft, and drops the message on the next edit or Reload', async () => {
     const user = userEvent.setup()
     const onSave = vi.fn(() => Promise.reject(new Error('metadata.name cannot change')))
-    const { onDraftChange } = await renderTab({ initialDraft: scaled, onSave })
+    const { textbox, view, onDraftChange } = await renderTab({ initialDraft: scaled, onSave })
     await user.click(saveButton())
     expect(await screen.findByRole('alert')).toHaveTextContent('metadata.name cannot change')
     expect(onDraftChange).not.toHaveBeenCalled()
+    expect(status()).toHaveTextContent('Unsaved changes')
+
+    act(() => view.dispatch({ selection: { anchor: scaled.length } }))
+    textbox.focus()
+    await user.keyboard('#')
+    expect(screen.queryByRole('alert')).toBeNull()
+
+    await user.click(saveButton())
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Reload' }))
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('keeps edits made while a save was running', async () => {
+    const user = userEvent.setup()
+    let finish!: () => void
+    const onSave = vi.fn(() => new Promise<void>((resolve) => (finish = resolve)))
+    const { textbox, view, onDraftChange } = await renderTab({ initialDraft: scaled, onSave })
+    await user.click(saveButton())
+    expect(onSave).toHaveBeenCalledWith(scaled)
+
+    act(() => view.dispatch({ selection: { anchor: scaled.length } }))
+    textbox.focus()
+    await user.keyboard('#')
+    await act(async () => finish())
+    expect(onDraftChange).not.toHaveBeenCalledWith(undefined)
+    expect(onDraftChange).toHaveBeenLastCalledWith(`${scaled}#`)
+    expect(view.state.doc.toString()).toBe(`${scaled}#`)
     expect(status()).toHaveTextContent('Unsaved changes')
   })
 
@@ -161,6 +189,26 @@ describe('ResourceYamlTab', () => {
     await user.click(save)
     textbox.focus()
     await user.keyboard('{Control>}s{/Control}')
+    expect(onSave).not.toHaveBeenCalled()
+  })
+
+  it('checks the text itself on save, not the last lint run', async () => {
+    const user = userEvent.setup()
+    const { textbox, view, onSave } = await renderTab({ initialDraft: scaled })
+    // Break the enum and save at once, well inside the linter's delay.
+    const end = scaled.indexOf('RollingUpdate') + 'RollingUpdate'.length
+    act(() => view.dispatch({ selection: { anchor: end } }))
+    textbox.focus()
+    await user.keyboard('{Backspace}{Control>}s{/Control}')
+    expect(onSave).not.toHaveBeenCalled()
+    const list = screen.getByRole('list', { name: 'Problems' })
+    expect(within(list).getByRole('button', { name: /^Line 8 · / })).toBeInTheDocument()
+    expect(status()).toHaveTextContent('· 1 problem')
+
+    // The same holds for a click on Save straight after an edit.
+    await user.click(within(list).getByRole('button', { name: /^Line 8 · / }))
+    await user.keyboard('{Backspace}')
+    await user.click(saveButton())
     expect(onSave).not.toHaveBeenCalled()
   })
 
@@ -218,7 +266,7 @@ describe('ResourceYamlTab', () => {
     expect(status()).toHaveTextContent('● Unsaved changes · Server copy changed · Reload to see it')
   })
 
-  it('opens the schema browser beside the editor on lg, following the cursor until the reader drills in', async () => {
+  it('shows the schema browser as a panel beside the editor on lg, following the cursor until the reader drills in', async () => {
     setMediaMatches(MEDIA_LG, true)
     const user = userEvent.setup()
     const { textbox, view } = await renderTab()
@@ -226,9 +274,9 @@ describe('ResourceYamlTab', () => {
     expect(toggle).toHaveAttribute('aria-pressed', 'false')
     await user.click(toggle)
     expect(toggle).toHaveAttribute('aria-pressed', 'true')
-    const drawer = await screen.findByRole('dialog', { name: 'Schema' })
-    expect(drawer).toHaveAttribute('aria-modal', 'false')
-    const crumbs = within(drawer).getByRole('navigation', { name: 'breadcrumb' })
+    const panel = screen.getByRole('complementary', { name: 'Schema' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    const crumbs = within(panel).getByRole('navigation', { name: 'breadcrumb' })
     expect(within(crumbs).getByText('Widget')).toHaveAttribute('aria-current', 'page')
 
     // The browser follows the cursor: on `type`, it lists strategy's fields.
@@ -244,15 +292,22 @@ describe('ResourceYamlTab', () => {
       expect(within(crumbs).getByText('spec')).toHaveAttribute('aria-current', 'page'),
     )
 
-    // A field name moves the editor cursor to its key; the drawer stays open beside the editor.
-    await user.click(within(drawer).getByRole('button', { name: 'strategy' }))
-    await waitFor(() => expect(view.state.selection.main.head).toBe(serverYaml.indexOf('strategy')))
+    // A field name moves the editor cursor to its key; the panel stays beside the editor.
+    await user.click(within(panel).getByRole('button', { name: 'strategy' }))
+    expect(view.state.selection.main.head).toBe(serverYaml.indexOf('strategy'))
     expect(textbox).toHaveFocus()
-    expect(drawer).toBeInTheDocument()
+    // Escape leaves the editor and keeps the panel.
+    await user.keyboard('{Escape}')
+    expect(textbox).not.toHaveFocus()
+    expect(panel).toBeInTheDocument()
 
-    await user.click(toggle)
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Schema' })).toBeNull())
+    await user.click(within(panel).getByRole('button', { name: 'Close schema' }))
+    expect(screen.queryByRole('complementary', { name: 'Schema' })).toBeNull()
     expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    expect(toggle).toHaveFocus()
+    await user.click(toggle)
+    await user.click(toggle)
+    expect(screen.queryByRole('complementary', { name: 'Schema' })).toBeNull()
   })
 
   it('opens the schema browser as a modal below lg, and a field pick closes it at that key', async () => {
@@ -267,6 +322,18 @@ describe('ResourceYamlTab', () => {
     await waitFor(() => expect(textbox).toHaveFocus())
     expect(view.state.selection.main.head).toBe(serverYaml.indexOf('replicas'))
     expect(screen.getByRole('button', { name: 'Schema' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('keeps the modal browser open when the picked field is not in the text', async () => {
+    const user = userEvent.setup()
+    const { view } = await renderTab({ initialDraft: serverYaml.replace('  replicas: 2\n', '') })
+    const head = view.state.selection.main.head
+    await user.click(screen.getByRole('button', { name: 'Schema' }))
+    const drawer = await screen.findByRole('dialog', { name: 'Schema' })
+    await user.click(within(drawer).getByRole('button', { name: 'Open spec' }))
+    await user.click(within(drawer).getByRole('button', { name: 'replicas' }))
+    expect(screen.getByRole('dialog', { name: 'Schema' })).toBeInTheDocument()
+    expect(view.state.selection.main.head).toBe(head)
   })
 
   it('has no Schema button without a schema', async () => {

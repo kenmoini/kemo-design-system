@@ -114,17 +114,34 @@ describe('ResourceEventsTab', () => {
     expect(screen.getByRole('radio', { name: 'Warning 0' })).toBeInTheDocument()
   })
 
-  it('names the scope after the parent kind and counts childKinds as its children', () => {
-    renderEvents({ parentKind: 'Rollout', childKinds: ['ReplicaSet'] })
+  it('names the scope after the parent kind and counts childKinds as its children', async () => {
+    const user = userEvent.setup()
+    const rollout = event(
+      'e0',
+      'Normal',
+      'RolloutUpdated',
+      'Rollout',
+      'web',
+      '2026-11-12T11:58:00Z',
+    )
+    renderEvents({
+      events: [...events, rollout],
+      parentKind: 'Rollout',
+      childKinds: ['ReplicaSet'],
+    })
     expect(screen.getByRole('radio', { name: 'Rollout + children' })).toBeChecked()
-    expect(screen.getByRole('radio', { name: 'Rollout only' })).toBeInTheDocument()
     // Neither Deployment nor Pod events belong to a Rollout and its ReplicaSets.
-    expect(reasons()).toEqual(['SuccessfulCreate'])
+    expect(reasons()).toEqual(['RolloutUpdated', 'SuccessfulCreate'])
+    expect(cellTexts(bodyRows()[0]!)[3]).toBe('rollout/web')
+    await user.click(screen.getByRole('radio', { name: 'Rollout only' }))
+    expect(reasons()).toEqual(['RolloutUpdated'])
   })
 
-  it('has no streaming note unless live', () => {
+  it('has no streaming note and no pausing region unless live', () => {
     renderEvents()
     expect(screen.queryByText(/streaming/)).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Events' })).toBeNull()
+    expect(screen.getByRole('table').closest('[tabindex]')).toBeNull()
   })
 
   it('streams when live and holds the rows still while the reader is on the table', async () => {
@@ -146,6 +163,19 @@ describe('ResourceEventsTab', () => {
     await user.unhover(region)
     expect(onPauseChange).toHaveBeenLastCalledWith(false)
     expect(note).toHaveTextContent('● streaming · paused on hover')
+    expect(reasons()[0]).toBe('BackOff')
+  })
+
+  it('ends a pause when the stream stops', async () => {
+    const user = userEvent.setup()
+    const onPauseChange = vi.fn()
+    const { rerender } = renderEvents({ live: true, onPauseChange })
+    await user.hover(screen.getByRole('region', { name: 'Events' }))
+    expect(onPauseChange).toHaveBeenLastCalledWith(true)
+    const fresh = event('e6', 'Warning', 'BackOff', 'Pod', 'web-7d9f-x2k4q', '2026-11-12T11:59:00Z')
+    rerender({ live: false, events: [fresh, ...events] })
+    expect(onPauseChange).toHaveBeenLastCalledWith(false)
+    expect(screen.queryByRole('status')).toBeNull()
     expect(reasons()[0]).toBe('BackOff')
   })
 })
