@@ -10,3 +10,4 @@ export type {
   BlogTopic,
   BlogVariant,
 } from './types'
+export { BlogCover } from './blog-cover'
