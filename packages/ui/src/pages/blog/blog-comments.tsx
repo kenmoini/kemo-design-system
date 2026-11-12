@@ -21,17 +21,15 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
   const headingId = `${prefix}-heading`
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [name, setName] = useState('')
-  const [replyPosted, setReplyPosted] = useState(false)
+  const [posted, setPosted] = useState(false)
   const replyButtons = useRef(new Map<string, HTMLButtonElement>())
   const total = countComments(comments)
 
   const submit = async (values: { name: string; body: string }, parentId?: string) => {
     await onAddComment!(parentId ? { ...values, parentId } : values)
     setName(values.name)
-    if (parentId) {
-      setReplyingTo(null)
-      setReplyPosted(true)
-    }
+    setPosted(true)
+    if (parentId) setReplyingTo(null)
   }
 
   const renderComment = (comment: BlogComment, topLevel: boolean) => {
@@ -74,7 +72,7 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
                   size="xs"
                   aria-expanded={open}
                   onClick={() => {
-                    setReplyPosted(false)
+                    setPosted(false)
                     setReplyingTo(open ? null : comment.id)
                   }}
                 >
@@ -156,13 +154,9 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
             hint="Plain text. Be kind."
             defaultName={name}
             onNameChange={setName}
+            confirmed={posted}
             onSubmit={(values) => submit(values)}
           />
-          {replyPosted ? (
-            <Text role="status" textStyle="xs" color="fg.muted">
-              Comment posted.
-            </Text>
-          ) : null}
         </Stack>
       ) : null}
       {comments.length ? (

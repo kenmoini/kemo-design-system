@@ -30,6 +30,8 @@ export interface CommentFormProps {
   hint?: string
   defaultName?: string
   onNameChange?: (name: string) => void
+  /** Let the host decide whether the confirmation shows (the section keeps one at a time). */
+  confirmed?: boolean
 }
 
 /** A Name input, a Comment textarea and a submit button; used for the top-level form and replies. */
@@ -43,6 +45,7 @@ export function CommentForm({
   hint,
   defaultName = '',
   onNameChange,
+  confirmed,
 }: CommentFormProps) {
   const [posted, setPosted] = useState(false)
   const [failure, setFailure] = useState<string | null>(null)
@@ -64,7 +67,8 @@ export function CommentForm({
     // Only on mount: the form is mounted when its reply opens.
   }, [])
 
-  const message = failure ? null : posted ? 'Comment posted.' : hint
+  const showPosted = !failure && (confirmed ?? posted)
+  const message = failure ? null : showPosted ? 'Comment posted.' : hint
 
   return (
     <form
@@ -106,7 +110,7 @@ export function CommentForm({
         </Field.Root>
         <FormAlert message={failure} />
         <Box display="flex" alignItems="center" justifyContent="space-between" gap="3">
-          {posted && !failure ? (
+          {showPosted ? (
             <Text role="status" textStyle="xs" color="fg.muted">
               {message}
             </Text>

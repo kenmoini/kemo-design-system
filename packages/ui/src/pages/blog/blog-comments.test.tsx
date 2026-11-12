@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { stubLayout } from '../../test/layout'
@@ -212,5 +212,41 @@ describe('BlogComments', () => {
     const names = screen.getAllByLabelText('Name')
     expect(names).toHaveLength(2)
     expect(names[1]!).toHaveValue('Ada')
+  })
+
+  it('shows one status at a time: a reply confirmation replaces the first', async () => {
+    const user = userEvent.setup()
+    render(<BlogComments comments={comments} onAddComment={vi.fn().mockResolvedValue(undefined)} />)
+    await user.type(screen.getByLabelText('Name'), 'Ada')
+    await user.type(screen.getByLabelText('Comment'), 'First')
+    await user.click(screen.getByRole('button', { name: 'Post comment' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('Comment posted.')
+    expect(screen.queryByText('Plain text. Be kind.')).not.toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: 'Reply' })[0]!)
+    await user.type(screen.getByPlaceholderText('Reply to Jonas Lindqvist'), 'Second')
+    await user.click(screen.getByRole('button', { name: 'Post reply' }))
+    await waitFor(() => expect(screen.getAllByLabelText('Comment')).toHaveLength(1))
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+    expect(screen.getByRole('status')).toHaveTextContent('Comment posted.')
+  })
+
+  it('keeps a rejected reply open with its text and the alert inside the reply form', async () => {
+    const user = userEvent.setup()
+    const onAddComment = vi.fn().mockRejectedValue(new Error('Replies are closed'))
+    render(<BlogComments comments={comments} onAddComment={onAddComment} />)
+    await user.click(screen.getAllByRole('button', { name: 'Reply' })[0]!)
+    const reply = screen.getByPlaceholderText('Reply to Jonas Lindqvist')
+    const form = reply.closest('form')!
+    await user.type(form.querySelector('input')!, 'Ada')
+    await user.type(reply, 'Agreed')
+    await user.click(screen.getByRole('button', { name: 'Post reply' }))
+    expect(await within(form).findByRole('alert')).toHaveTextContent('Replies are closed')
+    expect(reply).toHaveValue('Agreed')
+    expect(screen.getByPlaceholderText('Reply to Jonas Lindqvist')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Reply' })[0]!).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 })
