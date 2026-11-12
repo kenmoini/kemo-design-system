@@ -1,0 +1,182 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  .bl { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .bl * { box-sizing: border-box; }
+  .bl.cards { display: grid; grid-template-columns: 1fr; gap: 28px; max-width: 1040px; }
+  .bl .card-image { display: block; aspect-ratio: auto; padding: 0; }
+  .pg { --canvas:#fcfcfc; --card:#fff; --ink:#202020; --muted:#646464; --subtle:#838383; --line:#e8e8e8; --sub:#f0f0f0;
+        background: var(--canvas); color: var(--ink); font-size: 12px; line-height: 1.45; text-align: left; }
+  .pg p, .pg h4, .pg h5, .pg h6 { margin: 0; }
+  .night { background: linear-gradient(115deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 28%), linear-gradient(135deg, #4a0f26 0%, #5d1f7e 48%, #140b2a 100%); color: #f3eef6; }
+  .c1 { background: linear-gradient(135deg,#4a0f26,#5d1f7e); } .c2 { background: linear-gradient(135deg,#5d1f7e,#140b2a); }
+  .c3 { background: linear-gradient(135deg,#140b2a,#2a3a8a); } .c5 { background: linear-gradient(135deg,#1c1c1c,#4a0f26); }
+  .cover { position: relative; overflow: hidden; border-radius: 3px; }
+  .cover::after { content:''; position:absolute; inset:0; background: repeating-linear-gradient(115deg, rgba(255,255,255,.07) 0 1px, transparent 1px 14px); }
+  .top { height: 46px; display: flex; align-items: center; gap: 22px; padding: 0 28px; border-bottom: 1px solid var(--line); background: var(--card); }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; }
+  .brand i { width: 18px; height: 18px; border-radius: 3px; background: #000; color: #fff; display: grid; place-items: center; font-size: 10px; font-style: normal; font-weight: 700; }
+  .brand span { color: var(--subtle); font-weight: 400; }
+  .links { display: flex; gap: 16px; color: var(--muted); } .links b { color: var(--ink); font-weight: 500; }
+  .sp { flex: 1; }
+  .btn { height: 26px; padding: 0 10px; border-radius: 2px; display: inline-flex; align-items: center; font-size: 11px; border: 1px solid var(--line); background: var(--card); white-space: nowrap; }
+  .btn.solid { background: #000; color: #fff; border-color: #000; }
+  .tag { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 2px; background: var(--sub); color: var(--muted); font-size: 10px; font-weight: 500; }
+  .night .tag { background: rgba(255,255,255,.14); color: #f3eef6; }
+  .meta { color: var(--subtle); font-size: 10.5px; display: flex; gap: 6px; align-items: center; }
+  .av { width: 16px; height: 16px; border-radius: 50%; background: #c9c2d6; display: inline-block; flex: none; }
+  .av.lg { width: 30px; height: 30px; }
+  .foot { border-top: 1px solid var(--line); padding: 14px 28px; display: flex; justify-content: space-between; color: var(--subtle); font-size: 10.5px; }
+  .crumb { color: var(--subtle); font-size: 10.5px; }
+  /* prose */
+  .prose { font-size: 13px; line-height: 1.65; color: #2c2c2c; display: flex; flex-direction: column; gap: 12px; }
+  .prose h6 { font-size: 16px; font-weight: 600; letter-spacing: -.015em; margin-top: 8px; color: var(--ink); }
+  .prose pre { margin: 0; background: #161616; color: #e6e6e6; border-radius: 3px; padding: 12px 14px; font: 11px/1.55 ui-monospace, Menlo, monospace; overflow: hidden; }
+  .prose pre em { color: #b9a3e3; font-style: normal; } .prose pre s { color: #7b7b7b; text-decoration: none; }
+  .prose code { font: 11.5px ui-monospace, Menlo, monospace; background: var(--sub); padding: 1px 4px; border-radius: 2px; }
+  .quote { border-left: 2px solid #5d1f7e; padding: 2px 0 2px 14px; font-size: 15px; line-height: 1.45; letter-spacing: -.01em; color: var(--ink); }
+  .note { border: 1px solid var(--line); background: var(--card); border-radius: 3px; padding: 10px 12px; font-size: 12px; display: flex; gap: 10px; }
+  .note b { font-weight: 600; }
+  .fig { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+  .fig div { border: 1px solid var(--line); background: var(--card); border-radius: 3px; padding: 10px 12px; }
+  .fig b { display: block; font-size: 20px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; } .fig span { color: var(--muted); font-size: 11px; }
+  .author { display: flex; gap: 10px; align-items: center; }
+  .author b { font-weight: 600; display: block; } .author span { color: var(--subtle); font-size: 10.5px; }
+
+  /* A */
+  .a-head { padding: 34px 28px 30px; }
+  .a-head > div { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .a-head h4 { font-size: 30px; font-weight: 600; letter-spacing: -.025em; line-height: 1.1; }
+  .a-head p { color: rgba(243,238,246,.75); font-size: 14px; }
+  .a-head .crumb, .a-head .meta { color: rgba(243,238,246,.6); }
+  .a-body { max-width: 640px; margin: 0 auto; padding: 28px 0 28px; }
+  .a-end { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .a-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+  .a-nav div { border: 1px solid var(--line); background: var(--card); border-radius: 3px; padding: 10px 12px; }
+  .a-nav span { color: var(--subtle); font-size: 10.5px; display: block; } .a-nav b { font-weight: 600; }
+
+  /* B */
+  .b-head { max-width: 760px; margin: 0 auto; padding: 30px 28px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .b-head h4 { font-size: 32px; font-weight: 600; letter-spacing: -.03em; line-height: 1.08; }
+  .b-head p { color: var(--muted); font-size: 14px; max-width: 56ch; }
+  .b-cover { height: 220px; margin: 0 28px; }
+  .b-body { max-width: 640px; margin: 0 auto; padding: 26px 0; }
+  .b-share { display: flex; gap: 6px; }
+  .b-more { border-top: 1px solid var(--line); padding: 22px 28px 26px; }
+  .b-more > b { font-size: 14px; font-weight: 600; }
+  .b-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin-top: 14px; }
+  .b-card .cover { height: 84px; } .b-card h5 { font-size: 13px; font-weight: 600; line-height: 1.25; margin: 8px 0 4px; }
+
+  /* C */
+  .c-wrap { display: grid; grid-template-columns: 200px 1fr; gap: 40px; padding: 28px; }
+  .c-rail { display: flex; flex-direction: column; gap: 20px; }
+  .c-rail .lbl { font-size: 10px; color: var(--subtle); margin-bottom: 6px; }
+  .toc span { display: block; padding: 4px 10px; border-left: 2px solid var(--line); color: var(--muted); }
+  .toc .on { border-color: #000; color: var(--ink); font-weight: 500; }
+  .toc .sub { padding-left: 20px; font-size: 11px; }
+  .c-main { max-width: 640px; }
+  .c-main h4 { font-size: 28px; font-weight: 600; letter-spacing: -.025em; line-height: 1.1; margin: 10px 0 8px; }
+  .c-main > p.lede { color: var(--muted); font-size: 14px; }
+  .c-rule { border-top: 1px solid var(--line); margin: 16px 0 20px; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; color: var(--muted); } .kv b { color: var(--ink); font-weight: 500; }
+</style>
+
+<h2>Blog post page: one per variation</h2>
+<p class="subtitle">Each index gets a matching article page, so the set is six example pages (three indexes, three posts). All three share one prose style: headings, pull quote, code block, callout and a stats row. They differ in the header, the supporting furniture and what comes after the last paragraph. Tell me what to change, or which pairing feels wrong.</p>
+
+<div class="cards bl">
+
+  <div class="card" data-choice="post-a" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="pg">
+      <div class="top"><div class="brand"><i>K</i> Kemo <span>/ Blog</span></div><div class="links"><b>Posts</b><span>Topics</span><span>Authors</span><span>RSS</span></div><div class="sp"></div><span class="btn">Search</span><span class="btn solid">Subscribe</span></div>
+      <div class="a-head night"><div>
+        <span class="crumb">← All posts</span>
+        <div><span class="tag">Engineering</span></div>
+        <h4>How we cut cold-start time for cluster consoles by 62%</h4>
+        <p>A year of profiling, one embarrassing N+1 against the API server, and the caching layer we should have built first.</p>
+        <div class="meta"><span class="av"></span> Priya Raman · 11 Nov 2026 · 9 min read</div>
+      </div></div>
+      <div class="a-body"><div class="prose">
+        <p>Opening a cluster in Kemo Console used to take a little over four seconds on a cold cache. For a page people open forty times a day, that is a long time to look at a skeleton.</p>
+        <h6>Where the time went</h6>
+        <p>We traced a thousand cold loads. The surprise was not the bundle, it was <code>/api/resources</code>: one request per resource kind, in sequence.</p>
+        <pre><s># before: 38 sequential discovery calls</s>
+<em>for</em> kind <em>in</em> kinds: client.list(kind, limit=1)
+<s># after: one aggregated discovery document, cached per cluster</s>
+doc = discovery.aggregated(cluster, ttl=<em>"10m"</em>)</pre>
+        <div class="quote">The fastest request is the one the browser already has the answer to.</div>
+        <div class="fig"><div><b>4.1s → 1.6s</b><span>p50 cold start</span></div><div><b>38 → 1</b><span>discovery requests</span></div><div><b>−62%</b><span>time to interactive</span></div></div>
+        <div class="note"><b>Note</b><span>Aggregated discovery needs Kubernetes 1.30 or newer. Older clusters fall back to the batched path.</span></div>
+      </div>
+      <div class="a-end"><div class="author"><span class="av lg"></span><div><b>Priya Raman</b><span>Staff engineer, Console platform</span></div></div><span class="btn">Copy link</span></div>
+      <div class="a-nav"><div><span>← Previous</span><b>Console 4.2: schema-aware YAML editing</b></div><div style="text-align:right"><span>Next →</span><b>Nothing newer yet</b></div></div>
+      </div>
+      <div class="foot"><span>Kemo / Blog</span><span>© 2026 Kemo</span></div>
+    </div></div>
+    <div class="card-body"><h3>Post for A · Editorial list</h3><p>A Nightfall header band carrying title, summary and byline, then one 640px reading column. Ends with an author line and previous / next links. Nothing beside the text.</p></div>
+  </div>
+
+  <div class="card" data-choice="post-b" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="pg">
+      <div class="top"><div class="brand"><i>K</i> Kemo <span>/ Blog</span></div><div class="links"><b>Posts</b><span>Topics</span><span>Authors</span><span>RSS</span></div><div class="sp"></div><span class="btn">Search</span><span class="btn solid">Subscribe</span></div>
+      <div class="b-head">
+        <span class="tag">Engineering</span>
+        <h4>How we cut cold-start time for cluster consoles by 62%</h4>
+        <p>A year of profiling, one embarrassing N+1 against the API server, and the caching layer we should have built first.</p>
+        <div class="author"><span class="av lg"></span><div style="text-align:left"><b>Priya Raman</b><span>11 Nov 2026 · 9 min read</span></div></div>
+      </div>
+      <div class="cover c1 b-cover"></div>
+      <div class="b-body"><div class="prose">
+        <p>Opening a cluster in Kemo Console used to take a little over four seconds on a cold cache. For a page people open forty times a day, that is a long time to look at a skeleton.</p>
+        <h6>Where the time went</h6>
+        <p>We traced a thousand cold loads. The surprise was not the bundle, it was <code>/api/resources</code>: one request per resource kind, in sequence.</p>
+        <div class="fig"><div><b>4.1s → 1.6s</b><span>p50 cold start</span></div><div><b>38 → 1</b><span>discovery requests</span></div><div><b>−62%</b><span>time to interactive</span></div></div>
+        <div class="quote">The fastest request is the one the browser already has the answer to.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:14px;margin-top:6px"><div style="display:flex;gap:6px"><span class="tag">performance</span><span class="tag">kubernetes</span><span class="tag">caching</span></div><div class="b-share"><span class="btn">Copy link</span><span class="btn">Share</span></div></div>
+      </div></div>
+      <div class="b-more"><b>Keep reading</b>
+        <div class="b-grid">
+          <div class="b-card"><div class="cover c2"></div><h5>Console 4.2: schema-aware YAML editing</h5><div class="meta">Dan Okafor · 04 Nov</div></div>
+          <div class="b-card"><div class="cover c3"></div><h5>Role bindings without the footguns</h5><div class="meta">Dan Okafor · 02 Oct</div></div>
+          <div class="b-card"><div class="cover c5"></div><h5>Post-incident review: the 19 October ingress outage</h5><div class="meta">Mei Tanaka · 28 Oct</div></div>
+        </div>
+      </div>
+      <div class="foot"><span>Kemo / Blog</span><span>© 2026 Kemo</span></div>
+    </div></div>
+    <div class="card-body"><h3>Post for B · Magazine grid</h3><p>Centred title block, a wide cover image, then the reading column. Ends with tags, share buttons and a three-card "Keep reading" row that reuses the index cards.</p></div>
+  </div>
+
+  <div class="card" data-choice="post-c" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="pg">
+      <div class="top"><div class="brand"><i>K</i> Kemo <span>/ Blog</span></div><div class="links"><b>Posts</b><span>Topics</span><span>Authors</span><span>RSS</span></div><div class="sp"></div><span class="btn">Search</span></div>
+      <div class="c-wrap">
+        <div class="c-rail">
+          <span class="crumb">← Platform journal</span>
+          <div class="toc"><div class="lbl">On this page</div><span>Where the time went</span><span class="on">One discovery document</span><span class="sub">Cache invalidation</span><span class="sub">Older clusters</span><span>Results</span><span>What we would do differently</span></div>
+          <div><div class="lbl">Details</div><div class="kv"><span>Author</span><b>Priya Raman</b><span>Published</span><b>11 Nov 2026</b><span>Topic</span><b>Engineering</b><span>Reading</span><b>9 min</b></div></div>
+          <span class="btn" style="justify-content:center">Copy link</span>
+        </div>
+        <div class="c-main">
+          <span class="tag">Engineering</span>
+          <h4>How we cut cold-start time for cluster consoles by 62%</h4>
+          <p class="lede">A year of profiling, one embarrassing N+1 against the API server, and the caching layer we should have built first.</p>
+          <div class="c-rule"></div>
+          <div class="prose">
+            <h6>One discovery document</h6>
+            <p>We traced a thousand cold loads. The surprise was not the bundle, it was <code>/api/resources</code>: one request per resource kind, in sequence.</p>
+            <pre><s># before: 38 sequential discovery calls</s>
+<em>for</em> kind <em>in</em> kinds: client.list(kind, limit=1)
+<s># after: one aggregated discovery document, cached per cluster</s>
+doc = discovery.aggregated(cluster, ttl=<em>"10m"</em>)</pre>
+            <div class="note"><b>Note</b><span>Aggregated discovery needs Kubernetes 1.30 or newer. Older clusters fall back to the batched path.</span></div>
+            <h6>Results</h6>
+            <div class="fig"><div><b>4.1s → 1.6s</b><span>p50 cold start</span></div><div><b>38 → 1</b><span>discovery requests</span></div><div><b>−62%</b><span>time to interactive</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><span>← Console 4.2: schema-aware YAML editing</span><span>© 2026 Kemo</span></div>
+    </div></div>
+    <div class="card-body"><h3>Post for C · Journal with a rail</h3><p>The rail stays: a scroll-following "On this page" list, a details block and copy link. Reads like documentation; reuses the section tracking already built for the FAQ page.</p></div>
+  </div>
+
+</div>
