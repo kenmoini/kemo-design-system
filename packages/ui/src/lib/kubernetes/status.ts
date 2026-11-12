@@ -12,6 +12,7 @@ export function deploymentStatus(d: DeploymentResource): DeploymentStatus {
   if (progressing?.status === 'True' && progressing.reason !== 'NewReplicaSetAvailable') {
     return 'progressing'
   }
+  // No `status` object yet means nothing is observed, so updatedReplicas is 0 and it reads progressing.
   const desired = d.spec.replicas ?? 1
   if ((d.status?.updatedReplicas ?? 0) < desired) return 'progressing'
   return 'available'

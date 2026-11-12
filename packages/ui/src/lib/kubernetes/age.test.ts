@@ -11,6 +11,7 @@ describe('relativeAge', () => {
     expect(relativeAge(ago(3 * 3600), now)).toBe('3h')
     expect(relativeAge(ago(42 * 86400), now)).toBe('42d')
     expect(relativeAge(ago(9 * 86400), now)).toBe('9d')
+    expect(relativeAge(ago(120 * 86400), now)).toBe('120d')
     expect(relativeAge(ago(400 * 86400), now)).toBe('1y')
   })
 

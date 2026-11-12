@@ -8,7 +8,7 @@ function rangeOf(node: unknown): [number, number, number] | undefined {
 
 function keyName(pair: Pair): string | undefined {
   const key = pair.key as { value?: unknown } | null
-  return key && key.value !== undefined ? String(key.value) : undefined
+  return key && key.value !== undefined && key.value !== null ? String(key.value) : undefined
 }
 
 function pairSpan(pair: Pair): [number, number] | undefined {

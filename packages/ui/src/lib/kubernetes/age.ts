@@ -1,4 +1,4 @@
-/** A short age: "45s", "3m", "5h", "42d", "7mo", "2y"; "—" for an invalid date. */
+/** A short age: "45s", "3m", "5h", "42d", "2y" (kubectl style, no months); "—" for an invalid date. */
 export function relativeAge(from: string, now: string): string {
   const seconds = Math.floor((Date.parse(now) - Date.parse(from)) / 1000)
   if (Number.isNaN(seconds)) return '—'
@@ -9,7 +9,6 @@ export function relativeAge(from: string, now: string): string {
   if (s < 60) return `${s}s`
   if (minutes < 60) return `${minutes}m`
   if (hours < 24) return `${hours}h`
-  if (days < 60) return `${days}d`
-  if (days < 365) return `${Math.floor(days / 30)}mo`
+  if (days < 365) return `${days}d`
   return `${Math.floor(days / 365)}y`
 }

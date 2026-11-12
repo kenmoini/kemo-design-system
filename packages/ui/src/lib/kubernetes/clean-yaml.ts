@@ -36,7 +36,9 @@ export interface YamlError {
 }
 
 /** `value` is `undefined` when there are errors. Lines and columns are 1-based. */
-export function parseYaml<T = unknown>(text: string): { value: T; errors: YamlError[] } {
+export function parseYaml<T = unknown>(
+  text: string,
+): { value: T | undefined; errors: YamlError[] } {
   const doc = YAML.parseDocument(text)
   if (doc.errors.length > 0) {
     const errors = doc.errors.map((e) => ({
@@ -44,7 +46,7 @@ export function parseYaml<T = unknown>(text: string): { value: T; errors: YamlEr
       line: e.linePos?.[0].line ?? 1,
       col: e.linePos?.[0].col ?? 1,
     }))
-    return { value: undefined as T, errors }
+    return { value: undefined, errors }
   }
   return { value: doc.toJS() as T, errors: [] }
 }

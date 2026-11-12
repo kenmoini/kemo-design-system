@@ -38,3 +38,9 @@ describe('offsetForPath', () => {
     expect(offsetForPath(text, ['spec', 'nope'])).toBeUndefined()
   })
 })
+
+describe('malformed input', () => {
+  it('skips null keys', () => {
+    expect(pathAtOffset(': : bad', 3)).toEqual([])
+  })
+})
