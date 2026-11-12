@@ -457,28 +457,52 @@ describe('relatedTopics', () => {
 
 describe('category helpers', () => {
   const eight = [
-    category('announcements', 40),
-    category('console', 486),
-    category('deployments', 312),
-    category('access', 140),
-    category('getting-started', 120),
-    category('show', 60),
-    category('requests', 50),
-    category('bugs', 40),
+    category('announcements', 32, { label: 'Announcements', postCount: 118, solvedCount: 20 }),
+    category('kemo-console', 486, { label: 'Kemo Console', postCount: 3902, solvedCount: 440 }),
+    category('deployments-gitops', 311, {
+      label: 'Deployments & GitOps',
+      postCount: 2140,
+      solvedCount: 280,
+    }),
+    category('access-sso', 158, { label: 'Access & SSO', postCount: 1034, solvedCount: 140 }),
+    category('getting-started', 97, {
+      label: 'Getting started',
+      section: 'Community',
+      postCount: 612,
+      solvedCount: 90,
+    }),
+    category('show-and-tell', 41, {
+      label: 'Show and tell',
+      section: 'Community',
+      postCount: 388,
+      solvedCount: 10,
+    }),
+    category('feature-requests', 88, {
+      label: 'Feature requests',
+      section: 'Community',
+      postCount: 704,
+      solvedCount: 50,
+    }),
+    category('bug-reports', 35, {
+      label: 'Bug reports',
+      section: 'Community',
+      postCount: 412,
+      solvedCount: 30,
+    }),
   ]
 
   it('picks the four biggest as cards, in input order, with the rest apart', () => {
-    expect(cardCategories(eight).map((c) => c.id)).toEqual([
-      'console',
-      'deployments',
-      'access',
-      'getting-started',
+    expect(cardCategories(eight).map((c) => c.label)).toEqual([
+      'Kemo Console',
+      'Deployments & GitOps',
+      'Access & SSO',
+      'Getting started',
     ])
-    expect(restCategories(eight).map((c) => c.id)).toEqual([
-      'announcements',
-      'show',
-      'requests',
-      'bugs',
+    expect(restCategories(eight).map((c) => c.label)).toEqual([
+      'Announcements',
+      'Show and tell',
+      'Feature requests',
+      'Bug reports',
     ])
   })
 
