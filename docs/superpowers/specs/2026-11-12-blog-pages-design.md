@@ -211,8 +211,16 @@ export type BlogVariant = 'editorial-list' | 'magazine-grid' | 'journal-rail'
 /** id → the exact variation title: Editorial list, Magazine grid, Journal with a rail. */
 export const blogVariants: Record<BlogVariant, { title: string; description: string }>
 
-export interface BlogAuthor { id: string; name: string; role?: string; avatarSrc?: string }
-export interface BlogTopic { id: string; label: string }
+export interface BlogAuthor {
+  id: string
+  name: string
+  role?: string
+  avatarSrc?: string
+}
+export interface BlogTopic {
+  id: string
+  label: string
+}
 export type BlogCoverSpec = { preset: 1 | 2 | 3 | 4 | 5 | 6 } | { src: string; alt: string }
 
 export type BlogBlock =
@@ -226,12 +234,12 @@ export type BlogBlock =
   | { type: 'figure'; cover: BlogCoverSpec; caption?: string }
 
 export interface BlogPost {
-  slug: string                 // unique; used for keys and derived cover preset
+  slug: string // unique; used for keys and derived cover preset
   title: string
   summary: string
   topic: BlogTopic
   author: BlogAuthor
-  publishedAt: string          // ISO 8601
+  publishedAt: string // ISO 8601
   readingMinutes: number
   featured?: boolean
   cover?: BlogCoverSpec
@@ -239,13 +247,14 @@ export interface BlogPost {
   body: BlogBlock[]
 }
 
-interface BlogChromeProps {    // shared by index and post pages
+interface BlogChromeProps {
+  // shared by index and post pages
   variant: BlogVariant
   logo?: ReactNode
   brand: string
-  section?: string             // default "Blog"
+  section?: string // default "Blog"
   nav?: { label: string; href: string; current?: boolean }[]
-  footer?: ReactNode           // replaces the default footer left slot
+  footer?: ReactNode // replaces the default footer left slot
   onSubscribe?: (email: string) => Promise<void>
   linkComponent?: LinkComponent
   indexHref: string
@@ -256,15 +265,15 @@ export interface BlogIndexPageProps extends BlogChromeProps {
   title: string
   description?: ReactNode
   posts: BlogPost[]
-  topic?: string               // topic id; controlled
+  topic?: string // topic id; controlled
   defaultTopic?: string
   onTopicChange?: (topicId: string | undefined) => void
 }
 
 export interface BlogPostPageProps extends BlogChromeProps {
   post: BlogPost
-  posts: BlogPost[]            // all posts, for previous / next and "Keep reading"
-  indexTitle?: string          // back-link text in Journal ("← Platform journal"); default "All posts"
+  posts: BlogPost[] // all posts, for previous / next and "Keep reading"
+  indexTitle?: string // back-link text in Journal ("← Platform journal"); default "All posts"
 }
 ```
 
