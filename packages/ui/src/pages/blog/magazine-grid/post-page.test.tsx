@@ -52,14 +52,17 @@ describe('MagazineGridPost', () => {
     const user = userEvent.setup()
     const unhandled = vi.fn()
     process.on('unhandledRejection', unhandled)
-    const share = vi.fn().mockRejectedValue(new DOMException('cancelled', 'AbortError'))
-    Object.defineProperty(navigator, 'share', { value: share, configurable: true })
-    render(<MagazineGridPost {...base} />)
-    await user.click(await screen.findByRole('button', { name: 'Share' }))
-    await new Promise((resolve) => setTimeout(resolve, 0))
-    expect(share).toHaveBeenCalled()
-    expect(unhandled).not.toHaveBeenCalled()
-    process.off('unhandledRejection', unhandled)
+    try {
+      const share = vi.fn().mockRejectedValue(new DOMException('cancelled', 'AbortError'))
+      Object.defineProperty(navigator, 'share', { value: share, configurable: true })
+      render(<MagazineGridPost {...base} />)
+      await user.click(await screen.findByRole('button', { name: 'Share' }))
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(share).toHaveBeenCalled()
+      expect(unhandled).not.toHaveBeenCalled()
+    } finally {
+      process.off('unhandledRejection', unhandled)
+    }
   })
 
   it('suggests three other posts, same topic first, never itself', () => {

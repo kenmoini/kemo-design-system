@@ -45,6 +45,16 @@ describe('MagazineGridIndex', () => {
     expect(screen.getByRole('status')).toHaveTextContent('4 posts in Engineering')
   })
 
+  it('returns to page one when switching back to an earlier topic', async () => {
+    const user = userEvent.setup()
+    render(<MagazineGridIndex {...props} />)
+    await user.click(screen.getByRole('button', { name: /page 2/i }))
+    expect(screen.getAllByRole('article')).toHaveLength(2)
+    await user.click(screen.getByRole('tab', { name: 'Engineering' }))
+    await user.click(screen.getByRole('tab', { name: 'All posts' }))
+    expect(screen.getAllByRole('article')).toHaveLength(7)
+  })
+
   it('makes the whole card one link', () => {
     const Link = vi.fn(({ children, ...rest }: React.ComponentProps<'a'>) => (
       <a data-host {...rest}>

@@ -1,8 +1,8 @@
 'use client'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Box, Stack, styled } from '../../../../styled-system/jsx'
 import { Button, Heading, IconButton, Pagination, Tabs, Text } from '../../../components/ui'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { EmptyState } from '../../../widgets'
 import { BlogCover } from '../blog-cover'
 import { BlogLayout } from '../blog-layout'
@@ -26,6 +26,8 @@ export function MagazineGridIndex(props: BlogIndexPageProps) {
   // The page belongs to the topic it was chosen in, so a topic change lands on page one.
   const [pageState, setPageState] = useState({ topic, page: 1 })
   const pageCount = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
+  // Adjusting state during render: any topic change, however it arrives, restarts at page one.
+  if (pageState.topic !== topic) setPageState({ topic, page: 1 })
   const page = Math.min(pageState.topic === topic ? pageState.page : 1, pageCount)
   const pageItems = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
