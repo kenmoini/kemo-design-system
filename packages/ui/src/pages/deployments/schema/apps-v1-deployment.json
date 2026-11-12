@@ -239,8 +239,8 @@
         },
         "restartPolicy": {
           "type": "string",
-          "description": "Restart policy for all containers within the pod; a Deployment's pods support only Always.",
-          "enum": ["Always", "OnFailure", "Never"],
+          "description": "Restart policy for all containers within the pod; Deployments only allow Always, which the API server enforces.",
+          "enum": ["Always"],
           "default": "Always"
         },
         "dnsPolicy": {

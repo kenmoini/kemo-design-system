@@ -47,8 +47,9 @@ describe('deploymentSchema', () => {
     const field = (path: (string | number)[], name: string) =>
       at(path).fields.find((f) => f.name === name)
     expect(field(pod, 'restartPolicy')).toMatchObject({
-      enum: ['Always', 'OnFailure', 'Never'],
+      enum: ['Always'],
       default: 'Always',
+      description: expect.stringContaining('only allow Always'),
     })
     expect(field(pod, 'dnsPolicy')).toMatchObject({ default: 'ClusterFirst' })
     expect(field([...container, 'ports', 0], 'protocol')).toMatchObject({

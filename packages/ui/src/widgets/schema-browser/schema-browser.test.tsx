@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SchemaBrowser } from './schema-browser'
 
 type Path = (string | number)[]
@@ -54,6 +54,12 @@ const row = (name: string) => {
   if (!(item instanceof HTMLElement)) throw new Error(`no row for ${name}`)
   return item
 }
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  // jsdom has no scrollIntoView; tests that need it install one.
+  Reflect.deleteProperty(Element.prototype, 'scrollIntoView')
+})
 
 describe('SchemaBrowser', () => {
   it('renders a CRD schema', async () => {
@@ -131,11 +137,64 @@ describe('SchemaBrowser', () => {
     expect(onPathChange).toHaveBeenLastCalledWith([])
   })
 
-  it('shows a leaf path as its parent with the field marked', () => {
+  it('shows a leaf path as its parent with the field marked current', () => {
     render(<SchemaBrowser schema={widgetSchema} path={['spec', 'size']} onPathChange={vi.fn()} />)
     expect(within(crumbs()).getByText('spec')).toHaveAttribute('aria-current', 'page')
-    expect(row('size')).toHaveAttribute('data-current')
-    expect(row('endpoints')).not.toHaveAttribute('data-current')
+    expect(row('size')).toHaveAttribute('aria-current', 'true')
+    expect(row('endpoints')).not.toHaveAttribute('aria-current')
+  })
+
+  it('shows a $ref to a scalar as a row of its parent, without an Open button', () => {
+    const schema = {
+      title: 'Thing',
+      type: 'object',
+      properties: { created: { $ref: '#/definitions/Time', description: 'When it was made.' } },
+      definitions: { Time: { type: 'string', description: 'A timestamp.' } },
+    }
+    render(<SchemaBrowser schema={schema} path={['created']} onPathChange={vi.fn()} />)
+    expect(within(crumbs()).getByText('Thing')).toHaveAttribute('aria-current', 'page')
+    expect(row('created')).toHaveAttribute('aria-current', 'true')
+    expect(within(row('created')).getByText('string')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Open created' })).not.toBeInTheDocument()
+  })
+
+  it('scrolls the current row into view when the path changes', () => {
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    const { rerender } = render(
+      <SchemaBrowser schema={widgetSchema} path={['spec', 'size']} onPathChange={vi.fn()} />,
+    )
+    expect(scrollIntoView).toHaveBeenLastCalledWith({ block: 'nearest' })
+    expect(scrollIntoView.mock.contexts.at(-1)).toBe(row('size'))
+    rerender(
+      <SchemaBrowser
+        schema={widgetSchema}
+        path={['spec', 'endpoints', 0, 'url']}
+        onPathChange={vi.fn()}
+      />,
+    )
+    expect(scrollIntoView).toHaveBeenCalledTimes(2)
+    expect(scrollIntoView.mock.contexts.at(-1)).toBe(row('url'))
+  })
+
+  it('keeps rows apart when a property is named like the * and items rows', () => {
+    const error = vi.spyOn(console, 'error')
+    const schema = {
+      type: 'object',
+      properties: { '*': { type: 'string', description: 'A key literally named *.' } },
+      additionalProperties: { type: 'integer', description: 'Any other key.' },
+    }
+    render(
+      <SchemaBrowser schema={schema} path={[]} onPathChange={vi.fn()} onSelectField={vi.fn()} />,
+    )
+    expect(screen.getAllByRole('listitem').filter((li) => li.closest('nav') === null)).toHaveLength(
+      2,
+    )
+    expect(screen.getByText('A key literally named *.')).toBeInTheDocument()
+    expect(screen.getByText('Any other key.')).toBeInTheDocument()
+    // Only the real property can be jumped to: `*` from additionalProperties stands for any key.
+    expect(screen.getAllByRole('button', { name: '*' })).toHaveLength(1)
+    expect(error).not.toHaveBeenCalled()
   })
 
   it('falls back to the deepest documented part of the path', () => {
@@ -176,9 +235,11 @@ describe('SchemaBrowser', () => {
         { type: 'string' },
       ],
     }
-    render(<SchemaBrowser schema={schema} path={[]} onPathChange={vi.fn()} />)
-    expect(screen.getByRole('heading', { name: 'Any of: Reference' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Any of: string' })).toBeInTheDocument()
+    const { rerender } = render(<SchemaBrowser schema={schema} path={[]} onPathChange={vi.fn()} />)
+    expect(screen.getByRole('heading', { level: 3, name: 'Any of: Reference' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: 'Any of: string' })).toBeInTheDocument()
     expect(within(row('name')).getByText('The name.')).toBeInTheDocument()
+    rerender(<SchemaBrowser schema={schema} path={[]} onPathChange={vi.fn()} headingLevel={4} />)
+    expect(screen.getByRole('heading', { level: 4, name: 'Any of: Reference' })).toBeInTheDocument()
   })
 })

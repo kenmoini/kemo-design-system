@@ -13,7 +13,7 @@ export interface SchemaField {
   description?: string
   enum?: unknown[]
   default?: unknown
-  /** Objects, arrays and references: the browser offers to open them. */
+  /** Objects and arrays, and references that lead nowhere known: the browser offers to open them. */
   drillable: boolean
 }
 
@@ -133,12 +133,21 @@ function alternativesOf(node: Raw, type: string): Raw[] | undefined {
   return list.map(asSchema).filter((schema): schema is Raw => schema !== undefined)
 }
 
-const structural = (raw: Raw, node: Raw, type: string) =>
-  typeof raw.$ref === 'string' ||
-  hasType(type, 'object') ||
-  hasType(type, 'array') ||
-  isRecord(node.properties) ||
-  node.items !== undefined
+/**
+ * Whether a field opens, judged on its expanded schema: objects and arrays do. A `$ref` opens only
+ * when it leads nowhere known (unresolved or cyclic, so `any`); one naming a scalar (`Time`,
+ * `Quantity`) is a leaf. Tuple `items` (an array of schemas) are not browsed.
+ */
+function structural(raw: Raw, node: Raw, type: string): boolean {
+  if (Array.isArray(node.items)) return false
+  if (type === 'any') return typeof raw.$ref === 'string'
+  return (
+    hasType(type, 'object') ||
+    hasType(type, 'array') ||
+    isRecord(node.properties) ||
+    isRecord(node.items)
+  )
+}
 
 function lift(node: Raw) {
   const out: Pick<SchemaField, 'description' | 'enum' | 'default'> = {}
@@ -185,17 +194,16 @@ function toNode(root: Raw, raw: Raw, path: Path, nested = false): SchemaNode {
   return out
 }
 
-/** One step down an expanded node: a property, the array items, or any key of `additionalProperties`. */
+/**
+ * One step down an expanded node: a number indexes the `items` schema; a string names a property, or
+ * any key of `additionalProperties`.
+ */
 function stepDirect(node: Raw, segment: string | number): Raw | undefined {
-  if (typeof segment === 'string' && isRecord(node.properties)) {
-    // Own keys only: `__proto__` or `constructor` must not resolve through the prototype chain.
-    const property = Object.hasOwn(node.properties, segment)
-      ? asSchema(node.properties[segment])
-      : undefined
+  if (typeof segment === 'number') return isRecord(node.items) ? node.items : undefined
+  // Own keys only: `__proto__` or `constructor` must not resolve through the prototype chain.
+  if (isRecord(node.properties) && Object.hasOwn(node.properties, segment)) {
+    const property = asSchema(node.properties[segment])
     if (property) return property
-  }
-  if ((typeof segment === 'number' || hasType(typeOf(node), 'array')) && isRecord(node.items)) {
-    return node.items
   }
   return isRecord(node.additionalProperties) ? node.additionalProperties : undefined
 }

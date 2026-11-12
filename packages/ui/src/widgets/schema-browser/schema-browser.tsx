@@ -1,4 +1,6 @@
+'use client'
 import { ChevronRightIcon } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { HStack, Stack } from '../../../styled-system/jsx'
 import {
   Badge,
@@ -23,6 +25,8 @@ export interface SchemaBrowserProps {
   onPathChange: (path: Path) => void
   /** Clicking a field name; without it the names are plain text. */
   onSelectField?: (path: Path) => void
+  /** The level of the `oneOf`/`anyOf` section headings; match it to the host's outline. Default 3. */
+  headingLevel?: 2 | 3 | 4
 }
 
 const isContainer = (node: SchemaNode) =>
@@ -97,11 +101,18 @@ function FieldRow({ field, current, onSelect, onOpen }: FieldRowProps) {
   return (
     <Stack
       role="listitem"
+      aria-current={current ? 'true' : undefined}
       gap="1"
       py="2"
-      px="1"
-      data-current={current ? '' : undefined}
-      _current={{ bg: 'gray.a2' }}
+      px="2"
+      // Dividers as top borders, not the list's divideY: its `border-color` would also paint the
+      // start border below, which marks the current row (as in the FAQ index).
+      borderTopWidth="1px"
+      borderTopColor="border"
+      borderInlineStartWidth="2px"
+      borderInlineStartColor="transparent"
+      _first={{ borderTopWidth: '0' }}
+      _current={{ bg: 'gray.a3', borderInlineStartColor: 'fg.default' }}
     >
       <HStack gap="2" justifyContent="space-between" alignItems="start">
         <HStack gap="1.5" flexWrap="wrap" minW="0">
@@ -156,14 +167,20 @@ interface FieldListProps {
 
 function FieldList({ schema, node, current, onPathChange, onSelectField }: FieldListProps) {
   const items = node.itemsPath ? resolveNode(schema, node.itemsPath) : undefined
-  const rows = node.fields.map((field) => ({
-    field,
-    // `*` stands for any key: there is no key of that name to jump to.
-    target: field.name === '*' ? undefined : [...node.path, field.name],
-    open: [...node.path, field.name],
-  }))
+  const rows = node.fields.map((field, index) => {
+    // The resolver lists an additionalProperties schema last, as `*`. It stands for any key, so
+    // there is no key of that name to jump to.
+    const additional = field.name === '*' && index === node.fields.length - 1
+    return {
+      key: additional ? 'additional' : `field:${field.name}`,
+      field,
+      target: additional ? undefined : [...node.path, field.name],
+      open: [...node.path, field.name],
+    }
+  })
   if (items && node.itemsPath) {
-    rows.push({ field: itemsField(items), target: node.itemsPath, open: node.itemsPath })
+    const path = node.itemsPath
+    rows.push({ key: 'items', field: itemsField(items), target: path, open: path })
   }
   if (rows.length === 0) {
     return (
@@ -173,10 +190,10 @@ function FieldList({ schema, node, current, onPathChange, onSelectField }: Field
     )
   }
   return (
-    <Stack role="list" gap="0" divideY="1px" divideColor="border">
-      {rows.map(({ field, target, open }) => (
+    <Stack role="list" gap="0">
+      {rows.map(({ key, field, target, open }) => (
         <FieldRow
-          key={field.name}
+          key={key}
           field={field}
           current={field.name === current}
           onSelect={onSelectField && target ? () => onSelectField(target) : undefined}
@@ -192,8 +209,25 @@ function FieldList({ schema, node, current, onPathChange, onSelectField }: Field
  * type, required, description, enum, default). Objects and arrays open; arrays list their `items`.
  * Controlled: the host keeps `path` (typically following the editor's cursor).
  */
-export function SchemaBrowser({ schema, path, onPathChange, onSelectField }: SchemaBrowserProps) {
+export function SchemaBrowser({
+  schema,
+  path,
+  onPathChange,
+  onSelectField,
+  headingLevel = 3,
+}: SchemaBrowserProps) {
   const { node, current } = viewFor(schema, path)
+  const headingTag: 'h2' | 'h3' | 'h4' = `h${headingLevel}`
+  const rootRef = useRef<HTMLDivElement>(null)
+  const pathKey = JSON.stringify(path)
+  // Following the cursor: bring the marked row into view whenever the path moves.
+  useEffect(() => {
+    const row = rootRef.current?.querySelector<HTMLElement>(
+      '[role="listitem"][aria-current="true"]',
+    )
+    // jsdom has no scrollIntoView.
+    if (row && typeof row.scrollIntoView === 'function') row.scrollIntoView({ block: 'nearest' })
+  }, [pathKey])
   const rootLabel = resolveNode(schema, [])?.title ?? 'Resource'
   const crumbs = [
     rootLabel,
@@ -210,7 +244,7 @@ export function SchemaBrowser({ schema, path, onPathChange, onSelectField }: Sch
   )
 
   return (
-    <Stack gap="3" h="full" minH="0">
+    <Stack ref={rootRef} gap="3" h="full" minH="0">
       <Breadcrumb.Root size="sm">
         <Breadcrumb.List flexWrap="wrap">
           {crumbs.map((label, index) => {
@@ -245,7 +279,7 @@ export function SchemaBrowser({ schema, path, onPathChange, onSelectField }: Sch
               <Stack gap="4">
                 {node.alternatives.map((alternative, index) => (
                   <Stack key={index} gap="1">
-                    <Heading as="h3" textStyle="xs" color="fg.muted">
+                    <Heading as={headingTag} textStyle="xs" color="fg.muted">
                       {`${node.type === 'anyOf' ? 'Any of' : 'One of'}: ${alternative.title ?? alternative.type}`}
                     </Heading>
                     {alternative.description ? (

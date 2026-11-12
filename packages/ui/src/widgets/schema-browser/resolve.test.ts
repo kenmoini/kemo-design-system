@@ -272,6 +272,44 @@ describe('resolveNode', () => {
     ])
   })
 
+  it('opens a bare $ref only when it is unresolved or cyclic, not when it names a scalar', () => {
+    const schema = {
+      type: 'object',
+      properties: {
+        created: { $ref: '#/definitions/Time', description: 'When it was made.' },
+        stamped: { allOf: [{ $ref: '#/definitions/Time' }] },
+        missing: { $ref: '#/definitions/Nope' },
+        owner: { $ref: '#/definitions/Owner' },
+      },
+      definitions: {
+        Time: { type: 'string', description: 'A timestamp.' },
+        Owner: { type: 'object', properties: { name: { type: 'string' } } },
+      },
+    }
+    const field = (name: string) => resolveNode(schema, [])?.fields.find((f) => f.name === name)
+    expect(field('created')).toMatchObject({ type: 'string', drillable: false })
+    expect(field('stamped')).toMatchObject({ type: 'string', drillable: false })
+    expect(field('missing')).toMatchObject({ type: 'any', drillable: true })
+    expect(field('owner')).toMatchObject({ type: 'object', drillable: true })
+  })
+
+  it('does not browse tuple items, and only numbers step into items', () => {
+    const schema = {
+      type: 'object',
+      properties: {
+        pair: { type: 'array', items: [{ type: 'string' }, { type: 'integer' }] },
+        tags: { type: 'array', items: { type: 'string' } },
+      },
+    }
+    expect(resolveNode(schema, [])?.fields.find((f) => f.name === 'pair')?.drillable).toBe(false)
+    expect(resolveNode(schema, ['pair'])).toMatchObject({ type: 'array', fields: [] })
+    expect(resolveNode(schema, ['pair'])?.itemsPath).toBeUndefined()
+    expect(resolveNode(schema, ['pair', 0])).toBeUndefined()
+    expect(resolveNode(schema, ['tags', 0])?.type).toBe('string')
+    expect(resolveNode(schema, ['tags', '0'])).toBeUndefined()
+    expect(resolveNode(mini, ['spec', 'tags', 'first'])).toBeUndefined()
+  })
+
   it('normalises missing types and ignores x-kubernetes-* keys', () => {
     expect(resolveNode({ properties: { a: {} } }, [])?.type).toBe('object')
     expect(resolveNode({ items: { type: 'string' } }, [])?.type).toBe('array')
