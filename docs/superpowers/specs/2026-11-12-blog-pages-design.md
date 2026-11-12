@@ -38,7 +38,7 @@ every variation; the three variations differing only in layout and furniture; wo
 paging, subscribe and copy-link in the preview; light and dark themes; 375px to wide desktop; preview
 routes, panel entries, README section, unit tests and e2e.
 
-Non-goals: Markdown or MDX parsing, a CMS, real search, RSS generation, comments, syntax highlighting,
+Non-goals: Markdown or MDX parsing, a CMS, real search, RSS generation, syntax highlighting,
 separate topic or author pages, localisation, SEO metadata beyond the page title, real images (covers are
 generated gradient art; a host may pass an image).
 
@@ -46,6 +46,9 @@ Anti-goals (it fails even if it works): a post whose body text is hard to read (
 characters, low contrast, cramped leading); the three variations drifting into three different visual
 languages; a blog that looks like a console page with the sidebar removed; inert controls in the preview
 (every visible button or link does something); topic or state shown by colour alone.
+
+Comments (added by the owner after the layout rounds) are in scope as a section under every post; comment
+moderation, editing, deleting, voting, sign-in and nesting deeper than one level of replies are non-goals.
 
 ## Constraints
 
@@ -126,6 +129,32 @@ additionally capped at `68ch` so the line-length anti-goal holds.
 - stats row: up to three outlined cells, big value over a muted label; stacks to one column below `sm`;
 - figure: a `BlogCover` or image with a caption.
 
+### Comments (`BlogComments`), identical in all three post pages
+
+Requested by the owner after the mockup rounds ("a comments section down below the content in the different
+post views"); the design below is our call and was not mocked up.
+
+A `<section id="comments">` in the reading column (max 40rem), separated from what is above by a hairline and
+generous space:
+
+- heading (`h2`, `xl`) "Comments" followed by the total in muted text, e.g. "Comments 5" with an accessible
+  name of "Comments (5)"; the total counts replies;
+- the **form** first (only when the host passes `onAddComment`): "Name" input, "Comment" textarea (4 rows),
+  solid "Post comment" button, all Park `Field`s;
+- the **list**, oldest first: each comment is an `<article>` with a 2rem avatar (initials fallback), the
+  author's name in medium weight, the date ("11 Nov 2026" in `<time>`), the body as plain text
+  (`white-space: pre-wrap`, `overflow-wrap: anywhere`, never interpreted as HTML), and a plain "Reply" button
+  when `onAddComment` is passed;
+- **replies**: one level, indented under their parent behind a left hairline; replies have no "Reply" button;
+  pressing "Reply" opens the same form inline under that comment (with "Cancel"), focuses its first empty
+  field, and only one reply form is open at a time;
+- empty: "No comments yet." (followed by the form when present).
+
+Where it sits: **Editorial list**: after the author row, before previous / next. **Magazine grid**: after the
+tags and share row, before "Keep reading". **Journal with a rail**: after the prose in the main column (after
+"Copy link" below `lg`), and the rail's "On this page" gains a last entry "Comments" linking to `#comments`,
+tracked like any other section.
+
 ### Editorial list
 
 Index: one column, max 45rem, centred. Title (`3xl`–`4xl`, tight tracking) and description. The **featured**
@@ -193,6 +222,14 @@ details `dl` sit above the title in one row, "On this page" is hidden, "Copy lin
 - **Copy link**: writes `window.location.href` to the clipboard, label switches to "Copied" for 2 seconds,
   announced through a polite live region; if the clipboard API is missing or rejects, the label reads
   "Copy failed".
+- **Comments**: the section renders when the host passes `comments` (an empty array shows the empty
+  message); without the prop there is no section and no "Comments" entry in the Journal rail.
+  `onAddComment({ name, body, parentId? })` returns a promise. Validation: name required, at most 80
+  characters; comment required, at most 2000; both trimmed. While pending the button shows its loading
+  state and cannot be pressed twice; on resolve the comment field clears (the name is kept for the next
+  comment), an inline reply form closes, and a polite status says "Comment posted."; the page does not add
+  the comment itself, the host does by passing new `comments`. On reject an inline alert shows the
+  rejection's message or "Your comment could not be posted. Try again." and the text is kept.
 - **Links**: every post link is `postHref(post)`, supplied by the host; `indexHref` likewise. `linkComponent`
   as on the other pages (default: a bare anchor).
 - **Post order**: pages sort posts by `publishedAt` descending themselves; hosts need not pre-sort.
@@ -232,6 +269,15 @@ export type BlogBlock =
   | { type: 'callout'; tone?: 'neutral' | 'warning'; label?: string; content: ReactNode }
   | { type: 'stats'; items: { value: string; label: string }[] }
   | { type: 'figure'; cover: BlogCoverSpec; caption?: string }
+
+/** `replies` is one level deep; replies of replies are ignored. `body` is plain text. */
+export interface BlogComment {
+  id: string
+  author: { name: string; avatarSrc?: string }
+  postedAt: string // ISO 8601
+  body: string
+  replies?: BlogComment[]
+}
 
 export interface BlogPost {
   slug: string // unique; used for keys and derived cover preset
@@ -274,11 +320,13 @@ export interface BlogPostPageProps extends BlogChromeProps {
   post: BlogPost
   posts: BlogPost[] // all posts, for previous / next and "Keep reading"
   indexTitle?: string // back-link text in Journal ("← Platform journal"); default "All posts"
+  comments?: BlogComment[] // omit for no comments section
+  onAddComment?: (input: { name: string; body: string; parentId?: string }) => Promise<void>
 }
 ```
 
 Exports: `BlogIndexPage`, `BlogPostPage` (each switches on `variant` to its variation's component),
-`BlogLayout`, `BlogProse`, `BlogCover`, `SubscribeForm`, `blogVariants`, and the types above. The list of
+`BlogLayout`, `BlogProse`, `BlogCover`, `BlogComments`, `SubscribeForm`, `blogVariants`, and the types above. The list of
 topics shown by a filter is derived from `posts` (distinct `topic.id`, in order of first appearance after
 sorting), so there is no separate `topics` prop. `packages/ui/src/index.ts` gains `export * from './pages/blog'`.
 
@@ -315,6 +363,11 @@ Preview panel: a new section titled "Blog" between "Pages" and "Status pages" wi
 order: "Editorial list" → `/blog/editorial-list`, "Editorial list: post" → the featured post in that
 variation, then the same pair for "Magazine grid" and "Journal with a rail".
 
+Comments in the preview: `mock-blog.tsx` also holds seed comments per post (the featured post has four,
+one of them a reply; two other posts have one or two; the rest none, to show the empty state). `BlogDemo`
+keeps comments in component state and its mock `onAddComment` appends the new comment or reply after a short
+delay (rejecting when the text contains "fail"), so posting visibly works; state resets on reload.
+
 README: a "Blog pages" section in the style of the existing page sections: what the three variations are,
 the content model, a minimal host example, and the note that covers are generated.
 
@@ -329,13 +382,17 @@ Unit (Vitest + Testing Library), next to the components:
   controlled `topic`;
 - each post variation: one `h1`, byline and `time dateTime`, its own furniture (prev / next; tags and Keep
   reading; On this page and details);
+- `BlogComments`: count including replies, order, replies nested once, empty state, no form or Reply without
+  `onAddComment`, validation, pending, success (field cleared, name kept, status), rejection, reply form
+  opens / cancels / posts with `parentId`, a body containing markup renders as text; each post variation
+  shows the section in its place and omits it without `comments`; the Journal rail lists "Comments";
 - `BlogProse`: every block type, heading ids, ordered vs unordered list, callout warning has a non-colour cue;
 - `SubscribeForm`: invalid email, pending, success, rejection; dialog focus return;
 - copy link: success, failure, label reverts.
 
 e2e (Playwright, new spec file): each of the six panel entries loads with the right `h1`; index → post →
 back in each variation; topic filter in each; Magazine pagination; subscribe success via dialog and via the
-rail; Journal "On this page" marks a section after clicking it; `/blog` redirect; unknown slug shows the 404
+rail; posting a comment and a reply on a post in each variation; Journal "On this page" marks a section after clicking it; `/blog` redirect; unknown slug shows the 404
 page; no horizontal scroll at 375px on all six; dark theme smoke on one index and one post. e2e runs against
 a built preview on :3100 with a scratch Playwright config, never the owner's dev server on :3000.
 
@@ -347,6 +404,8 @@ a built preview on :3100 with a scratch Playwright config, never the owner's dev
 3. The blog is outside the console shell and outside the console's navigation, and is its own "Blog" section
    in the preview panel above "Status pages" and "Components" (owner).
 4. Layouts as drawn in the two mockup files (owner approved both rounds).
+
+5. Every post page has a comments section below the content (owner, after the mockup rounds).
 
 ## Our calls (not yet seen by the owner beyond the mockups)
 
@@ -365,6 +424,9 @@ a built preview on :3100 with a scratch Playwright config, never the owner's dev
 11. Inline code and links in a post body are written by the host with Park `Code` and `Link`.
 12. Running text is capped at 68 characters per line inside the 40rem column.
 13. Eight sample posts; the Journal post page has no Subscribe.
+
+14. Comments: name-and-text form with no sign-in, one level of replies, oldest first, plain-text bodies,
+    placement per variation as described under "Comments", and a working mock in the preview.
 
 ## Left to the builder
 
