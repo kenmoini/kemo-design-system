@@ -7,6 +7,8 @@ completion, and a schema browser that shows each field's type, description, enum
 Presentational like the rest: the host fetches, derives and keeps every value, and gets every action
 back as a callback. Exports from `@kemo/ui`:
 
+Screenshots: [gallery](gallery/README.md#deployments-pages).
+
 - Deployment-specific (`pages/deployments`): `DeploymentsListPage` (header with "+ Create
   deployment", the `ScopeBar` of Clusters and Namespaces pickers, then a `DataTable` with Status,
   Labels and Namespace filters, row actions Scale…, Restart, Pause|Resume, Edit YAML and Delete,

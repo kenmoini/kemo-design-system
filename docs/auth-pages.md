@@ -5,6 +5,8 @@
 full-viewport gradient with an always-open drawer on the start side that stays in dark mode whatever
 the host theme; it has no close button and Escape does not dismiss it.
 
+Screenshots: [gallery](gallery/README.md#auth-pages).
+
 The pages are presentational: they validate their form and call `onSubmit(values)`, and the host
 does the rest, passing back `error` and `isSubmitting` and supplying `brand`, `logo`, `footer`,
 `links` (hrefs) and, on sign in and register, single sign-on `providers`

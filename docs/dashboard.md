@@ -3,6 +3,8 @@
 `@kemo/ui` also ships the signed-in surface of an app. Everything is presentational: data in through
 props, nothing fetched.
 
+Screenshots: [gallery](gallery/README.md#dashboard).
+
 - Shell: `AppShell` with `TopBar`, `SideNav`, `PageHeader` and `PageFooter` (each usable on its
   own), plus `AppShellProvider`, `useAppShell()`, `SkipLink` and `useMediaQuery`. `AppShell`
   renders the landmarks (`header`, `nav aria-label="Primary"`, `main`, `footer`) and a "Skip to

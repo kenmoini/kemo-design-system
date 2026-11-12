@@ -29,13 +29,14 @@ network access.
 
 ## Testing
 
-| Command                      | What it runs                                                                       |
-| ---------------------------- | ---------------------------------------------------------------------------------- |
-| `make test` (`pnpm test`)    | Vitest in `packages/ui` and `apps/preview`, then Node's test runner for `scripts/` |
-| `pnpm test:scripts`          | Only the `scripts/park-ui` tests                                                   |
-| `make e2e-install`           | Once: installs Chromium for Playwright (`pnpm e2e:install`)                        |
-| `make e2e` (`pnpm test:e2e`) | Builds, then runs the Playwright smoke suite in `apps/preview/e2e`                 |
-| `make check`                 | Lint, format check, typecheck and unit tests                                       |
+| Command                         | What it runs                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------------- |
+| `make test` (`pnpm test`)       | Vitest in `packages/ui` and `apps/preview`, then Node's test runner for `scripts/` |
+| `pnpm test:scripts`             | Only the `scripts/park-ui` tests                                                   |
+| `make e2e-install`              | Once: installs Chromium for Playwright (`pnpm e2e:install`)                        |
+| `make e2e` (`pnpm test:e2e`)    | Builds, then runs the Playwright smoke suite in `apps/preview/e2e`                 |
+| `make check`                    | Lint, format check, typecheck and unit tests                                       |
+| `make gallery` (`pnpm gallery`) | Builds, then captures the screenshot gallery into `docs/gallery` (see below)       |
 
 The e2e suite loads every route (landing page, auth pages, component pages, dashboard, Access tabs,
 Deployments pages, FAQ, Blank page, blog pages and status pages) and fails on any console error or uncaught page error. It also checks the
@@ -69,6 +70,31 @@ comment and a reply (focus returns to Reply) and posting without `crypto.randomU
 a long comment, the empty state, the Magazine post's centred reading column, the Journal's current
 section, its rail resting above Copy link at the end of the post, and at 375px its rail and a Tab
 order that runs down the page, Copy link and dark mode. It runs against a built preview, so build first (`make e2e` does).
+
+## Screenshot gallery
+
+[docs/gallery](gallery/README.md) holds a full-page screenshot of every preview page, grouped by
+family (one per guide), with a generated README that links each family to its guide. The capture is
+a Playwright run driven by the manifest in `apps/preview/gallery/manifest.ts`
+(`apps/preview/playwright.gallery.config.ts`): one test per page and theme loads the route on a
+built preview, waits for hydration, the h1, fonts and network idle, hides the preview panel's
+trigger, runs the entry's optional `setup` step (open a dialog, press a toggle), and saves
+`docs/gallery/<family>/<id>.png` (`<id>.dark.png` for a dark entry) at a 1440×900 viewport. Dark
+mode comes from `prefers-color-scheme`, which next-themes follows. After the run,
+`gallery/write-index.ts` rewrites `docs/gallery/README.md` from the manifest, so the README is
+generated (Prettier ignores it) and the manifest is the only place to edit.
+
+`make gallery` builds first, then captures; `pnpm gallery` captures against the existing build.
+The run serves the build on port 3100 so a `next dev` on 3000 is left alone. `GALLERY_ONLY`
+limits a run to family ids, shot ids or both (`GALLERY_ONLY=blog,deployments/yaml pnpm gallery`,
+or `make gallery ONLY=blog`); the index is still rewritten in full, with a "not captured yet" cell
+for any shot whose PNG is missing. Live widgets (event streams, the demo clock) make a re-capture
+differ pixel for pixel, so re-run only the family you changed and commit its PNGs with the index.
+
+Every page or component phase ends with a gallery entry: add the route (and a `setup` for a state
+worth showing) to the manifest, capture it, check the PNG, and commit it with the code. Mock data
+is what the pages show, so keep the manifest's ids (the Deployment name, the post slug) in step
+with the mocks; an entry with a `heading` fails instead of saving a client-side 404.
 
 ## CI
 

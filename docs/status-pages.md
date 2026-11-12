@@ -2,6 +2,8 @@
 
 Two more page families, presentational like the auth pages (the host supplies actions and data):
 
+Screenshots: [gallery](gallery/README.md#status-pages-and-console-pages).
+
 - Status pages, shown bare (no shell): `UnauthorizedPage` (401), `ForbiddenPage` (403),
   `NotFoundPage` (404), `ServerErrorPage` (500), `UnavailablePage` (503) and `MaintenancePage`, all
   thin wrappers over `StatusLayout`, plus `statusCopy` (the pinned copy), `mergeActions`,

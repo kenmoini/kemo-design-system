@@ -35,7 +35,7 @@ container use; the repo requires Node >= 24 and works on newer releases.
 apps/preview/        @kemo/preview: component pages, auth, dashboard and blog demos, Playwright e2e suite
 packages/ui/         @kemo/ui: theme, Park UI components, Panda config (`panda lib` output in dist/)
 scripts/park-ui/     Park UI registry sync and the Panda v2 port transform (with tests)
-docs/                Guides for each part of the repo; docs/superpowers/ holds the design specs and plans
+docs/                Guides for each part of the repo; docs/gallery/ the screenshots; docs/superpowers/ the specs and plans
 Makefile             Front door for every task below
 ```
 
@@ -66,6 +66,7 @@ and the theme toggle. `make help` lists every target. Every target is a thin wra
 | [Access page and DataTable](docs/access-page.md)                             | The ten-tab Access page and the `DataTable` widget                                |
 | [Deployments pages, YamlEditor and SchemaBrowser](docs/deployments-pages.md) | The list and detail pages, the CodeMirror editor and the pluggable schema browser |
 | [Blog pages](docs/blog-pages.md)                                             | Three blog variations with comments                                               |
+| [Gallery](docs/gallery/README.md)                                            | A screenshot of every page, by family (`make gallery` regenerates it)             |
 
 Design specs and implementation plans for each phase live under `docs/superpowers/`.
 

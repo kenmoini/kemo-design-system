@@ -10,7 +10,9 @@
   "include": [
     "next-env.d.ts",
     "e2e/**/*.ts",
+    "gallery/**/*.ts",
     "playwright.config.ts",
+    "playwright.gallery.config.ts",
     "vitest.config.ts",
     "test/**/*.ts",
     "styled-system",

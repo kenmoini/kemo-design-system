@@ -19,6 +19,7 @@
     "dev": "pnpm --filter @kemo/ui lib && concurrently -k -n ui,preview -c blue,green \"pnpm --filter @kemo/ui watch\" \"pnpm --filter @kemo/preview dev\"",
     "build": "pnpm --filter @kemo/ui lib && pnpm --filter @kemo/preview build",
     "test:e2e": "pnpm --filter @kemo/preview test:e2e",
+    "gallery": "pnpm --filter @kemo/preview gallery",
     "e2e:install": "pnpm --filter @kemo/preview exec playwright install --with-deps chromium"
   },
   "devDependencies": {

@@ -5,7 +5,7 @@ IMAGE ?= kemo-design-system:local
 .DEFAULT_GOAL := help
 
 .PHONY: help install codegen lib dev build start lint lint-fix format format-check typecheck test \
-	e2e e2e-install check clean container-build container-run park-ui-add park-ui-port
+	e2e e2e-install gallery check clean container-build container-run park-ui-add park-ui-port
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -51,6 +51,9 @@ e2e: build ## Build, then run the Playwright smoke suite
 
 e2e-install: ## Install the Playwright Chromium browser (once)
 	$(PNPM) e2e:install
+
+gallery: build ## Build, then capture the screenshot gallery into docs/gallery (ONLY=blog for one family)
+	GALLERY_ONLY="$(ONLY)" $(PNPM) gallery
 
 check: lint format-check typecheck test ## Lint, format check, typecheck and unit tests
 

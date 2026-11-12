@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "gallery": "playwright test -c playwright.gallery.config.ts"
   },
   "dependencies": {
     "@kemo/ui": "workspace:*",

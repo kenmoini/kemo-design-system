@@ -4,6 +4,8 @@ A blog family, presentational like the others: posts and comments come in as pro
 supplies the routes, `linkComponent`, and what happens on subscribe and on a new comment. Three
 variations of the same index and post pages, picked with `variant` or rendered directly:
 
+Screenshots: [gallery](gallery/README.md#blog-pages).
+
 | `variant`        | Title               | Index                                          | Post                                 |
 | ---------------- | ------------------- | ---------------------------------------------- | ------------------------------------ |
 | `editorial-list` | Editorial list      | Featured block, topic buttons, dated rows      | Single column, byline, previous/next |

@@ -3,6 +3,8 @@
 The console's Access page, and the table every later list page starts from. Presentational like the
 rest: rows and handlers come in through props, and the host keeps the state.
 
+Screenshots: [gallery](gallery/README.md#access-page).
+
 - `DataTable` (widget): a Park `Table` with sortable headers, a search box, checkbox and select
   filters with live counts (a rail from `lg`, a "Filters" drawer below), row selection that
   survives paging and filtering, a "Bulk actions" menu, per-row action menus, an "+ Add" button,
