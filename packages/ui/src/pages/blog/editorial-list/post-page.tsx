@@ -2,12 +2,12 @@
 import { css } from '../../../../styled-system/css'
 import { Box, HStack, Stack, styled } from '../../../../styled-system/jsx'
 import { Text } from '../../../components/ui'
-import type { LinkComponent } from '../../auth/types'
 import { BlogComments } from '../blog-comments'
 import { BlogLayout } from '../blog-layout'
 import { BlogProse } from '../blog-prose'
 import { adjacentPosts, sortPosts } from '../content'
 import { CopyLinkButton } from '../copy-link-button'
+import { HostLink } from '../host-link'
 import { AuthorBlock, Byline, TopicBadge } from '../post-meta'
 import type { BlogPostPageProps } from '../types'
 
@@ -33,18 +33,6 @@ const cellLink = css({
   _focusVisible: { outline: '2px solid', outlineOffset: '2px' },
 })
 
-function Anchor({
-  as: Link,
-  ...props
-}: {
-  as?: LinkComponent
-  href: string
-  className: string
-  children: React.ReactNode
-}) {
-  return Link ? <Link {...props} /> : <a {...props} />
-}
-
 export function EditorialListPost({
   post,
   posts,
@@ -67,9 +55,9 @@ export function EditorialListPost({
         py={{ base: '8', md: '10' }}
       >
         <Stack maxW="40rem" mx="auto" gap="4" alignItems="flex-start">
-          <Anchor as={linkComponent} href={indexHref} className={backLink}>
+          <HostLink as={linkComponent} href={indexHref} className={backLink}>
             ← {indexTitle ?? 'All posts'}
-          </Anchor>
+          </HostLink>
           <TopicBadge topic={post.topic} />
           <styled.h1
             textStyle={{ base: '3xl', md: '4xl' }}
@@ -117,26 +105,26 @@ export function EditorialListPost({
             >
               {older ? (
                 <Box gridColumn={{ sm: '1' }}>
-                  <Anchor as={linkComponent} href={postHref(older)} className={cellLink}>
+                  <HostLink as={linkComponent} href={postHref(older)} className={cellLink}>
                     <styled.span textStyle="xs" color="fg.subtle">
                       ← Previous
                     </styled.span>
                     <styled.span textStyle="sm" fontWeight="medium">
                       {older.title}
                     </styled.span>
-                  </Anchor>
+                  </HostLink>
                 </Box>
               ) : null}
               {newer ? (
                 <Box gridColumn={{ sm: '2' }} textAlign="end">
-                  <Anchor as={linkComponent} href={postHref(newer)} className={cellLink}>
+                  <HostLink as={linkComponent} href={postHref(newer)} className={cellLink}>
                     <styled.span textStyle="xs" color="fg.subtle">
                       Next →
                     </styled.span>
                     <styled.span textStyle="sm" fontWeight="medium">
                       {newer.title}
                     </styled.span>
-                  </Anchor>
+                  </HostLink>
                 </Box>
               ) : null}
             </Box>

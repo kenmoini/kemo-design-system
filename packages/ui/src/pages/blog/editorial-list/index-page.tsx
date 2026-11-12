@@ -1,5 +1,4 @@
 'use client'
-import type { ComponentProps } from 'react'
 import { css } from '../../../../styled-system/css'
 import { Box, HStack, Stack, styled } from '../../../../styled-system/jsx'
 import { Badge, Button, Heading, Text } from '../../../components/ui'
@@ -7,6 +6,7 @@ import { EmptyState } from '../../../widgets'
 import type { LinkComponent } from '../../auth/types'
 import { BlogLayout } from '../blog-layout'
 import { countLabel, featuredPost } from '../content'
+import { HostLink } from '../host-link'
 import { PostCountStatus } from '../post-count-status'
 import { Byline, PostDate, TopicBadge } from '../post-meta'
 import type { BlogIndexPageProps, BlogPost } from '../types'
@@ -20,13 +20,6 @@ const stretchedLink = css({
   _after: { content: '""', position: 'absolute', inset: '0', borderRadius: 'l2' },
   _focusVisible: { outline: 'none', _after: { outline: '2px solid', outlineOffset: '2px' } },
 })
-
-function PostLink({
-  as: Link,
-  ...props
-}: { as?: LinkComponent } & ComponentProps<'a'> & { href: string }) {
-  return Link ? <Link {...props} /> : <a {...props} />
-}
 
 function FeatureBlock({
   post,
@@ -59,9 +52,9 @@ function FeatureBlock({
         <TopicBadge topic={post.topic} />
       </HStack>
       <Heading as="h2" textStyle={{ base: 'xl', sm: '2xl' }} letterSpacing="-0.02em" maxW="24ch">
-        <PostLink as={linkComponent} href={href} className={stretchedLink}>
+        <HostLink as={linkComponent} href={href} className={stretchedLink}>
           {post.title}
-        </PostLink>
+        </HostLink>
       </Heading>
       <Text color="fg.muted" textStyle="sm" maxW="56ch">
         {post.summary}
@@ -101,9 +94,9 @@ function PostRow({
         </styled.span>
         <Stack gap="1">
           <Heading as="h2" textStyle="md" letterSpacing="-0.01em">
-            <PostLink as={linkComponent} href={href} className={stretchedLink}>
+            <HostLink as={linkComponent} href={href} className={stretchedLink}>
               {post.title}
-            </PostLink>
+            </HostLink>
           </Heading>
           <Text color="fg.muted" textStyle="sm" maxW="58ch">
             {post.summary}
