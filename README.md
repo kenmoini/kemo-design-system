@@ -507,14 +507,14 @@ variations of the same index and post pages, picked with `variant` or rendered d
 | ---------------- | ------------------- | ---------------------------------------------- | ------------------------------------ |
 | `editorial-list` | Editorial list      | Featured block, topic buttons, dated rows      | Single column, byline, previous/next |
 | `magazine-grid`  | Magazine grid       | Hero, topic tabs, three-column cards, paginate | Cover banner, share and copy link    |
-| `journal-rail`   | Journal with a rail | Sticky rail (topics, subscribe) beside a feed  | Rail with "On this page" and details |
+| `journal-rail`   | Journal with a rail | Rail (topics, subscribe) beside a feed         | Rail with "On this page" and details |
 
 Exports from `@kemo/ui`: `BlogIndexPage` and `BlogPostPage` (each renders the variation named by
 `variant`), `BlogLayout` (the top bar and footer), `BlogComments`, `SubscribeForm`, `BlogCover`,
 `BlogProse`, `blogVariants` (the ids, titles and descriptions above) and the types `BlogVariant`,
 `BlogPost`, `BlogBlock`, `BlogComment`, `BlogAuthor`, `BlogTopic`, `BlogCoverSpec`,
-`BlogIndexPageProps`, `BlogPostPageProps`, `BlogLayoutProps`, `SubscribeFormProps` and
-`BlogCommentsProps`.
+`BlogChromeProps` (the props every page shares), `BlogIndexPageProps`, `BlogPostPageProps`,
+`BlogLayoutProps`, `BlogCoverProps`, `SubscribeFormProps` and `BlogCommentsProps`.
 
 A post is data, and its body is a list of typed blocks:
 
@@ -536,19 +536,22 @@ interface BlogPost {
 ```
 
 A host wires the pages like this (the preview does it in
-`apps/preview/src/components/blog/blog-demo.tsx`):
+`apps/preview/src/components/blog/blog-demo.tsx`). The wiring lives in a `'use client'` component:
+`postHref`, `linkComponent` and the handlers are functions, which a server component can't hand to
+a client one. A server page can load the posts and render that component.
 
 ```tsx
-import { BlogIndexPage, BlogPostPage } from '@kemo/ui'
+'use client'
+import { BlogIndexPage, BlogPostPage, type BlogChromeProps } from '@kemo/ui'
 import NextLink from 'next/link'
 
-const chrome = {
-  variant: 'editorial-list' as const,
+const chrome: BlogChromeProps = {
+  variant: 'editorial-list',
   brand: 'Kemo',
   indexHref: '/blog',
-  postHref: (post: { slug: string }) => `/blog/${post.slug}`,
+  postHref: (post) => `/blog/${post.slug}`,
   linkComponent: NextLink,
-  onSubscribe: async (email: string) => {
+  onSubscribe: async (email) => {
     await fetch('/api/subscribe', { method: 'POST', body: JSON.stringify({ email }) }) // throw to fail
   },
 }
@@ -561,10 +564,15 @@ Inline markup in a paragraph, list item, quote or callout is plain React: use th
 inline code and `Link` for links (`<Code>req_7f3a91</Code>`, `<Link href="/docs">the docs</Link>`),
 and a `code` block for multi-line code. A cover is either a generated gradient preset
 (`{ preset: 1 }` to `{ preset: 6 }`, picked from the slug when omitted) or an image
-(`{ src, alt }`). On the index, `topic` is controlled by `topic` and `onTopicChange`, or
-uncontrolled from `defaultTopic`. `indexTitle` sets the post's back link ("All posts" by default;
-the preview passes "Platform journal" to the Journal). Omit `onSubscribe` to drop every subscribe
-control.
+(`{ src, alt }`). On the index the topic filter is controlled whenever the `topic` key is passed,
+even as `undefined` (all posts), with or without `onTopicChange`: it shows that topic until the
+prop changes, so pass both for a filter the reader can move. Leave `topic` out and the filter keeps
+its own state, starting at `defaultTopic`; `onTopicChange` is called on every change either way.
+`indexTitle` sets the post's back link in Editorial list and Journal ("All posts" by default; the
+preview passes "Platform journal" to the Journal); Magazine grid has no back link and ignores it.
+`footer` fills the left of the footer row; on a Journal post it replaces the link to the older
+post. The footer prints the current year; pass `year` to pin it in a statically generated page.
+Omit `onSubscribe` to drop every subscribe control.
 
 Comments are opt-in. Pass `comments` (`BlogComment[]`, oldest first on the page, one level of
 replies) and `onAddComment` to `BlogPostPage` for the section and its form; omit both for none, or
@@ -627,9 +635,11 @@ follows the selection, adding a user through the dialog and disabling one from i
 Overview widgets, the Audit layout and the OIDC sync badges, that an unknown tab answers 404, and
 at 375px the scrolled tab strip, the "Filters" drawer and no horizontal overflow. On the blog pages
 it checks every variation from index to post and back and the topic filter, pagination, the
-subscribe dialog and rail (and its failure), posting a comment and a reply, a rejected and a long
-comment, the empty state, the Journal's current section and its rail at 375px, Copy link and dark
-mode. It runs against a built preview, so build first (`make e2e` does).
+subscribe dialog and rail (and its failure) and that focus lands on the confirmation, posting a
+comment and a reply (focus returns to Reply) and posting without `crypto.randomUUID`, a rejected and
+a long comment, the empty state, the Magazine post's centred reading column, the Journal's current
+section, its rail resting above Copy link at the end of the post, and at 375px its rail and a Tab
+order that runs down the page, Copy link and dark mode. It runs against a built preview, so build first (`make e2e` does).
 
 ## CI
 
