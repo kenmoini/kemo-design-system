@@ -80,6 +80,68 @@ describe('YamlEditor', () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
+  it('keeps the cursor when the value changes elsewhere', async () => {
+    const onCursorPath = vi.fn()
+    const { editor, rerender } = await mount({ onCursorPath })
+    act(() => {
+      editor.view.dispatch({ selection: { anchor: deployment.indexOf('replicas') + 2 } })
+    })
+    await waitFor(() => expect(onCursorPath).toHaveBeenCalledWith(['spec', 'replicas']))
+    onCursorPath.mockClear()
+    // The server copy changed above the cursor (a new label), as after a save or a restart.
+    const changed = deployment.replace(
+      'kind: Deployment\n',
+      'kind: Deployment\nmetadata:\n  labels: { app: web }\n',
+    )
+    rerender({ value: changed })
+    expect(editor.view.state.doc.toString()).toBe(changed)
+    expect(editor.view.state.selection.main.head).toBe(changed.indexOf('replicas') + 2)
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(onCursorPath).not.toHaveBeenCalled()
+  })
+
+  it('does not clobber typing in a controlled round trip', async () => {
+    const user = userEvent.setup()
+    let editor: YamlEditorInstance | undefined
+    function Controlled() {
+      const doc = useYamlDocument({ initial: deployment })
+      return (
+        <YamlEditor
+          value={doc.text}
+          onChange={doc.setText}
+          ariaLabel="Deployment YAML"
+          onReady={(e) => (editor = e)}
+        />
+      )
+    }
+    render(<Controlled />)
+    const textbox = await screen.findByRole('textbox', { name: 'Deployment YAML' })
+    editor!.view.dispatch({ selection: { anchor: deployment.length } })
+    textbox.focus()
+    await user.keyboard('paused: true')
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    const { state } = editor!.view
+    expect(state.doc.toString()).toBe(`${deployment}paused: true`)
+    expect(state.selection.main.head).toBe(state.doc.length)
+  })
+
+  it('ignores a late echo of its own earlier text', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const { textbox, editor, rerender } = await mount({ onChange })
+    editor.view.dispatch({ selection: { anchor: deployment.length } })
+    textbox.focus()
+    await user.keyboard('ab')
+    // A host a render behind passes back the text after "a" while the editor holds "ab".
+    rerender({ value: `${deployment}a` })
+    expect(editor.view.state.doc.toString()).toBe(`${deployment}ab`)
+    rerender({ value: `${deployment}ab` })
+    expect(editor.view.state.doc.toString()).toBe(`${deployment}ab`)
+    // An outside text is still applied.
+    rerender({ value: 'kind: Service\n' })
+    expect(editor.view.state.doc.toString()).toBe('kind: Service\n')
+  })
+
   it('reports the schema enum violation with its line', async () => {
     const onProblems = vi.fn()
     await mount({
@@ -115,7 +177,22 @@ describe('YamlEditor', () => {
         changes: { from: 0, to: editor.view.state.doc.length, insert: fixed },
       })
     })
+    await waitFor(() => expect(onProblems).toHaveBeenLastCalledWith([]), { timeout: 2000 })
+  })
+
+  it('re-lints when the schema prop changes', async () => {
+    const onProblems = vi.fn()
+    const value = 'spec:\n  strategy:\n    type: RollingUpdat\n'
+    const { rerender } = await mount({ onProblems, value })
     await waitFor(() => expect(onProblems).toHaveBeenLastCalledWith([]))
+    // Each swap waits out the 500 ms lint delay.
+    rerender({ value, schema })
+    await waitFor(
+      () => expect(onProblems).toHaveBeenLastCalledWith([expect.objectContaining({ line: 3 })]),
+      { timeout: 2000 },
+    )
+    rerender({ value, schema: undefined })
+    await waitFor(() => expect(onProblems).toHaveBeenLastCalledWith([]), { timeout: 2000 })
   })
 
   it('reports the key path under the cursor, once per burst of moves', async () => {
@@ -168,6 +245,19 @@ describe('YamlEditor', () => {
     expect(onSave).toHaveBeenCalledTimes(1)
     await user.keyboard('{Escape}')
     expect(textbox).not.toHaveFocus()
+  })
+
+  it('unmounts before the import resolves without creating a view', async () => {
+    const onReady = vi.fn()
+    const error = vi.spyOn(console, 'error')
+    const { unmount } = render(<YamlEditor value={deployment} ariaLabel="YAML" onReady={onReady} />)
+    unmount()
+    await import('./extensions')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(onReady).not.toHaveBeenCalled()
+    expect(document.querySelector('.cm-editor')).toBeNull()
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
   })
 
   it('server-renders a pre placeholder with the text at the editor height', () => {

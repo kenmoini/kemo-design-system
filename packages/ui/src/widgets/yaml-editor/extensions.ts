@@ -15,6 +15,7 @@ import {
   forEachDiagnostic,
   lintGutter,
   linter,
+  lintKeymap,
   setDiagnosticsEffect,
   type Diagnostic,
 } from '@codemirror/lint'
@@ -59,7 +60,9 @@ export interface CreateEditorOptions {
 /** The live editor `createEditor` returns (and `YamlEditor`'s `onReady` hands out). */
 export interface YamlEditorInstance {
   view: EditorView
-  /** Replaces the text unless it is already equal; never calls `onChange`. */
+  /** Applies an outside text (a reload, a server change): only the changed span is replaced, so
+   * the cursor keeps its place. Echoes of the editor's own `onChange` texts are ignored. Never
+   * calls `onChange`. */
   setDoc(text: string): void
   setReadOnly(readOnly: boolean): void
   setAriaLabel(ariaLabel: string): void
@@ -71,6 +74,8 @@ export interface YamlEditorInstance {
 
 const LINT_DELAY = 500
 const CURSOR_DEBOUNCE = 50
+/** How many unacknowledged `onChange` texts to remember (a host that never echoes stays bounded). */
+const MAX_PENDING_ECHOES = 50
 
 /** Marks programmatic replacements so the update listener does not echo them to `onChange`. */
 const external = Annotation.define<boolean>()
@@ -95,6 +100,21 @@ const schemaCompletion = (() => {
     return Array.isArray(result) ? null : result
   }
 })()
+
+/** The edit that turns `from` into `to`, trimmed to the span between their common prefix and suffix. */
+function minimalChange(from: string, to: string) {
+  const max = Math.min(from.length, to.length)
+  let start = 0
+  while (start < max && from.charCodeAt(start) === to.charCodeAt(start)) start++
+  let end = 0
+  while (
+    end < max - start &&
+    from.charCodeAt(from.length - 1 - end) === to.charCodeAt(to.length - 1 - end)
+  ) {
+    end++
+  }
+  return { from: start, to: from.length - end, insert: to.slice(start, to.length - end) }
+}
 
 function toProblems(state: EditorState): YamlProblem[] {
   const problems: YamlProblem[] = []
@@ -128,7 +148,11 @@ export function createEditor(options: CreateEditorOptions): YamlEditorInstance {
   let readOnly = options.readOnly ?? false
   let ariaLabel = options.ariaLabel
   let schema = options.schema
+  let destroyed = false
   const accessCompartment = new Compartment()
+  // Texts sent through `onChange` that the host has not passed back as `value` yet. A host that
+  // re-renders a beat late passes one of these: it is our own past, not an outside change.
+  const pendingEchoes: string[] = []
 
   let cursorTimer: ReturnType<typeof setTimeout> | undefined
   let lastPath: string | undefined
@@ -179,6 +203,8 @@ export function createEditor(options: CreateEditorOptions): YamlEditorInstance {
           ...defaultKeymap,
           ...historyKeymap,
           ...foldKeymap,
+          // F8: next problem; Mod-Shift-m: the problems panel.
+          ...lintKeymap,
           indentWithTab,
         ]),
         yaml(),
@@ -205,7 +231,10 @@ export function createEditor(options: CreateEditorOptions): YamlEditorInstance {
             onProblems?.(toProblems(update.state))
           }
           if (update.docChanged && !update.transactions.some((tr) => tr.annotation(external))) {
-            onChange?.(update.state.doc.toString())
+            const text = update.state.doc.toString()
+            pendingEchoes.push(text)
+            if (pendingEchoes.length > MAX_PENDING_ECHOES) pendingEchoes.shift()
+            onChange?.(text)
           }
           if (onCursorPath && (update.selectionSet || update.docChanged)) {
             clearTimeout(cursorTimer)
@@ -225,28 +254,35 @@ export function createEditor(options: CreateEditorOptions): YamlEditorInstance {
   return {
     view,
     setDoc(text) {
-      if (text === view.state.doc.toString()) return
-      view.dispatch({
-        changes: { from: 0, to: view.state.doc.length, insert: text },
-        annotations: external.of(true),
-      })
+      if (destroyed) return
+      const echo = pendingEchoes.lastIndexOf(text)
+      if (echo !== -1) {
+        pendingEchoes.splice(0, echo + 1)
+        return
+      }
+      const current = view.state.doc.toString()
+      if (text === current) return
+      pendingEchoes.length = 0
+      // Replacing only the changed span lets CodeMirror map the selection through it.
+      view.dispatch({ changes: minimalChange(current, text), annotations: external.of(true) })
     },
     setReadOnly(next) {
-      if (next === readOnly) return
+      if (destroyed || next === readOnly) return
       readOnly = next
       reconfigureAccess()
     },
     setAriaLabel(next) {
-      if (next === ariaLabel) return
+      if (destroyed || next === ariaLabel) return
       ariaLabel = next
       reconfigureAccess()
     },
     setSchema(next) {
-      if (next === schema) return
+      if (destroyed || next === schema) return
       schema = next
       updateSchema(view, next as Schema)
     },
     moveToPath(path) {
+      if (destroyed) return false
       const anchor = offsetForPath(view.state.doc.toString(), path)
       if (anchor === undefined) return false
       view.dispatch({ selection: { anchor }, scrollIntoView: true })
@@ -254,6 +290,8 @@ export function createEditor(options: CreateEditorOptions): YamlEditorInstance {
       return true
     },
     destroy() {
+      if (destroyed) return
+      destroyed = true
       clearTimeout(cursorTimer)
       view.destroy()
     },

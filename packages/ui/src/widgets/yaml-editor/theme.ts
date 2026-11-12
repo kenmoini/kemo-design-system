@@ -109,6 +109,15 @@ const editorTheme = EditorView.theme({
   '.cm-diagnostic-warning, .cm-diagnostic-info, .cm-diagnostic-hint': {
     borderLeft: `3px solid ${colors.warning}`,
   },
+  '.cm-lintRange-active': { backgroundColor: v('colors.amber.a3') },
+  // The problems panel (Mod-Shift-m).
+  '.cm-panels': { backgroundColor: colors.gutter, color: colors.fg },
+  '.cm-panels-top': { borderBottom: `1px solid ${colors.border}` },
+  '.cm-panels-bottom': { borderTop: `1px solid ${colors.border}` },
+  '.cm-panel.cm-panel-lint ul [aria-selected], .cm-panel.cm-panel-lint ul:focus [aria-selected]': {
+    backgroundColor: colors.selection,
+    color: colors.fg,
+  },
   '.cm6-json-schema-hover': { maxWidth: '28rem', padding: '0.375em 0.5em' },
   '.cm6-json-schema-hover--code-wrapper': { marginTop: '0.25em' },
   '.cm6-json-schema-hover--code': { fontFamily: v('fonts.mono'), color: colors.muted },

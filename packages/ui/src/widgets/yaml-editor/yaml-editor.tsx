@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { css } from '../../../styled-system/css'
 import type { YamlEditorInstance } from './extensions'
 import type { YamlProblem } from './types'
@@ -76,30 +76,39 @@ export function YamlEditor({
   useEffect(() => {
     let cancelled = false
     let instance: YamlEditorInstance | undefined
-    void import('./extensions').then(({ createEditor }) => {
-      if (cancelled || !hostRef.current) return
-      const initial = latest.current
-      instance = createEditor({
-        parent: hostRef.current,
-        doc: initial.value,
-        schema: initial.schema,
-        readOnly: initial.readOnly,
-        ariaLabel: initial.ariaLabel,
-        onChange: (text) => callbacks.current.onChange?.(text),
-        onProblems: (problems) => callbacks.current.onProblems?.(problems),
-        onCursorPath: (path) => callbacks.current.onCursorPath?.(path),
-        onSave: () => callbacks.current.onSave?.(),
+    import('./extensions')
+      .then(({ createEditor }) => {
+        if (cancelled || !hostRef.current) return
+        const initial = latest.current
+        instance = createEditor({
+          parent: hostRef.current,
+          doc: initial.value,
+          schema: initial.schema,
+          readOnly: initial.readOnly,
+          ariaLabel: initial.ariaLabel,
+          onChange: (text) => callbacks.current.onChange?.(text),
+          onProblems: (problems) => callbacks.current.onProblems?.(problems),
+          onCursorPath: (path) => callbacks.current.onCursorPath?.(path),
+          onSave: () => callbacks.current.onSave?.(),
+        })
+        setEditor(instance)
+        callbacks.current.onReady?.(instance)
       })
-      setEditor(instance)
-      callbacks.current.onReady?.(instance)
-    })
+      // The text stays readable in the placeholder; say why it never became an editor.
+      .catch((error: unknown) => console.error('YamlEditor: CodeMirror failed to load', error))
     return () => {
       cancelled = true
-      instance?.destroy()
+      if (instance) {
+        instance.destroy()
+        // A re-run (Fast Refresh, StrictMode) must not reach the destroyed view.
+        setEditor(null)
+      }
     }
   }, [])
 
-  useEffect(() => editor?.setDoc(value), [editor, value])
+  // Synced in the commit, before the browser can deliver another keystroke: a passive effect could
+  // apply a value one keystroke old over newer typing.
+  useLayoutEffect(() => editor?.setDoc(value), [editor, value])
   useEffect(() => editor?.setReadOnly(readOnly), [editor, readOnly])
   useEffect(() => editor?.setAriaLabel(ariaLabel), [editor, ariaLabel])
   useEffect(() => editor?.setSchema(schema), [editor, schema])
