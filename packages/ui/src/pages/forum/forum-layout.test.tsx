@@ -45,6 +45,11 @@ describe('ForumLayout', () => {
     expect(screen.getByRole('link', { name: 'Docs' })).not.toHaveAttribute('aria-current')
   })
 
+  it('omits the primary action with hidePrimary', () => {
+    renderLayout({ hidePrimary: true })
+    expect(screen.queryByRole('link', { name: 'New topic' })).toBeNull()
+  })
+
   it('shows Sign in only with signInHref', () => {
     const { unmount } = renderLayout()
     expect(screen.queryByRole('link', { name: 'Sign in' })).toBeNull()

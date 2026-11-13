@@ -27,6 +27,8 @@ export type ForumLayoutProps = Pick<
   search?: SearchBinding
   /** The category the primary action pre-selects. */
   composerCategory?: ForumCategory
+  /** Leaves the primary action out (the composer page: it would link to itself). */
+  hidePrimary?: boolean
   children: ReactNode
 }
 
@@ -94,6 +96,7 @@ export function ForumLayout({
   searchHref,
   search,
   composerCategory,
+  hidePrimary,
   children,
 }: ForumLayoutProps) {
   let field: ReactNode = null
@@ -147,11 +150,13 @@ export function ForumLayout({
             </HostLink>
           </Button>
         ) : null}
-        <Button asChild size="sm">
-          <HostLink as={linkComponent} href={composerHref(composerCategory)}>
-            {vocabulary[variant].primary}
-          </HostLink>
-        </Button>
+        {hidePrimary ? null : (
+          <Button asChild size="sm">
+            <HostLink as={linkComponent} href={composerHref(composerCategory)}>
+              {vocabulary[variant].primary}
+            </HostLink>
+          </Button>
+        )}
       </Box>
       <Box as="main" flex="1">
         {children}

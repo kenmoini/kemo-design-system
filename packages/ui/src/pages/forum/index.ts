@@ -32,6 +32,11 @@ export {
   vocabulary,
   weekStats,
 } from './content'
+export { ForumComposerPage } from './composer-page'
+export { ForumCategoryPage } from './forum-category-page'
+export { ForumIndexPage } from './forum-index-page'
+export { ForumLayout, type ForumLayoutProps } from './forum-layout'
+export { ForumTopicPage } from './forum-topic-page'
 export { ReplyComposer, type ReplyComposerProps } from './reply-composer'
 export type {
   ForumBlock,
