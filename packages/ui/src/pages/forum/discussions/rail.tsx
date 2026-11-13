@@ -7,14 +7,14 @@ import { vocabulary } from '../content'
 import { AccentSquare, Count, UserAvatar } from '../parts'
 import type { ForumCategory, ForumUser } from '../types'
 
-const railLink = css({
+export const railLink = css({
   color: 'fg.default',
   textDecoration: 'none',
   _hover: { textDecoration: 'underline' },
   _focusVisible: { outline: '2px solid', outlineOffset: '2px', rounded: 'l1' },
 })
 
-function RailHeading({ children }: { children: string }) {
+export function RailHeading({ children }: { children: string }) {
   return (
     <styled.h2
       textStyle="xs"
