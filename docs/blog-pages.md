@@ -17,7 +17,8 @@ Exports from `@kemo/ui`: `BlogIndexPage` and `BlogPostPage` (each renders the va
 `BlogProse`, `blogVariants` (the ids, titles and descriptions above) and the types `BlogVariant`,
 `BlogPost`, `BlogBlock`, `BlogComment`, `BlogAuthor`, `BlogTopic`, `BlogCoverSpec`,
 `BlogChromeProps` (the props every page shares), `BlogIndexPageProps`, `BlogPostPageProps`,
-`BlogLayoutProps`, `BlogCoverProps`, `SubscribeFormProps` and `BlogCommentsProps`.
+`BlogLayoutProps`, `BlogCoverProps`, `SubscribeFormProps` and `BlogCommentsProps`. `BlogProse`
+takes `size`: `md` by default, `sm` for the forum's post bodies (see [Forum pages](forum-pages.md)).
 
 A post is data, and its body is a list of typed blocks:
 

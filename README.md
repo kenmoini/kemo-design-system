@@ -9,8 +9,8 @@ whose scopes or mappers leave the profile incomplete). Other Kemo apps are meant
 
 This repository holds the tooling, theme, components, the page sets (auth, the application shell
 and dashboard widgets, status and console pages, the Access page and its `DataTable`, the
-Deployments pages with their YAML editor and schema browser, the blog pages), the preview and CI.
-Each part has a guide under `docs/`; see [Documentation](#documentation).
+Deployments pages with their YAML editor and schema browser, the blog pages, the forum pages), the
+preview and CI. Each part has a guide under `docs/`; see [Documentation](#documentation).
 
 ## Stack and design language
 
@@ -66,6 +66,7 @@ and the theme toggle. `make help` lists every target. Every target is a thin wra
 | [Access page and DataTable](docs/access-page.md)                             | The ten-tab Access page and the `DataTable` widget                                |
 | [Deployments pages, YamlEditor and SchemaBrowser](docs/deployments-pages.md) | The list and detail pages, the CodeMirror editor and the pluggable schema browser |
 | [Blog pages](docs/blog-pages.md)                                             | Three blog variations with comments                                               |
+| [Forum pages](docs/forum-pages.md)                                           | Three forum variations: Boards, Discussions feed and Q&A desk                     |
 | [Gallery](docs/gallery/README.md)                                            | A screenshot of every page, by family (`make gallery` regenerates it)             |
 
 Design specs and implementation plans for each phase live under `docs/superpowers/`.
@@ -96,4 +97,8 @@ Design specs and implementation plans for each phase live under `docs/superpower
    tabs, exported from `@kemo/ui`, with the `/deployments` demo in the preview (see
    [Deployments pages, YamlEditor and SchemaBrowser](docs/deployments-pages.md));
    spec in `docs/superpowers/specs/2026-11-11-deployments-page-design.md`.
-8. Publishing `@kemo/ui`, once the package prefix is decided.
+8. Done: the forum pages in three variations (Boards, Discussions feed, Q&A desk), each a front
+   page, a category page, a topic page and a composer, exported from `@kemo/ui`, with the `/forum`
+   demos in the preview (see [Forum pages](docs/forum-pages.md)); spec in
+   `docs/superpowers/specs/2026-11-12-forum-pages-design.md`.
+9. Publishing `@kemo/ui`, once the package prefix is decided.

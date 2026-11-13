@@ -62,7 +62,9 @@ export function QuestionCell({
             {solved ? <CheckIcon size={12} aria-hidden="true" /> : null}
             <Count value={answers} />
           </styled.b>
-          <styled.span display="block" textStyle="2xs">
+          {/* Below the smallest text style (xs, 12px), which overflows the 2.75rem cell; the mockup
+              draws this label at 9px under a 14px count. */}
+          <styled.span display="block" fontSize="0.625rem" lineHeight="1rem">
             {answers === 1 ? 'answer' : 'answers'}
           </styled.span>
         </div>

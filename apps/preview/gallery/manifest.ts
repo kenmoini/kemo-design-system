@@ -54,6 +54,8 @@ const forcedDark: GalleryTheme[] = ['light']
 
 const DEPLOYMENT = '/deployments/prod-us-east/checkout/checkout-api'
 const POST = 'cold-start-62'
+const THREAD = 'schema-browser-crd'
+const THREAD_TITLE = 'Schema browser shows no CRD fields after 4.2'
 
 export const families: GalleryFamily[] = [
   {
@@ -181,6 +183,54 @@ export const families: GalleryFamily[] = [
         title: 'Journal with a rail: post',
         route: `/blog/journal-rail/${POST}`,
       },
+    ],
+  },
+  {
+    id: 'forum',
+    title: 'Forum pages',
+    description:
+      'Three forum variations (Boards, Discussions feed, Q&A desk), each with a front page, a category page, a topic page and a composer.',
+    guide: '../forum-pages.md',
+    shots: [
+      { id: 'boards', title: 'Boards', route: '/forum/boards' },
+      {
+        id: 'boards-category',
+        title: 'Boards: category',
+        route: '/forum/boards/c/kemo-console',
+      },
+      {
+        id: 'boards-topic',
+        title: 'Boards: topic',
+        route: `/forum/boards/t/${THREAD}`,
+        heading: THREAD_TITLE,
+      },
+      { id: 'boards-new', title: 'Boards: new topic', route: '/forum/boards/new' },
+      { id: 'discussions', title: 'Discussions feed', route: '/forum/discussions' },
+      {
+        id: 'discussions-category',
+        title: 'Discussions feed: category',
+        route: '/forum/discussions/c/kemo-console',
+      },
+      {
+        id: 'discussions-topic',
+        title: 'Discussions feed: topic',
+        route: `/forum/discussions/t/${THREAD}`,
+        heading: THREAD_TITLE,
+      },
+      {
+        id: 'discussions-new',
+        title: 'Discussions feed: new discussion',
+        route: '/forum/discussions/new',
+      },
+      { id: 'qa', title: 'Q&A desk', route: '/forum/qa' },
+      { id: 'qa-category', title: 'Q&A desk: category', route: '/forum/qa/c/kemo-console' },
+      {
+        id: 'qa-topic',
+        title: 'Q&A desk: topic',
+        route: `/forum/qa/t/${THREAD}`,
+        heading: THREAD_TITLE,
+      },
+      { id: 'qa-new', title: 'Q&A desk: ask a question', route: '/forum/qa/new' },
     ],
   },
   {

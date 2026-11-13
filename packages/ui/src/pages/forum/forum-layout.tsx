@@ -114,7 +114,9 @@ export function ForumLayout({
         borderColor="border"
         display="flex"
         alignItems="center"
-        gap="6"
+        // Below `md` the gaps tighten and below `sm` the section label goes, so the brand, Sign in
+        // and the longest primary action ("New discussion") fit a 375px screen.
+        gap={{ base: '3', md: '6' }}
         px={{ base: '4', md: '7' }}
       >
         <HostLink as={linkComponent} href={indexHref} className={brandLink}>
@@ -122,7 +124,7 @@ export function ForumLayout({
           <Box as="span" fontWeight="semibold">
             {brand}
           </Box>
-          <Box as="span" color="fg.subtle">
+          <Box as="span" color="fg.subtle" display={{ base: 'none', sm: 'inline' }}>
             / {section}
           </Box>
         </HostLink>

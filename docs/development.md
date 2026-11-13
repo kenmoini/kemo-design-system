@@ -69,7 +69,10 @@ subscribe dialog and rail (and its failure) and that focus lands on the confirma
 comment and a reply (focus returns to Reply) and posting without `crypto.randomUUID`, a rejected and
 a long comment, the empty state, the Magazine post's centred reading column, the Journal's current
 section, its rail resting above Copy link at the end of the post, and at 375px its rail and a Tab
-order that runs down the page, Copy link and dark mode. It runs against a built preview, so build first (`make e2e` does).
+order that runs down the page, Copy link and dark mode. The forum suite
+(`apps/preview/e2e/forum.spec.ts`) covers the twelve forum pages, their filters, search, paging,
+replies, reactions, votes, accept, follow, comments, topic creation, the failure path and 375px. It
+runs against a built preview, so build first (`make e2e` does).
 
 ## Screenshot gallery
 

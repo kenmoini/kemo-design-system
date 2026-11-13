@@ -18,6 +18,7 @@ To add a page or component, add it to `apps/preview/gallery/manifest.ts` and run
 | [Access page](#access-page) | 20 | [Access page](../access-page.md) |
 | [Deployments pages](#deployments-pages) | 10 | [Deployments pages](../deployments-pages.md) |
 | [Blog pages](#blog-pages) | 12 | [Blog pages](../blog-pages.md) |
+| [Forum pages](#forum-pages) | 24 | [Forum pages](../forum-pages.md) |
 | [Component pages](#component-pages) | 8 | [README](../../README.md#quickstart) |
 
 ## Auth pages
@@ -175,6 +176,61 @@ The three blog variations, each an index and a post page with comments: Editoria
 <tr>
 <td width="50%" valign="top"><a href="blog/journal-rail-post.png"><img src="blog/journal-rail-post.png" width="420" alt="Journal with a rail: post"></a><br><strong>Journal with a rail: post</strong> · <code>/blog/journal-rail/cold-start-62</code></td>
 <td width="50%" valign="top"><a href="blog/journal-rail-post.dark.png"><img src="blog/journal-rail-post.dark.png" width="420" alt="Journal with a rail: post (dark)"></a><br><strong>Journal with a rail: post (dark)</strong> · <code>/blog/journal-rail/cold-start-62</code></td>
+</tr>
+</table>
+
+## Forum pages
+
+Three forum variations (Boards, Discussions feed, Q&A desk), each with a front page, a category page, a topic page and a composer. Guide: [Forum pages](../forum-pages.md).
+
+<table>
+<tr>
+<td width="50%" valign="top"><a href="forum/boards.png"><img src="forum/boards.png" width="420" alt="Boards"></a><br><strong>Boards</strong> · <code>/forum/boards</code></td>
+<td width="50%" valign="top"><a href="forum/boards.dark.png"><img src="forum/boards.dark.png" width="420" alt="Boards (dark)"></a><br><strong>Boards (dark)</strong> · <code>/forum/boards</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="forum/boards-category.png"><img src="forum/boards-category.png" width="420" alt="Boards: category"></a><br><strong>Boards: category</strong> · <code>/forum/boards/c/kemo-console</code></td>
+<td width="50%" valign="top"><a href="forum/boards-category.dark.png"><img src="forum/boards-category.dark.png" width="420" alt="Boards: category (dark)"></a><br><strong>Boards: category (dark)</strong> · <code>/forum/boards/c/kemo-console</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="forum/boards-topic.png"><img src="forum/boards-topic.png" width="420" alt="Boards: topic"></a><br><strong>Boards: topic</strong> · <code>/forum/boards/t/schema-browser-crd</code></td>
+<td width="50%" valign="top"><a href="forum/boards-topic.dark.png"><img src="forum/boards-topic.dark.png" width="420" alt="Boards: topic (dark)"></a><br><strong>Boards: topic (dark)</strong> · <code>/forum/boards/t/schema-browser-crd</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="forum/boards-new.png"><img src="forum/boards-new.png" width="420" alt="Boards: new topic"></a><br><strong>Boards: new topic</strong> · <code>/forum/boards/new</code></td>
+<td width="50%" valign="top"><a href="forum/boards-new.dark.png"><img src="forum/boards-new.dark.png" width="420" alt="Boards: new topic (dark)"></a><br><strong>Boards: new topic (dark)</strong> · <code>/forum/boards/new</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="forum/discussions.png"><img src="forum/discussions.png" width="420" alt="Discussions feed"></a><br><strong>Discussions feed</strong> · <code>/forum/discussions</code></td>
+<td width="50%" valign="top"><a href="forum/discussions.dark.png"><img src="forum/discussions.dark.png" width="420" alt="Discussions feed (dark)"></a><br><strong>Discussions feed (dark)</strong> · <code>/forum/discussions</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="forum/discussions-category.png"><img src="forum/discussions-category.png" width="420" alt="Discussions feed: category"></a><br><strong>Discussions feed: category</strong> · <code>/forum/discussions/c/kemo-console</code></td>
+<td width="50%" valign="top"><a href="forum/discussions-category.dark.png"><img src="forum/discussions-category.dark.png" width="420" alt="Discussions feed: category (dark)"></a><br><strong>Discussions feed: category (dark)</strong> · <code>/forum/discussions/c/kemo-console</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="forum/discussions-topic.png"><img src="forum/discussions-topic.png" width="420" alt="Discussions feed: topic"></a><br><strong>Discussions feed: topic</strong> · <code>/forum/discussions/t/schema-browser-crd</code></td>
+<td width="50%" valign="top"><a href="forum/discussions-topic.dark.png"><img src="forum/discussions-topic.dark.png" width="420" alt="Discussions feed: topic (dark)"></a><br><strong>Discussions feed: topic (dark)</strong> · <code>/forum/discussions/t/schema-browser-crd</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="forum/discussions-new.png"><img src="forum/discussions-new.png" width="420" alt="Discussions feed: new discussion"></a><br><strong>Discussions feed: new discussion</strong> · <code>/forum/discussions/new</code></td>
+<td width="50%" valign="top"><a href="forum/discussions-new.dark.png"><img src="forum/discussions-new.dark.png" width="420" alt="Discussions feed: new discussion (dark)"></a><br><strong>Discussions feed: new discussion (dark)</strong> · <code>/forum/discussions/new</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="forum/qa.png"><img src="forum/qa.png" width="420" alt="Q&amp;A desk"></a><br><strong>Q&amp;A desk</strong> · <code>/forum/qa</code></td>
+<td width="50%" valign="top"><a href="forum/qa.dark.png"><img src="forum/qa.dark.png" width="420" alt="Q&amp;A desk (dark)"></a><br><strong>Q&amp;A desk (dark)</strong> · <code>/forum/qa</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="forum/qa-category.png"><img src="forum/qa-category.png" width="420" alt="Q&amp;A desk: category"></a><br><strong>Q&amp;A desk: category</strong> · <code>/forum/qa/c/kemo-console</code></td>
+<td width="50%" valign="top"><a href="forum/qa-category.dark.png"><img src="forum/qa-category.dark.png" width="420" alt="Q&amp;A desk: category (dark)"></a><br><strong>Q&amp;A desk: category (dark)</strong> · <code>/forum/qa/c/kemo-console</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="forum/qa-topic.png"><img src="forum/qa-topic.png" width="420" alt="Q&amp;A desk: topic"></a><br><strong>Q&amp;A desk: topic</strong> · <code>/forum/qa/t/schema-browser-crd</code></td>
+<td width="50%" valign="top"><a href="forum/qa-topic.dark.png"><img src="forum/qa-topic.dark.png" width="420" alt="Q&amp;A desk: topic (dark)"></a><br><strong>Q&amp;A desk: topic (dark)</strong> · <code>/forum/qa/t/schema-browser-crd</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="forum/qa-new.png"><img src="forum/qa-new.png" width="420" alt="Q&amp;A desk: ask a question"></a><br><strong>Q&amp;A desk: ask a question</strong> · <code>/forum/qa/new</code></td>
+<td width="50%" valign="top"><a href="forum/qa-new.dark.png"><img src="forum/qa-new.dark.png" width="420" alt="Q&amp;A desk: ask a question (dark)"></a><br><strong>Q&amp;A desk: ask a question (dark)</strong> · <code>/forum/qa/new</code></td>
 </tr>
 </table>
 
