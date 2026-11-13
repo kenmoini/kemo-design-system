@@ -37,7 +37,7 @@ export type ForumAction =
   | { type: 'react'; slug: string; postId: string; emoji: ReactionEmoji }
   /** The viewer's vote on a post; on the first post, the topic's vote. */
   | { type: 'vote'; slug: string; postId: string; direction: VoteDirection }
-  /** Mark `postId` as the accepted answer, unmarking any other. */
+  /** Mark `postId` as the accepted answer, unmarking any other; unmark it when it already is. */
   | { type: 'accept'; slug: string; postId: string }
   | { type: 'follow'; slug: string; following: boolean }
   | { type: 'create'; title: string; categoryId: string; tags: string[]; body: string }
@@ -243,7 +243,21 @@ export function forumReducer(state: ForumState, action: ForumAction): ForumState
       if (!topic.posts || !post || post === topic.posts[0] || post.parentId !== undefined) {
         return state
       }
-      if (post.accepted) return state
+      // Pressing the pressed "Accepted answer" again takes the mark back: the topic is open again.
+      if (post.accepted) {
+        return changed(
+          {
+            ...topic,
+            posts: topic.posts.map((p) => (p === post ? { ...p, accepted: false } : p)),
+          },
+          {
+            categories: updateCategory(state.categories, topic.categoryId, (c) => ({
+              ...c,
+              solvedCount: Math.max(0, c.solvedCount - 1),
+            })),
+          },
+        )
+      }
       const wasSolved = isSolved(topic)
       return changed(
         {

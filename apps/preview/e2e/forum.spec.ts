@@ -319,6 +319,16 @@ test.describe('forum routes', () => {
     await expect(main.getByRole('article').first()).toContainText('#11')
   })
 
+  test('boards: a link to a post past the first page opens on its page', async ({ page }) => {
+    await page.goto(`/forum/boards/t/${THREAD}#post-p12`)
+    await hydrated(page)
+    const main = page.getByRole('main')
+
+    await expect(main.locator('#post-p12')).toBeVisible()
+    await expect(main.locator('#post-p12')).toBeInViewport()
+    await expect(main.getByText('Posts 11–13 of 13')).toHaveCount(2)
+  })
+
   for (const variant of VARIANTS) {
     test(`${variant}: a reply appears and is announced`, async ({ page }) => {
       await page.goto(`/forum/${variant}/t/${THREAD}`)
@@ -334,18 +344,16 @@ test.describe('forum routes', () => {
       await expect(main.getByRole('status').filter({ hasText: replyPosted })).toBeVisible()
       await expect(composer).toHaveValue('')
       if (variant === 'boards') {
-        // The fourteenth post starts the second page.
-        await expect(main.getByText('Posts 1–10 of 14')).toHaveCount(2)
-        await main
-          .getByRole('navigation', { name: 'Posts' })
-          .first()
-          .getByRole('button', pageButton(2))
-          .click()
+        // The fourteenth post starts the second page, and the thread moves there by itself.
+        await expect(main.getByText('Posts 11–14 of 14')).toHaveCount(2)
       }
       const post = main.getByRole('article').filter({ hasText: text })
       await expect(post).toBeVisible()
       await expect(post).toContainText('just now')
-      if (variant === 'boards') await expect(post).toContainText('#14')
+      if (variant === 'boards') {
+        await expect(post).toContainText('#14')
+        await expect(post).toBeInViewport()
+      }
     })
   }
 
@@ -359,8 +367,9 @@ test.describe('forum routes', () => {
       .getByRole('listitem')
       .filter({ has: page.locator('#post-p2') })
     const text = 'It was 4.2.1 here as well, on two clusters.'
+    const opener = dan.getByRole('button', { name: 'Reply to Dan Okafor', exact: true })
 
-    await dan.getByRole('button', { name: 'Reply', exact: true }).first().click()
+    await opener.click()
     const inline = thread.getByRole('textbox', { name: 'Reply' })
     await expect(inline).toBeFocused()
     await inline.fill(text)
@@ -370,6 +379,9 @@ test.describe('forum routes', () => {
     const nested = dan.getByRole('listitem').filter({ hasText: text })
     await expect(nested).toBeVisible()
     await expect(nested).toContainText('just now')
+    // The composer is gone, so the page announces the reply and focus goes back to "Reply".
+    await expect(main.getByRole('status').filter({ hasText: 'Reply posted.' })).toHaveCount(1)
+    await expect(opener).toBeFocused()
   })
 
   test('discussions: a reaction from the menu', async ({ page }) => {
@@ -415,6 +427,24 @@ test.describe('forum routes', () => {
     await expect(
       answers.locator('#post-p4').getByRole('button', { name: 'Accept this answer' }),
     ).toBeVisible()
+  })
+
+  test('qa: the asker takes the accepted mark back', async ({ page }) => {
+    await page.goto(`/forum/qa/t/${THREAD}`)
+    await hydrated(page)
+    const main = page.getByRole('main')
+    const header = main.getByRole('heading', { level: 1 }).locator('..')
+    const priya = main.locator('#post-p4')
+    const accepted = priya.getByRole('button', { name: 'Accepted answer' })
+    await expect(header.getByText('Solved', { exact: true })).toHaveCount(1)
+    await expect(accepted).toHaveAttribute('aria-pressed', 'true')
+
+    await accepted.click()
+
+    const accept = priya.getByRole('button', { name: 'Accept this answer' })
+    await expect(accept).toBeVisible()
+    await expect(accept).toHaveAttribute('aria-pressed', 'false')
+    await expect(header.getByText('Solved', { exact: true })).toHaveCount(0)
   })
 
   test('boards: Watch toggles', async ({ page }) => {
@@ -503,6 +533,37 @@ test.describe('forum routes', () => {
       }
     })
   }
+
+  test('boards: the top-bar search on a topic page keeps the demo state', async ({ page }) => {
+    const title = 'Searching from a topic keeps this one'
+    await page.goto('/forum/boards/new')
+    await hydrated(page)
+    const main = page.getByRole('main')
+    await main.getByRole('textbox', { name: 'Title' }).fill(title)
+    await main.getByRole('combobox', { name: 'Category' }).click()
+    await page.getByRole('option', { name: 'Kemo Console', exact: true }).click()
+    await main
+      .getByRole('textbox', { name: 'Body' })
+      .fill('Written by the e2e suite to check that a search keeps the new topic.')
+    await main.getByRole('button', { name: 'Post topic', exact: true }).click()
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(title)
+
+    const field = page.getByRole('banner').getByRole('searchbox', { name: 'Search topics' })
+    await field.fill('crd')
+    await field.press('Enter')
+
+    await expect(page).toHaveURL(/\/forum\/boards\?q=crd$/)
+    const results = main
+      .locator('section')
+      .filter({ has: page.getByRole('heading', { level: 2, name: /results? for “crd”/ }) })
+    await expect(results.getByRole('link', { name: SAMPLE })).toBeVisible()
+
+    // A full page load would have reset the demo: the new topic is still there.
+    await page.getByRole('banner').getByRole('link', { name: /Kemo/ }).first().click()
+    await expect(page).toHaveURL(/\/forum\/boards$/)
+    const latest = main.getByRole('region', { name: 'Latest' }).getByRole('article')
+    await expect(latest.first().getByRole('heading')).toHaveText(title)
+  })
 
   test('a failed reply keeps its text', async ({ page }) => {
     await page.goto(`/forum/boards/t/${THREAD}`)

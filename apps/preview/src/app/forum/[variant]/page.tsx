@@ -27,5 +27,8 @@ export async function generateMetadata({ params }: ForumIndexRouteProps): Promis
 export default async function ForumIndexRoute({ params, searchParams }: ForumIndexRouteProps) {
   const variant = await resolveVariant(params)
   const { q } = await searchParams
-  return <ForumIndexDemo variant={variant} query={typeof q === 'string' ? q : undefined} />
+  const query = typeof q === 'string' ? q : undefined
+  // `?q=` only seeds the page's search (`defaultQuery`), so a new `?q=` (or none, through the brand
+  // link from a search) starts the page afresh rather than keeping the last results.
+  return <ForumIndexDemo key={query ?? ''} variant={variant} query={query} />
 }

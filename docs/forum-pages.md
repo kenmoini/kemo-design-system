@@ -93,8 +93,10 @@ What the pages derive rather than read:
   solved flag, so a list row that should read "Solved" needs at least its accepted post.
 - **Counts**: when a topic carries `posts`, its reply count is `posts.length - 1`, its reaction
   total the sum over its posts and its participants their authors; without `posts` the pages use
-  `replyCount`, `reactionTotal` and `participants`. A Q&A answer count is the top-level posts after
-  the question.
+  `replyCount`, `reactionTotal` and `participants`. A Q&A answer count is the answers the topic
+  page lists (`groupReplies`): the top-level posts after the question, and any post whose parent is
+  missing. Top contributors count each post's author, and a topic's author only when it carries no
+  posts (with posts, the first post is the topic's own).
 - **Times**: every relative time ("just now", "12 min ago", "3 h ago", "yesterday", "5 days ago",
   then the date after 30 days) is computed from the required `now`, never from the wall clock, so
   the server and the browser print the same text. Each `<time>` carries the absolute UTC time in its
@@ -124,34 +126,45 @@ How the pages behave:
   submitting sets the query, a topic matches when every word appears in its title, excerpt, tags or
   category label (any case), and the results replace the page's body under "{n} results for “q”"
   with a Clear button that returns focus to the field; no match shows "No topics match “q”" (or
-  discussions, or questions). A category page searches its own topics in Discussions and Q&A, and
-  every topic in Boards (whose results show each topic's category). Boards and Discussions put the
-  field in the top bar from `md` and above the list below it; Q&A in its hero, and above the list on
-  its category page. The query is page state: pass `query` and `onQueryChange` to control it, or
+  discussions, or questions). Results are ordered by latest activity, pinned or not. Search on a
+  category page covers that category only, in every variation. Boards and Discussions put the field
+  in the top bar from `md` and above the list below it; Q&A in its hero, and above the list on its
+  category page. The query is page state: pass `query` and `onQueryChange` to control it, or
   `defaultQuery` to start from one. `searchHref(query)` is a link into a search: on the Boards and
   Discussions topic and composer pages the top bar's field navigates to it, and the Q&A topic rail's
-  "Hot tags" link through it; without it both are absent.
+  "Hot tags" link through it; without it both are absent. That navigation calls
+  `navigate(searchHref(query))` when the host passes `navigate` (a client-side router's `push`, so
+  state held above the pages survives), and is a full page load otherwise.
 - **Paging**: the Boards and Q&A category pages show 10 rows a page with a pager (a filter change
-  returns to page 1), the Boards thread 10 posts a page under "Posts 1–10 of 13" above and below,
-  and the Discussions feed 8 rows and "Load more".
+  returns to page 1), the Boards thread 10 posts a page under "Posts 1–10 of 13" above and below
+  (a topic without posts shows neither line, only "No replies yet."), and the Discussions feed 8
+  rows and "Load more".
 - **Replies**: `onReply({ body, parentId?, quoteOf? })`. The composer takes 2 to 5,000 characters of
   plain text (paragraphs on blank lines, never rendered as HTML); while it waits the button spins,
   when it resolves the field clears and a polite status says "Reply posted." ("Answer posted." in
-  Q&A), and when it rejects the `Error`'s message shows and the text stays. The page does not add
-  the post: the host passes the topic back with it. In Boards the new post is the last one, so on a
-  thread longer than a page it lands on the last page. Boards' "Quote" attaches a removable quote
-  and sends `quoteOf` (the host adds the `quote` to the new post); Discussions' "Reply" opens an
-  inline composer that posts with the top-level reply's id; Q&A's "Add a comment" opens a one-line
-  field (1 to 600 characters) and announces "Comment posted.".
+  Q&A), and when it rejects the `Error`'s message shows and the text stays (a comment's too). The
+  page does not add the post: the host passes the topic back with it. In Boards the new post is the
+  last one: once the topic comes back longer, the thread moves to its last page and scrolls the new
+  post into view, whichever page the reply was sent from. Boards' "Quote" attaches a removable quote
+  and sends `quoteOf` (the host adds the `quote` to the new post); Discussions' "Reply" (named
+  "Reply to {author}") opens an inline composer that posts with the top-level reply's id; Q&A's "Add
+  a comment" opens a one-line field (1 to 600 characters). Both inline composers close once they
+  post, so the page announces "Reply posted." or "Comment posted." in a polite live region of its
+  own, and focus goes back to the button that opened the composer, on Cancel too.
+- **Links to posts**: every post is anchored as `#post-{id}`, and "Share" copies that address. In
+  Boards a link to a post past the first page opens the thread on that post's page, scrolled to it.
 - **Reactions**: `onReact(postId, emoji)` toggles the viewer's reaction; pills carry the count in
   their name ("👍 4, react") and `aria-pressed` from `reacted`. Discussions shows every emoji with a
-  count and a "+" menu of the five; Boards a single 👍 count; Q&A has votes instead.
+  count and a "+" menu of the five; Boards a single 👍 count (shown at 0 only with `onReact`, as
+  the button for the first one); Q&A has votes instead.
 - **Votes** (Q&A): `onVote(postId, 'up' | 'down' | null)`; pressing the pressed arrow again sends
-  `null`. The question's arrows show `topic.votes` and send the first post's id.
+  `null`. The question's arrows show `topic.votes` and send the first post's id. While a vote saves
+  the arrows stay focusable (`aria-disabled`) and a second press is ignored.
 - **Accept**: `onAcceptAnswer(postId)` turns every Q&A answer's check into a button ("Accept this
   answer" / "Accepted answer"). The host decides who may accept: pass it only when the viewer is the
-  asker or staff. The accepted answer leads the answers in Q&A and the replies in Discussions, and
-  is tinted in place in Boards.
+  asker or staff. Pressing the pressed "Accepted answer" calls it again with the same id; the
+  preview takes the mark back then, which reopens the topic. The accepted answer leads the answers
+  in Q&A and the replies in Discussions, and is tinted in place in Boards.
 - **Follow**: `onFollow(topicId, following)` toggles "Watch" / "Watching" (Boards), "Subscribe" /
   "Subscribed ✓" (Discussions) or "Follow" / "Following" (Q&A), shown from `topic.following`.
 - **Composer**: Title ("Question" in Q&A, with a hint to end on a question mark) of 10 to 120
@@ -210,7 +223,14 @@ const chrome = (now: string, viewer?: ForumUser): ForumChromeProps => ({
 visually hidden `h1`, and Q&A's hero says "Ask the community". `memberCount` fills the third Boards
 stat. `nav` lists the top bar's links (shown from `md`), `section` follows the brand ("Community" by
 default; hidden below `sm`), `footer` fills the left of the footer row and `year` pins its year in a
-statically generated page.
+statically generated page. `navigate(href)` takes the top bar's search to `searchHref(query)` on the
+pages without results of their own (the topic and composer pages); without it the browser loads the
+address. A Next.js host passes the router's `push`:
+
+```tsx
+const router = useRouter()
+<ForumTopicPage {...chrome(now, viewer)} navigate={router.push} topic={topic} category={category} />
+```
 
 Not included: Markdown or rich-text editing, sign-in and sessions, member profiles, moderation
 (edit, delete, flag, lock, move), notifications, private messages, a search index or server paging,
@@ -227,7 +247,9 @@ is a reducer (`apps/preview/src/lib/forum-reducer.ts`) held by `ForumDemoShell`
 `apps/preview/src/app/forum/layout.tsx`, above every forum page and variation, so a reply or a new
 topic survives a trip to another page or variation (a reload starts over). Its clock never reads
 the wall clock: `now` starts at the seed's fixed instant, moves 3 s with every change, so a new post
-reads "just now", and 30 s every 30 s while the page is visible, so the ages move. Each save waits
+reads "just now", and 30 s every 30 s while the page is visible, so the ages move; the footer's
+year comes from it too. The chrome passes the router's `push` as `navigate`, so a search from a
+topic or composer page keeps the state. Each save waits
 300 ms, and a reply, comment or topic whose text contains "fail" is rejected with "The forum could
 not save that. Try again.", so the error states can be tried. The viewer is Jonas Lindqvist, the
 sample thread's author, so Accept is offered there and his replies carry the "Author" badge in

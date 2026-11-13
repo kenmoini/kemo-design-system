@@ -198,8 +198,32 @@ describe('forumReducer', () => {
     const first = run(initialState, { type: 'accept', slug: UNSOLVED, postId: answer })
     expect(isSolved(topicOf(first, UNSOLVED))).toBe(true)
     expect(categoryOf(first, 'kemo-console').solvedCount).toBe(solved + 1)
+  })
+
+  it('accept on the accepted answer takes the mark back and the solved count down', () => {
+    const solved = categoryOf(initialState, 'kemo-console').solvedCount
+    const answer = topicOf(initialState, UNSOLVED).posts![1]!.id
+    const first = run(initialState, { type: 'accept', slug: UNSOLVED, postId: answer })
     const again = run(first, { type: 'accept', slug: UNSOLVED, postId: answer })
-    expect(categoryOf(again, 'kemo-console').solvedCount).toBe(solved + 1)
+    expect(postOf(again, UNSOLVED, answer).accepted).toBe(false)
+    expect(isSolved(topicOf(again, UNSOLVED))).toBe(false)
+    expect(categoryOf(again, 'kemo-console').solvedCount).toBe(solved)
+
+    const cleared = run(initialState, { type: 'accept', slug: SAMPLE, postId: 'p4' })
+    expect(isSolved(topicOf(cleared, SAMPLE))).toBe(false)
+    expect(categoryOf(cleared, 'kemo-console').solvedCount).toBe(solved - 1)
+    expect(Date.parse(cleared.now)).toBeGreaterThan(Date.parse(initialState.now))
+  })
+
+  it('accept never takes the solved count below zero', () => {
+    const empty: ForumState = {
+      ...initialState,
+      categories: initialState.categories.map((c) =>
+        c.id === 'kemo-console' ? { ...c, solvedCount: 0 } : c,
+      ),
+    }
+    const cleared = run(empty, { type: 'accept', slug: SAMPLE, postId: 'p4' })
+    expect(categoryOf(cleared, 'kemo-console').solvedCount).toBe(0)
   })
 
   it('accept leaves the original post and nested replies alone', () => {
