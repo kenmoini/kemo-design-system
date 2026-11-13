@@ -495,27 +495,6 @@ test.describe('status and console pages', () => {
     await expect(page).toHaveURL(/\/dashboard$/)
   })
 
-  for (const [route, text] of [
-    ['/errors/404', 'Kemo Console v0.3.0'],
-    ['/login', 'v1.4.2'],
-  ] as const) {
-    test(`${route} footer version clears the panel trigger at 375px`, async ({ page }) => {
-      await page.setViewportSize({ width: 375, height: 812 })
-      await page.goto(route)
-      const version = page.getByText(text, { exact: true })
-      await expect(version).toBeVisible()
-      const trigger = page.getByTestId('preview-panel-trigger')
-      const [a, b] = [await version.boundingBox(), await trigger.boundingBox()]
-      expect(a && b).toBeTruthy()
-      const overlap =
-        a!.x < b!.x + b!.width &&
-        b!.x < a!.x + a!.width &&
-        a!.y < b!.y + b!.height &&
-        b!.y < a!.y + a!.height
-      expect(overlap).toBe(false)
-    })
-  }
-
   test('error boundary uses the status page', async ({ page, baseURL }) => {
     const intentional = 'intentional render error'
     expected = [

@@ -46,7 +46,7 @@ make install && make dev
 ```
 
 Open http://localhost:3000. Every preview page renders on its own, without a header. The round
-button in the bottom-right corner (top-right on phones) opens the preview panel, a drawer with links to the overview
+button in the bottom-right corner opens the preview panel, a drawer with links to the overview
 dashboard (`/dashboard`), the auth pages (`/login`, `/register`, `/forgot-password`,
 `/complete-profile`), the component pages
 (`/components/buttons`, `/components/forms`, `/components/surfaces`, `/components/typography`)

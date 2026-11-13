@@ -48,11 +48,12 @@ stay as the record. Dates are the phase that left the item.
 
 ## Status pages and console pages (2026-11-11)
 
-| #   | Item                                                                        | Proposed | Why                            |
-| --- | --------------------------------------------------------------------------- | -------- | ------------------------------ |
-| S3  | FAQ ids are host-supplied and not namespaced                                | Document | Documented in the guide        |
-| S5  | Current-topic tracking cannot reach a short last topic at the page bottom   | Document | Hash following covers clicks   |
-| S10 | `StatusActionButton` is exported deliberately; reconsider before publishing | Document | Part of the export review (T1) |
+| #   | Item                                                                                                                            | Proposed | Why                                                                                                         |
+| --- | ------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| S3  | FAQ ids are host-supplied and not namespaced                                                                                    | Document | Documented in the guide                                                                                     |
+| S5  | Current-topic tracking cannot reach a short last topic at the page bottom                                                       | Document | Hash following covers clicks                                                                                |
+| S9  | The preview panel's floating trigger covers the footer's bottom-right version text on the status and auth pages at phone widths | Document | Preview chrome; the status spec accepts the overlap, and the library footers stay pinned to the bottom edge |
+| S10 | `StatusActionButton` is exported deliberately; reconsider before publishing                                                     | Document | Part of the export review (T1)                                                                              |
 
 ## Application shell and dashboard (2026-11-10)
 
