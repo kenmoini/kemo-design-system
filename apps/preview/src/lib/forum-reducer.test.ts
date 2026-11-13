@@ -50,6 +50,16 @@ describe('the seed', () => {
     expect(isSolved(topicOf(initialState, UNSOLVED))).toBe(false)
   })
 
+  it('gives every topic its posts: the opening post and as many replies as it counts', () => {
+    for (const topic of forumTopics) {
+      expect(topic.posts, topic.slug).toBeDefined()
+      expect(topic.posts!.length - 1, topic.slug).toBe(topic.replyCount)
+      const ids = topic.posts!.map((p) => p.id)
+      expect(new Set(ids).size, topic.slug).toBe(ids.length)
+    }
+    expect(initialState.nextId).toBe(46)
+  })
+
   it('dates every post within its topic, never after FORUM_NOW', () => {
     for (const topic of forumTopics) {
       const created = Date.parse(topic.createdAt)
@@ -91,6 +101,15 @@ describe('forumReducer', () => {
       categoryOf(initialState, 'kemo-console').postCount + 1,
     )
     expect(state.nextId).toBe(initialState.nextId + 1)
+  })
+
+  it('reply lands on every seeded topic', () => {
+    for (const topic of Object.values(initialState.topics)) {
+      const state = run(initialState, { type: 'reply', slug: topic.slug, body: 'Hello' })
+      expect(topicOf(state, topic.slug).posts, topic.slug).toHaveLength(
+        (topic.posts?.length ?? 0) + 1,
+      )
+    }
   })
 
   it('reply moves its topic to the front and never repeats a post id', () => {

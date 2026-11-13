@@ -67,11 +67,14 @@ export function slugFor(title: string, n: number): string {
   return `${kebab || 'topic'}-${n}`
 }
 
-/** One more than the highest number in a seeded post id (`p45` gives 46), so ids never repeat. */
+/** One more than the highest `p{n}` post id in the seed (`p45` gives 46), so new ids never repeat. */
 function firstFreeId(topics: ForumTopic[]): number {
   let highest = 0
   for (const t of topics) {
-    for (const p of t.posts ?? []) highest = Math.max(highest, Number(p.id.slice(1)) || 0)
+    for (const p of t.posts ?? []) {
+      const n = /^p(\d+)$/.exec(p.id)?.[1]
+      if (n) highest = Math.max(highest, Number(n))
+    }
   }
   return highest + 1
 }

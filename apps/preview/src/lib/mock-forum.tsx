@@ -185,6 +185,58 @@ const reply = (
 /** A topic whose id is its slug. */
 const topic = (fields: Omit<ForumTopic, 'id'>): ForumTopic => ({ id: fields.slug, ...fields })
 
+/** Short replies for the topics written as list rows: fictional, in the forum's voice. */
+const REPLY_POOL = [
+  'Same here on 4.2.1.',
+  'Fixed for us after the upgrade.',
+  'Could you share the request id from the error?',
+  'Which console version is this on?',
+  'We worked around it the same way for now.',
+  'Following: we see the same on two clusters.',
+  'The FAQ has a section on this that helped us.',
+  'Thanks, that answers it for our setup.',
+  'Would love this too; it comes up every week for us.',
+  'Is there an issue to follow for this?',
+]
+
+/** A stable number for a string: where a topic's replies start in the pool and the user list. */
+function hashOf(text: string): number {
+  let hash = 0
+  for (const ch of text) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0
+  return hash
+}
+
+/**
+ * A topic written as a list row, with the posts its counts promise, so its page has a thread to
+ * reply to: the opening post (the excerpt, then `more`; `reactionTotal` becomes its 👍), then
+ * `replyCount` short replies from the pool by the other users, spread evenly from `createdAt`, the
+ * last at `lastActivityAt`. No randomness: everything follows from the slug.
+ */
+function listedTopic(
+  { reactionTotal = 0, ...fields }: Omit<ForumTopic, 'id' | 'posts'>,
+  more?: string,
+): ForumTopic {
+  const others = Object.values(forumUsers).filter((user) => user.id !== fields.author.id)
+  const start = hashOf(fields.slug)
+  const span = Date.parse(fields.lastActivityAt) - Date.parse(fields.createdAt)
+  const opening: ForumPost = {
+    id: `${fields.slug}-op`,
+    author: fields.author,
+    postedAt: fields.createdAt,
+    body: [para(more ? `${fields.excerpt} ${more}` : fields.excerpt)],
+    reactions: reactionTotal > 0 ? [{ emoji: '👍', count: reactionTotal }] : [],
+  }
+  const replies = Array.from({ length: fields.replyCount }, (_, i): ForumPost => ({
+    id: `${fields.slug}-r${i + 1}`,
+    author: others[(start + i) % others.length]!,
+    postedAt: shiftTime(fields.createdAt, Math.round((span * (i + 1)) / fields.replyCount)),
+    body: [para(REPLY_POOL[(start + i) % REPLY_POOL.length]!)],
+    reactions: [],
+    votes: { score: 0 },
+  }))
+  return topic({ ...fields, posts: [opening, ...replies] })
+}
+
 // The sample thread, reconciled from the three thread mockups: Dan's question with Jonas's answer
 // nested under it (quoting Dan, for Boards), Priya's accepted answer with two nested replies,
 // Tomas's "same here", then six short replies so the Boards pager has a second page.
@@ -302,7 +354,7 @@ export const forumTopics: ForumTopic[] = [
     author: priya,
     createdAt: days(45),
     lastActivityAt: days(9),
-    replyCount: 4,
+    replyCount: 1,
     viewCount: 8200,
     votes: { score: 15 },
     tags: [],
@@ -372,7 +424,7 @@ export const forumTopics: ForumTopic[] = [
     author: amara,
     createdAt: days(3),
     lastActivityAt: minutes(70),
-    replyCount: 9,
+    replyCount: 2,
     viewCount: 640,
     votes: { score: 7 },
     tags: ['gitops', 'rbac'],
@@ -421,7 +473,7 @@ export const forumTopics: ForumTopic[] = [
     author: priya,
     createdAt: days(12),
     lastActivityAt: minutes(130),
-    replyCount: 31,
+    replyCount: 1,
     viewCount: 4800,
     votes: { score: 64 },
     tags: ['4.2', 'yaml-editor', 'crd'],
@@ -470,7 +522,7 @@ export const forumTopics: ForumTopic[] = [
     author: tomas,
     createdAt: minutes(220),
     lastActivityAt: minutes(190),
-    replyCount: 3,
+    replyCount: 2,
     viewCount: 210,
     votes: { score: 2 },
     tags: ['oidc', 'groups'],
@@ -506,7 +558,7 @@ export const forumTopics: ForumTopic[] = [
       ),
     ],
   }),
-  topic({
+  listedTopic({
     slug: 'minimum-rbac-read-only',
     title: 'Minimum RBAC for a read-only console account?',
     excerpt:
@@ -564,7 +616,7 @@ export const forumTopics: ForumTopic[] = [
     author: mei,
     createdAt: hours(70),
     lastActivityAt: hours(30),
-    replyCount: 17,
+    replyCount: 3,
     viewCount: 2300,
     votes: { score: 41 },
     tags: ['show-and-tell', 'gitops'],
@@ -615,7 +667,7 @@ export const forumTopics: ForumTopic[] = [
       ),
     ],
   }),
-  topic({
+  listedTopic({
     slug: 'dark-mode-schema-panel',
     title: "Dark mode for the YAML editor's schema panel",
     excerpt:
@@ -630,7 +682,7 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 23,
     tags: ['dark-mode', 'yaml-editor'],
   }),
-  topic({
+  listedTopic({
     slug: 'events-tab-laptop-sleep',
     title: 'Events tab stops updating after a laptop sleep',
     excerpt:
@@ -788,8 +840,8 @@ export const forumTopics: ForumTopic[] = [
     ],
   }),
 
-  // List-only topics: no posts, so their counts and reactions are given.
-  topic({
+  // Written as list rows: their posts are made up to match their counts (see listedTopic).
+  listedTopic({
     slug: 'yaml-tab-diff-before-save',
     title: 'Can the YAML tab show a diff before I save?',
     excerpt:
@@ -804,7 +856,7 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 5,
     tags: ['yaml-editor'],
   }),
-  topic({
+  listedTopic({
     slug: 'access-groups-large-directory',
     title: 'Access → Groups is slow with 2,000 groups from the IdP',
     excerpt:
@@ -819,7 +871,7 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 6,
     tags: ['groups', 'oidc'],
   }),
-  topic({
+  listedTopic({
     slug: 'events-filter-by-reason',
     title: 'Filtering the Events tab by reason',
     excerpt:
@@ -834,7 +886,7 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 4,
     tags: ['events'],
   }),
-  topic({
+  listedTopic({
     slug: 'hpa-scale-to-zero',
     title: 'Scaling to zero with an HPA attached',
     excerpt:
@@ -849,7 +901,7 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 5,
     tags: ['scaling'],
   }),
-  topic({
+  listedTopic({
     slug: 'crd-printer-columns',
     title: "Does the list view use a CRD's printer columns?",
     excerpt:
@@ -864,7 +916,7 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 3,
     tags: ['crd'],
   }),
-  topic({
+  listedTopic({
     slug: 'restart-greyed-out',
     title: 'Restart is greyed out for one Deployment but not the others',
     excerpt:
@@ -879,22 +931,25 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 1,
     tags: ['rbac'],
   }),
-  topic({
-    slug: 'yaml-editor-windows-line-endings',
-    title: 'The YAML editor flags every line after pasting from Windows',
-    excerpt:
-      'Pasting a manifest copied on Windows marks each line with a lint error until I retype the indentation.',
-    categoryId: 'kemo-console',
-    author: ana,
-    createdAt: days(30),
-    lastActivityAt: days(28),
-    replyCount: 5,
-    viewCount: 450,
-    votes: { score: 6 },
-    reactionTotal: 4,
-    tags: ['yaml-editor'],
-  }),
-  topic({
+  listedTopic(
+    {
+      slug: 'yaml-editor-windows-line-endings',
+      title: 'The YAML editor flags every line after pasting from Windows',
+      excerpt:
+        'Pasting a manifest copied on Windows marks each line with a lint error until I retype the indentation.',
+      categoryId: 'kemo-console',
+      author: ana,
+      createdAt: days(30),
+      lastActivityAt: days(28),
+      replyCount: 5,
+      viewCount: 450,
+      votes: { score: 6 },
+      reactionTotal: 4,
+      tags: ['yaml-editor'],
+    },
+    'The same file copied on a Mac pastes cleanly, so I suspect the line endings.',
+  ),
+  listedTopic({
     slug: 'argo-managed-warning',
     title: 'A warning before editing a Deployment Argo CD manages',
     excerpt:
@@ -909,22 +964,25 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 9,
     tags: ['gitops', 'yaml-editor'],
   }),
-  topic({
-    slug: 'dashboard-replicas-lag',
-    title: 'Replica counts on the dashboard lag a minute behind kubectl',
-    excerpt:
-      'After a scale, kubectl shows the new count at once while the dashboard card catches up about a minute later.',
-    categoryId: 'kemo-console',
-    author: tomas,
-    createdAt: days(55),
-    lastActivityAt: days(52),
-    replyCount: 3,
-    viewCount: 390,
-    votes: { score: 3 },
-    reactionTotal: 2,
-    tags: ['scaling', 'events'],
-  }),
-  topic({
+  listedTopic(
+    {
+      slug: 'dashboard-replicas-lag',
+      title: 'Replica counts on the dashboard lag a minute behind kubectl',
+      excerpt:
+        'After a scale, kubectl shows the new count at once while the dashboard card catches up about a minute later.',
+      categoryId: 'kemo-console',
+      author: tomas,
+      createdAt: days(55),
+      lastActivityAt: days(52),
+      replyCount: 3,
+      viewCount: 390,
+      votes: { score: 3 },
+      reactionTotal: 2,
+      tags: ['scaling', 'events'],
+    },
+    'The Deployments page is up to date at once; it is only the dashboard cards.',
+  ),
+  listedTopic({
     slug: 'maintenance-window-4-2-2',
     title: 'Maintenance window: the hosted console moves to 4.2.2',
     excerpt:
@@ -940,7 +998,7 @@ export const forumTopics: ForumTopic[] = [
     tags: ['4.2'],
     kind: 'announcement',
   }),
-  topic({
+  listedTopic({
     slug: 'argo-sync-waves-history',
     title: 'Do sync waves show up in the rollout history?',
     excerpt:
@@ -955,7 +1013,7 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 4,
     tags: ['gitops'],
   }),
-  topic({
+  listedTopic({
     slug: 'kustomize-overlay-yaml-tab',
     title: 'Editing a Kustomize-rendered Deployment in the YAML tab',
     excerpt:
@@ -970,7 +1028,7 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 5,
     tags: ['gitops', 'yaml-editor'],
   }),
-  topic({
+  listedTopic({
     slug: 'oidc-hourly-sign-out',
     title: 'Signed out every hour with Entra ID as the OIDC provider',
     excerpt:
@@ -985,7 +1043,7 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 3,
     tags: ['oidc'],
   }),
-  topic({
+  listedTopic({
     slug: 'restart-only-role',
     title: 'A role that can restart Deployments but not edit them',
     excerpt:
@@ -1000,7 +1058,7 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 6,
     tags: ['rbac', 'groups'],
   }),
-  topic({
+  listedTopic({
     slug: 'first-cluster-oidc-kubeconfig',
     title: 'Adding a first cluster from a kubeconfig that signs in with OIDC',
     excerpt:
@@ -1015,21 +1073,24 @@ export const forumTopics: ForumTopic[] = [
     reactionTotal: 3,
     tags: ['oidc'],
   }),
-  topic({
-    slug: 'hpa-targets-beside-replicas',
-    title: 'Show HPA targets beside the replica count',
-    excerpt:
-      'When a Deployment has an HPA, the list could show min, max and the current target next to the replicas.',
-    categoryId: 'feature-requests',
-    author: tomas,
-    createdAt: days(58),
-    lastActivityAt: days(44),
-    replyCount: 11,
-    viewCount: 930,
-    votes: { score: 19 },
-    reactionTotal: 17,
-    tags: ['scaling'],
-  }),
+  listedTopic(
+    {
+      slug: 'hpa-targets-beside-replicas',
+      title: 'Show HPA targets beside the replica count',
+      excerpt:
+        'When a Deployment has an HPA, the list could show min, max and the current target next to the replicas.',
+      categoryId: 'feature-requests',
+      author: tomas,
+      createdAt: days(58),
+      lastActivityAt: days(44),
+      replyCount: 11,
+      viewCount: 930,
+      votes: { score: 19 },
+      reactionTotal: 17,
+      tags: ['scaling'],
+    },
+    'Today it takes a trip to the HPA itself to see why the count changed.',
+  ),
 ]
 
 export const forumSlugs = forumTopics.map((t) => t.slug)
