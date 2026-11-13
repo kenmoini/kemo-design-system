@@ -61,7 +61,14 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
         <Control position="relative" display="flex" width="full">
           <Input ref={ref} size={size} variant={variant} {...inputProps} pe="var(--input-height)" />
           <ArkPasswordInput.VisibilityTrigger asChild>
-            <IconButton variant="plain" size={size} position="absolute" insetInlineEnd="0" top="0">
+            <IconButton
+              variant="plain"
+              size={size}
+              position="absolute"
+              insetInlineEnd="0"
+              insetY="0"
+              h="auto"
+            >
               <ArkPasswordInput.Indicator fallback={<EyeOffIcon />}>
                 <EyeIcon />
               </ArkPasswordInput.Indicator>

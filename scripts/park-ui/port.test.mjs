@@ -9,7 +9,9 @@ import {
   detectRecipeKind,
   findMissingPalettes,
   portSource,
+  requiredIndicatorColor,
   registerRecipe,
+  skeletonCircleRadius,
   trackPasswordInput,
 } from './port.mjs'
 
@@ -212,4 +214,29 @@ export const Title = withContext(ark.h3, 'title')
   assert.equal(cardFooterAsDiv(out), out)
   const other = 'packages/ui/src/components/ui/dialog.tsx'
   assert.equal(portSource(src, other, UI_ROOT), src)
+})
+
+const FIELD = 'packages/ui/src/theme/recipes/field.ts'
+const SKELETON = 'packages/ui/src/theme/recipes/skeleton.ts'
+
+test('portSource uses a real token for the required indicator in field.ts only, once', () => {
+  const src = `requiredIndicator: {\n  color: 'colorPalette.solid',\n},\nhelperText: {\n  color: 'colorPalette.solid',\n},\n`
+  const out = portSource(src, FIELD, UI_ROOT)
+  assert.match(out, /requiredIndicator: \{\n {2}color: 'colorPalette\.solid\.bg',/)
+  assert.match(out, /helperText: \{\n {2}color: 'colorPalette\.solid',/)
+  assert.equal(portSource(out, FIELD, UI_ROOT), out)
+  assert.equal(requiredIndicatorColor(out), out)
+  assert.equal(portSource(src, 'packages/ui/src/theme/recipes/badge.ts', UI_ROOT), src)
+})
+
+test('portSource lets the skeleton circle win over the loading radius, once', () => {
+  const src = `  },\n\n  defaultVariants: {\n    loading: true,\n  },\n`
+  const out = portSource(src, SKELETON, UI_ROOT)
+  assert.match(
+    out,
+    /compoundVariants: \[\s*\{ loading: true, circle: true, css: \{ borderRadius: 'full' \} \},?\s*\],\s*defaultVariants/,
+  )
+  assert.equal(portSource(out, SKELETON, UI_ROOT), out)
+  assert.equal(skeletonCircleRadius(out), out)
+  assert.equal(portSource(src, 'packages/ui/src/theme/recipes/badge.ts', UI_ROOT), src)
 })

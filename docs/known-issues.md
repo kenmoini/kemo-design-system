@@ -100,9 +100,6 @@ stay as the record. Dates are the phase that left the item.
 
 ## Park UI upstream quirks
 
-| #   | Item                                                                                                                 | Proposed | Why                                                            |
-| --- | -------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------- |
-| P1  | `field.ts` `requiredIndicator.color: 'colorPalette.solid'` is not a token (invisible with a neutral accent)          | Fix      | A port transform to `colorPalette.solid.bg` in the sync script |
-| P2  | `PasswordInput`'s trigger height mismatches `Input` at size `2xs`                                                    | Fix      | `insetY=0` or `height=var(--input-height)`                     |
-| P3  | `SkeletonCircle` renders `l2` corners instead of a circle (recipe variant conflict)                                  | Fix      | A port transform or a local override                           |
-| P4  | `Alert.Indicator` has no children slot (see H2); the `select` recipe's `dropdown` layer sits below `Drawer` (see H1) | Document | Candidate port transforms                                      |
+| #   | Item                                                                                                                 | Proposed | Why                       |
+| --- | -------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------- |
+| P4  | `Alert.Indicator` has no children slot (see H2); the `select` recipe's `dropdown` layer sits below `Drawer` (see H1) | Document | Candidate port transforms |

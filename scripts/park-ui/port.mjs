@@ -48,6 +48,23 @@ export function cardFooterAsDiv(source) {
   return source.replace(/(withContext\(\s*ark\.)h3(\s*,\s*(['"])footer\3\s*\))/, '$1div$2')
 }
 
+/** Use a token this theme has for the field's required asterisk (`colorPalette.solid` is not one). Idempotent. */
+export function requiredIndicatorColor(source) {
+  return source.replace(
+    /(requiredIndicator:\s*\{\s*color:\s*)(['"])colorPalette\.solid\2/,
+    "$1'colorPalette.solid.bg'",
+  )
+}
+
+/** Let the skeleton's `circle` radius win over the `loading` radius (variant order is not reliable). Idempotent. */
+export function skeletonCircleRadius(source) {
+  if (/compoundVariants/.test(source)) return source
+  return source.replace(
+    /(\n\s*)defaultVariants:/,
+    "$1compoundVariants: [{ loading: true, circle: true, css: { borderRadius: 'full' } }],$1defaultVariants:",
+  )
+}
+
 /** Apply the Panda v1 -> v2 transforms to one registry file. Idempotent. */
 export function portSource(source, filePath, uiRoot) {
   let rel = toPosix(path.relative(path.dirname(filePath), uiRoot))
@@ -61,6 +78,8 @@ export function portSource(source, filePath, uiRoot) {
   if (path.basename(filePath).startsWith('checkbox')) out = collapseCheckboxControl(out)
   if (path.basename(filePath) === 'input.ts') out = trackPasswordInput(out)
   if (path.basename(filePath) === 'card.tsx') out = cardFooterAsDiv(out)
+  if (path.basename(filePath) === 'field.ts') out = requiredIndicatorColor(out)
+  if (path.basename(filePath) === 'skeleton.ts') out = skeletonCircleRadius(out)
   return out
 }
 

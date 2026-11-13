@@ -79,4 +79,13 @@ describe('PasswordInput', () => {
     render(<PasswordInput placeholder="Password" value="secret" onChange={() => {}} />)
     expect(screen.getByPlaceholderText('Password')).toHaveValue('secret')
   })
+
+  it.each(['2xs', 'md'] as const)(
+    'stretches the trigger to the input height at size %s instead of a fixed height',
+    (size) => {
+      render(<PasswordInput size={size} placeholder="Password" />)
+      const trigger = screen.getByRole('button', { name: /show password/i })
+      expect(trigger).toHaveClass('inset-y_0', 'h_auto')
+    },
+  )
 })

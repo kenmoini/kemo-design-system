@@ -57,6 +57,8 @@ export const skeleton = defineRecipe({
     },
   },
 
+  compoundVariants: [{ loading: true, circle: true, css: { borderRadius: 'full' } }],
+
   defaultVariants: {
     variant: 'pulse',
     loading: true,
