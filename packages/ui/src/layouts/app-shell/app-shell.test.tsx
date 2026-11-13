@@ -1,8 +1,8 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HouseIcon, RocketIcon } from 'lucide-react'
 import { describe, expect, it } from 'vitest'
-import { setMediaMatches } from '../../test/media'
+import { matchMediaStub, setMediaMatches } from '../../test/media'
 import { AppShell } from './app-shell'
 import { PageFooter } from './page-footer'
 import { SideNav } from './side-nav'
@@ -28,9 +28,10 @@ const groups: NavGroup[] = [
   },
 ]
 
-function renderShell() {
+function renderShell(props: { defaultCollapsed?: boolean } = {}) {
   return render(
     <AppShell
+      {...props}
       topBar={
         <TopBar
           brand={{ name: 'Acme Console' }}
@@ -116,5 +117,42 @@ describe('AppShell', () => {
     renderShell()
     expect(screen.getByRole('navigation', { name: 'Primary' })).toHaveAttribute('data-rail', 'true')
     expect(screen.queryByRole('button', { name: 'Open navigation' })).toBeNull()
+  })
+
+  it('starts as the icon rail at lg when defaultCollapsed', () => {
+    setMediaMatches(MD, true)
+    setMediaMatches(LG, true)
+    renderShell({ defaultCollapsed: true })
+    expect(screen.getByRole('navigation', { name: 'Primary' })).toHaveAttribute('data-rail', 'true')
+  })
+
+  it('closes the drawer when the viewport grows past md', async () => {
+    // A matchMedia that can fire `change`, which the shared stub never does.
+    const listeners = new Set<() => void>()
+    const original = window.matchMedia
+    window.matchMedia = (query: string) => {
+      const list = matchMediaStub(query)
+      list.addEventListener = (_type: string, listener: unknown) =>
+        listeners.add(listener as () => void)
+      list.removeEventListener = (_type: string, listener: unknown) =>
+        listeners.delete(listener as () => void)
+      return list
+    }
+    try {
+      setMediaMatches(MD, false)
+      const user = userEvent.setup()
+      renderShell()
+      await user.click(screen.getByRole('button', { name: 'Open navigation' }))
+      expect(await screen.findByRole('dialog')).toBeInTheDocument()
+      setMediaMatches(MD, true)
+      act(() => listeners.forEach((listener) => listener()))
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      // Back below md the drawer stays closed.
+      setMediaMatches(MD, false)
+      act(() => listeners.forEach((listener) => listener()))
+      expect(screen.queryByRole('dialog')).toBeNull()
+    } finally {
+      window.matchMedia = original
+    }
   })
 })

@@ -41,4 +41,16 @@ describe('ChartCard', () => {
       'false',
     )
   })
+
+  it('shows an empty-state message for a table with no rows', async () => {
+    const user = userEvent.setup()
+    render(
+      <ChartCard title="Traffic" table={{ columns: ['Day', 'Visits'], rows: [] }}>
+        <div>the chart</div>
+      </ChartCard>,
+    )
+    await user.click(screen.getByRole('button', { name: 'View as table' }))
+    expect(screen.getByText('No data')).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
 })

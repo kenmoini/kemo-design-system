@@ -1,4 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { EventStream, type EventStreamEvent } from './event-stream'
 
@@ -41,9 +43,9 @@ describe('EventStream', () => {
 
   it('announces new events politely only when live', () => {
     const { rerender } = render(<EventStream events={events} />)
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByRole('status', { name: 'Events' })).not.toBeInTheDocument()
     rerender(<EventStream events={events} live />)
-    const region = screen.getByRole('status')
+    const region = screen.getByRole('status', { name: 'Events' })
     expect(region).toHaveAttribute('aria-live', 'polite')
     expect(region).toHaveAttribute('aria-atomic', 'false')
   })
@@ -70,5 +72,74 @@ describe('EventStream', () => {
     expect(within(item).getByText('DELETE /v1/users/88').tagName).toBe('STRONG')
     expect(within(item).getByText('marcus · 403 · 12 ms')).toBeInTheDocument()
     expect(item).toHaveTextContent('Warning: DELETE /v1/users/88')
+  })
+
+  describe('pause control', () => {
+    const newer: EventStreamEvent = { id: 'e6', time: '14:03:00', tone: 'info', text: 'Newest' }
+
+    it('is absent unless the stream is live', () => {
+      render(<EventStream events={events} />)
+      expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument()
+    })
+
+    it('toggles Pause and Resume with aria-pressed and a Paused or Live status', async () => {
+      const user = userEvent.setup()
+      render(<EventStream events={events} live />)
+      const toggle = screen.getByRole('button', { name: 'Pause' })
+      expect(toggle).toHaveAttribute('aria-pressed', 'false')
+      expect(screen.getByText('Live')).toBeInTheDocument()
+      await user.click(toggle)
+      const resume = screen.getByRole('button', { name: 'Resume' })
+      expect(resume).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.getByText('Paused')).toBeInTheDocument()
+      expect(screen.queryByText('Live')).not.toBeInTheDocument()
+    })
+
+    it('renders no new rows while paused and shows them on resume', async () => {
+      const user = userEvent.setup()
+      const { rerender } = render(<EventStream events={events} live />)
+      await user.click(screen.getByRole('button', { name: 'Pause' }))
+      rerender(<EventStream events={[newer, ...events]} live />)
+      expect(screen.getAllByRole('listitem')).toHaveLength(5)
+      expect(screen.queryByText('Newest')).not.toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Resume' }))
+      expect(screen.getAllByRole('listitem')).toHaveLength(6)
+      expect(screen.getByText('Newest')).toBeInTheDocument()
+    })
+
+    it('still holds the list while the pointer is over it', async () => {
+      const user = userEvent.setup()
+      const { rerender } = render(<EventStream events={events} live />)
+      await user.hover(screen.getAllByRole('listitem')[0]!)
+      expect(screen.getByText('Paused')).toBeInTheDocument()
+      rerender(<EventStream events={[newer, ...events]} live />)
+      expect(screen.getAllByRole('listitem')).toHaveLength(5)
+      await user.unhover(screen.getAllByRole('listitem')[0]!)
+      expect(screen.getAllByRole('listitem')).toHaveLength(6)
+    })
+
+    it('lets a host own the state with paused and onPausedChange', async () => {
+      const user = userEvent.setup()
+      const seen: boolean[] = []
+      function Host() {
+        const [paused, setPaused] = useState(true)
+        return (
+          <EventStream
+            events={events}
+            live
+            paused={paused}
+            onPausedChange={(next) => {
+              seen.push(next)
+              setPaused(next)
+            }}
+          />
+        )
+      }
+      render(<Host />)
+      expect(screen.getByRole('button', { name: 'Resume' })).toHaveAttribute('aria-pressed', 'true')
+      await user.click(screen.getByRole('button', { name: 'Resume' }))
+      expect(seen).toEqual([false])
+      expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument()
+    })
   })
 })

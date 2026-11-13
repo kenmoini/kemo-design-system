@@ -3,6 +3,7 @@ import { Table2, LineChart } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Box, Flex } from '../../styled-system/jsx'
 import { Card, Icon, IconButton, Table, Text } from '../components/ui'
+import { EmptyState } from './empty-state'
 import type { TableData } from './types'
 
 export interface ChartCardProps {
@@ -40,7 +41,9 @@ export function ChartCard({ title, caption, table, children }: ChartCardProps) {
       {/* A floor for a chart's empty state, low enough that short content (a status grid) does not
           leave a gap when cards stack in one column. */}
       <Card.Body minH="40">
-        {showTable ? (
+        {showTable && table.rows.length === 0 ? (
+          <EmptyState message="No data" />
+        ) : showTable ? (
           <Table.Root>
             <Table.Head>
               <Table.Row>

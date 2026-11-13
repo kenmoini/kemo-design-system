@@ -132,4 +132,35 @@ describe('foldSeries and plotSeries', () => {
       })
     }
   })
+
+  describe('direct end labels', () => {
+    const five = ['a', 'b', 'c', 'd', 'e'].map((id, i) =>
+      make(id, `Series ${id}`, [i + 1, 2, 3, 4]),
+    )
+    // Recharts draws the label list as plain <text> in the plot.
+    const endLabels = (container: HTMLElement) =>
+      Array.from(container.querySelectorAll('text')).filter((t) =>
+        /^Series [a-e]$/.test(t.textContent ?? ''),
+      )
+
+    it('labels each series at its end up to four', () => {
+      const { container } = render(<LineChart series={five.slice(0, 4)} width={400} height={200} />)
+      expect(endLabels(container).length).toBeGreaterThan(0)
+      expect(endLabels(container).length).toBeLessThanOrEqual(4)
+    })
+
+    it('shows at most four end labels for five series', () => {
+      const { container } = render(<LineChart series={five} width={400} height={200} />)
+      expect(container.querySelectorAll('.recharts-line')).toHaveLength(5)
+      expect(endLabels(container)).toHaveLength(0)
+    })
+  })
+
+  describe('area variant', () => {
+    it('renders an area per series instead of lines', () => {
+      const { container } = render(<LineChart area series={[api, web]} width={400} height={200} />)
+      expect(container.querySelectorAll('.recharts-area')).toHaveLength(2)
+      expect(container.querySelectorAll('.recharts-line')).toHaveLength(0)
+    })
+  })
 })

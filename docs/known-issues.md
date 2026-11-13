@@ -66,22 +66,18 @@ stay as the record. Dates are the phase that left the item.
 
 ## Application shell and dashboard (2026-11-10)
 
-| #   | Item                                                                                                                                                       | Proposed | Why                                                              |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------- |
-| H1  | A Park `Select` inside the mobile nav `Drawer` needs `zIndex: 'popover'` on its Content (recipe stacks at `dropdown`)                                      | Document | Candidate port transform; the demo sets it per select            |
-| H2  | Park `Alert.Indicator` hardcodes the info glyph, so `AlertBanner` on `status="error"` shows "i"                                                            | Fix      | Render the status icon in `AlertBanner` instead of the Indicator |
-| H3  | `ChartCard`'s toggle swaps both its name and `aria-pressed`; gauges use `role="img"` so the visible "70%" is not read separately                           | Drop     | Spec rulings                                                     |
-| H4  | Recharts `ResponsiveContainer initialDimension` is 600px until ResizeObserver fires                                                                        | Document |                                                                  |
-| H5  | Line-chart end labels have no collision avoidance; `Legend align` is deprecated in Recharts 3.10; a stacked column is not rounded when the top series is 0 | Document |                                                                  |
-| H6  | `StatusGrid` mounts one lazy Ark Tooltip per cell (48 on the demo)                                                                                         | Document |                                                                  |
-| H7  | Captions render `sm` under titles (spec said `xs` on the right); `ProgressList` and `RankedBars` key rows by label                                         | Drop     |                                                                  |
-| H8  | `SegmentedBar` segments past the fifth share `gray.8`                                                                                                      | Document |                                                                  |
-| H9  | The live event stream pauses only on hover or focus-within; no visible pause control                                                                       | Fix      | Reuse the Deployments events tab's reader pause                  |
-| H10 | The Capacity card's text column wraps narrowly beside the gauge at 1024px                                                                                  | Document |                                                                  |
-| H11 | Test gaps: end-label ≤ 4 rule, area variant, `defaultCollapsed`, drawer auto-close past `md`, `useLiveEvents`, an empty `rows` table                       | Fix      | A tests task                                                     |
-| H12 | The shell's help and notifications `IconButton`s have no callback props                                                                                    | Fix      | Inert controls; add `onHelp` and `onNotifications`               |
-| H13 | `AppShellProvider` is exported but inert without `AppShell`; rail labels render full width on the server between `md` and `lg` until hydration             | Document |                                                                  |
-| H14 | Demo deviations by ruling: 48 node cells = 44 good; `QuickActions` is exported but not on the page                                                         | Drop     |                                                                  |
+| #   | Item                                                                                                                                                       | Proposed | Why                                                   |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------- |
+| H1  | A Park `Select` inside the mobile nav `Drawer` needs `zIndex: 'popover'` on its Content (recipe stacks at `dropdown`)                                      | Document | Candidate port transform; the demo sets it per select |
+| H3  | `ChartCard`'s toggle swaps both its name and `aria-pressed`; gauges use `role="img"` so the visible "70%" is not read separately                           | Drop     | Spec rulings                                          |
+| H4  | Recharts `ResponsiveContainer initialDimension` is 600px until ResizeObserver fires                                                                        | Document |                                                       |
+| H5  | Line-chart end labels have no collision avoidance; `Legend align` is deprecated in Recharts 3.10; a stacked column is not rounded when the top series is 0 | Document |                                                       |
+| H6  | `StatusGrid` mounts one lazy Ark Tooltip per cell (48 on the demo)                                                                                         | Document |                                                       |
+| H7  | Captions render `sm` under titles (spec said `xs` on the right); `ProgressList` and `RankedBars` key rows by label                                         | Drop     |                                                       |
+| H8  | `SegmentedBar` segments past the fifth share `gray.8`                                                                                                      | Document |                                                       |
+| H10 | The Capacity card's text column wraps narrowly beside the gauge at 1024px                                                                                  | Document |                                                       |
+| H13 | `AppShellProvider` is exported but inert without `AppShell`; rail labels render full width on the server between `md` and `lg` until hydration             | Document |                                                       |
+| H14 | Demo deviations by ruling: 48 node cells = 44 good; `QuickActions` is exported but not on the page                                                         | Drop     |                                                       |
 
 ## Auth pages (2026-11-09)
 

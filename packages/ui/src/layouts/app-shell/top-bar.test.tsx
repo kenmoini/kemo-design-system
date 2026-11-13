@@ -73,8 +73,26 @@ describe('TopBar', () => {
     expect(onSubmit).toHaveBeenCalledWith('checkout')
   })
 
+  it('renders no help or notifications button without a callback', () => {
+    render(<TopBar {...base} notificationCount={3} />)
+    expect(screen.queryByRole('button', { name: 'Help' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Notifications/ })).toBeNull()
+    expect(screen.queryByText('3')).toBeNull()
+  })
+
+  it('calls onHelp and onNotifications on click', async () => {
+    const user = userEvent.setup()
+    const onHelp = vi.fn()
+    const onNotifications = vi.fn()
+    render(<TopBar {...base} onHelp={onHelp} onNotifications={onNotifications} />)
+    await user.click(screen.getByRole('button', { name: 'Help' }))
+    await user.click(screen.getByRole('button', { name: 'Notifications' }))
+    expect(onHelp).toHaveBeenCalledTimes(1)
+    expect(onNotifications).toHaveBeenCalledTimes(1)
+  })
+
   it('shows the notification count in the button name', () => {
-    render(<TopBar {...base} notifications={3} />)
+    render(<TopBar {...base} onHelp={() => {}} onNotifications={() => {}} notificationCount={3} />)
     expect(screen.getByRole('button', { name: 'Notifications (3)' })).toHaveTextContent('3')
     expect(screen.getByRole('button', { name: 'Help' })).toBeInTheDocument()
   })

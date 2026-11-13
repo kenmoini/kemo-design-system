@@ -196,19 +196,22 @@ function RecentDeployments() {
 }
 
 /**
- * The live Event stream. It stops ticking while the pointer is over the card or focus is inside it,
- * so the polite announcements and the moving list can be stopped (WCAG 2.2.2).
+ * The live Event stream. It stops ticking while the Pause toggle is on, the pointer is over the card
+ * or focus is inside it, so the polite announcements and the moving list can be stopped (WCAG 2.2.2).
+ * The stream shows the Live or Paused status itself.
  */
 function EventStreamCard() {
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
-  const paused = hovered || focused
-  const live = useLiveEvents(events, { rotation: liveEventRotation, paused })
+  const [toggled, setToggled] = useState(false)
+  const live = useLiveEvents(events, {
+    rotation: liveEventRotation,
+    paused: toggled || hovered || focused,
+  })
 
   return (
     <Panel
       title="Event stream"
-      caption={paused ? 'Paused' : 'Live'}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}
@@ -228,7 +231,7 @@ function EventStreamCard() {
         outline="none"
         focusVisibleRing="outside"
       >
-        <EventStream events={live} live />
+        <EventStream events={live} live paused={toggled} onPausedChange={setToggled} />
       </Box>
     </Panel>
   )

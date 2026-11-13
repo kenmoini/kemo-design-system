@@ -84,10 +84,12 @@ describe('AccessOverview', () => {
     const { rerender } = render(
       <AccessOverview stats={stats} signIns={signIns} apiCalls={apiCalls} />,
     )
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByRole('status', { name: 'Events' })).not.toBeInTheDocument()
 
     rerender(<AccessOverview stats={stats} signIns={signIns} apiCalls={apiCalls} live />)
-    expect(screen.getByRole('status')).toHaveTextContent('GET /v1/services · svc-ci-runner · 200')
+    expect(screen.getByRole('status', { name: 'Events' })).toHaveTextContent(
+      'GET /v1/services · svc-ci-runner · 200',
+    )
     expect(
       screen.getByRole('heading', { level: 2, name: 'Authenticated API calls · live' }),
     ).toBeVisible()
@@ -113,6 +115,10 @@ describe('AccessOverview', () => {
 
     await user.tab()
     expect(region).toHaveFocus()
+    expect(onStreamPauseChange).toHaveBeenLastCalledWith(true)
+    // The stream's own Pause toggle is inside the card, so focus stays within it.
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'Pause' })).toHaveFocus()
     expect(onStreamPauseChange).toHaveBeenLastCalledWith(true)
     await user.tab()
     expect(screen.getByRole('button', { name: 'After' })).toHaveFocus()

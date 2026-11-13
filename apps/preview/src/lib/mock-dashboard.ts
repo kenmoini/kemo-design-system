@@ -64,13 +64,13 @@ export const environments = [
 export const topBar = {
   brand: { name: 'Kemo Console' },
   search: { placeholder: 'Search services, deployments, users' },
-  notifications: 3,
+  notificationCount: 3,
   account: {
     initials: 'KM',
     name: 'Ken M.',
     menu: [{ label: 'Profile' }, { label: 'Settings' }, { label: 'Sign out' }],
   },
-} satisfies Pick<TopBarProps, 'brand' | 'search' | 'notifications' | 'account'>
+} satisfies Pick<TopBarProps, 'brand' | 'search' | 'notificationCount' | 'account'>
 
 /** The side navigation's workspace switcher. */
 export const workspaces = [

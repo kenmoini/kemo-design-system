@@ -27,8 +27,12 @@ export interface TopBarProps {
   }
   /** Extra controls placed before the help and notifications buttons. */
   actions?: ReactNode
-  /** Count shown on the notifications button; omitted or 0 shows no badge. */
-  notifications?: number
+  /** The help button is shown only with this callback. */
+  onHelp?: () => void
+  /** The notifications button is shown only with this callback. */
+  onNotifications?: () => void
+  /** Count badge on the notifications button (needs `onNotifications`); omitted or 0 shows none. */
+  notificationCount?: number
   account: { initials: string; name: string; menu: { label: string; onSelect?: () => void }[] }
 }
 

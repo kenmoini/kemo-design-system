@@ -69,7 +69,9 @@ export function TopBar({
   search,
   environment,
   actions,
-  notifications,
+  onHelp,
+  onNotifications,
+  notificationCount,
   account,
 }: TopBarProps) {
   const shell = useAppShell()
@@ -126,32 +128,39 @@ export function TopBar({
       {environment ? <EnvironmentSelect {...environment} /> : null}
       {actions}
       <HStack gap="1" flexShrink="0">
-        <IconButton variant="plain" size="sm" aria-label="Help">
-          <CircleHelpIcon />
-        </IconButton>
-        <IconButton
-          variant="plain"
-          size="sm"
-          aria-label={notifications ? `Notifications (${notifications})` : 'Notifications'}
-        >
-          <BellIcon />
-          {notifications ? (
-            <Badge
-              size="sm"
-              variant="solid"
-              position="absolute"
-              top="0"
-              insetInlineEnd="0"
-              minW="4.5"
-              px="1"
-              justifyContent="center"
-              pointerEvents="none"
-              aria-hidden="true"
-            >
-              {notifications}
-            </Badge>
-          ) : null}
-        </IconButton>
+        {onHelp ? (
+          <IconButton variant="plain" size="sm" aria-label="Help" onClick={onHelp}>
+            <CircleHelpIcon />
+          </IconButton>
+        ) : null}
+        {onNotifications ? (
+          <IconButton
+            variant="plain"
+            size="sm"
+            aria-label={
+              notificationCount ? `Notifications (${notificationCount})` : 'Notifications'
+            }
+            onClick={onNotifications}
+          >
+            <BellIcon />
+            {notificationCount ? (
+              <Badge
+                size="sm"
+                variant="solid"
+                position="absolute"
+                top="0"
+                insetInlineEnd="0"
+                minW="4.5"
+                px="1"
+                justifyContent="center"
+                pointerEvents="none"
+                aria-hidden="true"
+              >
+                {notificationCount}
+              </Badge>
+            ) : null}
+          </IconButton>
+        ) : null}
         <Menu.Root positioning={{ placement: 'bottom-end' }}>
           <Menu.Trigger
             aria-label={`Account: ${account.name}`}

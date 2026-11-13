@@ -64,7 +64,10 @@ from these parts. The demo is in `apps/preview/src/components/dashboard/`, its s
 next event of the `rotation` it is given every 4 seconds (keeping the newest 20) and takes a `paused`
 option; the demo
 pauses it while the pointer is over the Event stream card or focus is inside it, so its live
-announcements can be stopped. The controls are inert: the selects (environment, workspace, time
+announcements can be stopped. The top bar shows its help and notifications buttons only when given `onHelp` and `onNotifications`
+(`notificationCount` adds the badge); the demo wires help to `/faq` and notifications to an inline
+message. `EventStream` with `live` has a Pause / Resume toggle (`paused` and `onPausedChange` for a
+host that owns it) and `AlertBanner` takes a `status`. The other controls are inert: the selects (environment, workspace, time
 range, service), the table tabs and the pager hold local state, and the buttons do nothing. The
 demo builds its selects from Park's `Select` with `createListCollection` and `Portal`, which
 `@kemo/ui` re-exports from Ark so a consumer needs no direct `@ark-ui/react` dependency.

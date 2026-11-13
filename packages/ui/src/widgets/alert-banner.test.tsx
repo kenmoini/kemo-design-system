@@ -24,4 +24,23 @@ describe('AlertBanner', () => {
     render(<AlertBanner title="T" description="D" />)
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
+
+  it.each([
+    ['error', 'lucide-circle-alert'],
+    ['warning', 'lucide-circle-alert'],
+    ['info', 'lucide-info'],
+    ['success', 'lucide-circle-check'],
+  ] as const)('shows the %s icon, hidden from assistive tech', (status, icon) => {
+    const { container } = render(<AlertBanner status={status} title="T" description="D" />)
+    const svg = container.querySelector(`svg.${icon}`)
+    expect(svg).not.toBeNull()
+    expect(svg).toHaveAttribute('aria-hidden', 'true')
+    expect(container.querySelectorAll('svg')).toHaveLength(1)
+  })
+
+  it('defaults to error and names the status for a screen reader', () => {
+    const { container } = render(<AlertBanner title="Deploy failed" description="D" />)
+    expect(container.querySelector('svg.lucide-circle-alert')).not.toBeNull()
+    expect(screen.getByText('Error:')).toBeInTheDocument()
+  })
 })

@@ -1,6 +1,8 @@
 'use client'
 import {
+  Alert,
   AppShell,
+  Button,
   createListCollection,
   type NavGroup,
   PageFooter,
@@ -10,6 +12,7 @@ import {
   TopBar,
 } from '@kemo/ui'
 import NextLink from 'next/link'
+import { useRouter } from 'next/navigation'
 import { type ReactNode, useMemo, useState } from 'react'
 import { BrandMark } from '@/components/brand-mark'
 import {
@@ -79,6 +82,23 @@ export function DemoSelect({
   )
 }
 
+/** The notifications button's inline message: visible under the top bar until dismissed. */
+function Notices({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <Alert.Root status="info" variant="surface" mb="4">
+      <Alert.Content>
+        <Alert.Title>Notifications</Alert.Title>
+        <Alert.Description>
+          3 unread: INC-418 escalated, checkout-api v2.14.0 promoted, 2 deploy approvals waiting.
+        </Alert.Description>
+      </Alert.Content>
+      <Button size="sm" variant="outline" onClick={onDismiss}>
+        Dismiss
+      </Button>
+    </Alert.Root>
+  )
+}
+
 export interface ConsoleFrameProps {
   /** The `id` of the nav item to mark current (`overview`, `help`, ...); none when omitted. */
   active?: string
@@ -93,6 +113,8 @@ export interface ConsoleFrameProps {
 export function ConsoleFrame({ active, children }: ConsoleFrameProps) {
   const [environment, setEnvironment] = useState('prod-us-east')
   const [workspace, setWorkspace] = useState('core')
+  const [showNotices, setShowNotices] = useState(false)
+  const router = useRouter()
 
   const navGroups = useMemo<NavGroup[]>(
     () =>
@@ -114,6 +136,8 @@ export function ConsoleFrame({ active, children }: ConsoleFrameProps) {
           {...topBar}
           brand={{ ...topBar.brand, logo: <BrandMark letter="K" /> }}
           environment={{ options: environments, value: environment, onChange: setEnvironment }}
+          onHelp={() => router.push('/faq')}
+          onNotifications={() => setShowNotices((open) => !open)}
         />
       }
       sideNav={
@@ -134,6 +158,7 @@ export function ConsoleFrame({ active, children }: ConsoleFrameProps) {
       }
       footer={<PageFooter {...footer} links={footerLinks} />}
     >
+      {showNotices ? <Notices onDismiss={() => setShowNotices(false)} /> : null}
       {children}
     </AppShell>
   )
