@@ -1,6 +1,6 @@
 'use client'
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Box, Stack, styled } from '../../../styled-system/jsx'
 import { IconButton } from '../../components/ui'
 import type { VoteDirection } from './types'
@@ -25,14 +25,21 @@ export function VoteColumn({
   acceptName,
 }: VoteColumnProps) {
   const [pending, setPending] = useState(false)
+  // Read synchronously, so a second press in the same tick is ignored too.
+  const busy = useRef(false)
 
+  // The controls stay enabled while a vote is saved (a disabled button would drop keyboard focus to
+  // the page): they say so with `aria-disabled`, and a press meanwhile is ignored.
   async function run(action: () => Promise<void>) {
+    if (busy.current) return
+    busy.current = true
     setPending(true)
     try {
       await action()
     } catch {
       // The page does not surface vote errors.
     } finally {
+      busy.current = false
       setPending(false)
     }
   }
@@ -45,7 +52,7 @@ export function VoteColumn({
           size="xs"
           aria-label={`Upvote, score ${score}`}
           aria-pressed={viewer === 'up'}
-          disabled={pending}
+          aria-disabled={pending || undefined}
           onClick={() => run(() => onVote(viewer === 'up' ? null : 'up'))}
         >
           <ChevronUpIcon />
@@ -60,7 +67,7 @@ export function VoteColumn({
           size="xs"
           aria-label="Downvote"
           aria-pressed={viewer === 'down'}
-          disabled={pending}
+          aria-disabled={pending || undefined}
           onClick={() => run(() => onVote(viewer === 'down' ? null : 'down'))}
         >
           <ChevronDownIcon />
@@ -74,6 +81,7 @@ export function VoteColumn({
           colorPalette="green"
           aria-label={accepted ? 'Accepted answer' : (acceptName ?? 'Accept this answer')}
           aria-pressed={accepted ?? false}
+          aria-disabled={pending || undefined}
           onClick={() => run(onAccept)}
         >
           <CheckIcon />

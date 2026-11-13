@@ -50,6 +50,7 @@ export function QaCategory(props: ForumCategoryPageProps) {
       signInHref={props.signInHref}
       composerHref={props.composerHref}
       searchHref={props.searchHref}
+      navigate={props.navigate}
       composerCategory={category}
     >
       <Box maxW="62.5rem" mx="auto" px={{ base: '4', md: '7' }} py="7">

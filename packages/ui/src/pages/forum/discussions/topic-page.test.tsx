@@ -38,7 +38,7 @@ describe('DiscussionsTopic', () => {
   it('without onReply has no composer or Reply buttons and links to sign in', () => {
     render(<DiscussionsTopic {...props} />)
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Reply/ })).not.toBeInTheDocument()
     expect(screen.getByText(/to reply\./)).toHaveTextContent('Sign in to reply.')
     expect(
       within(screen.getByText(/to reply\./)).getByRole('link', { name: 'Sign in' }),
@@ -112,11 +112,22 @@ describe('DiscussionsTopic', () => {
     expect(top.indexOf('post-p9')).toBeLessThan(top.indexOf('post-p7'))
   })
 
+  it('names each Reply button after the author it answers', () => {
+    render(<DiscussionsTopic {...props} onReply={vi.fn()} />)
+    const dans = within(article('p2')).getByRole('button', { name: 'Reply to Dan Okafor' })
+    expect(dans).toHaveTextContent('Reply')
+    expect(
+      within(article('p3')).getByRole('button', { name: 'Reply to Jonas Lindqvist' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument()
+  })
+
   it('submits an inline reply under Dan with his id and Cancel closes it', async () => {
     const user = userEvent.setup()
     const onReply = vi.fn().mockResolvedValue(undefined)
     render(<DiscussionsTopic {...props} onReply={onReply} viewer={dan} />)
-    await user.click(within(article('p2')).getAllByRole('button', { name: 'Reply' })[0]!)
+    const opener = within(article('p2')).getByRole('button', { name: 'Reply to Dan Okafor' })
+    await user.click(opener)
     const box = within(article('p2').parentElement!).getByRole('textbox')
     expect(box).toHaveFocus()
     await user.type(box, 'Thanks for the detail')
@@ -127,16 +138,47 @@ describe('DiscussionsTopic', () => {
     await waitFor(() =>
       expect(within(article('p2').parentElement!).queryByRole('textbox')).not.toBeInTheDocument(),
     )
-    await user.click(within(article('p2')).getAllByRole('button', { name: 'Reply' })[0]!)
+    await user.click(opener)
     await user.click(within(article('p2').parentElement!).getByRole('button', { name: 'Cancel' }))
     expect(within(article('p2').parentElement!).queryByRole('textbox')).not.toBeInTheDocument()
+  })
+
+  it('announces an inline reply and gives focus back to its Reply button', async () => {
+    const user = userEvent.setup()
+    const onReply = vi.fn().mockResolvedValue(undefined)
+    render(<DiscussionsTopic {...props} onReply={onReply} />)
+    const status = screen.getByRole('status')
+    expect(status).toHaveAttribute('aria-live', 'polite')
+    expect(status).toHaveTextContent('')
+    // Mei's nested reply opens the composer under Priya's answer; focus returns to Mei's button.
+    const opener = within(article('p6')).getByRole('button', { name: 'Reply to Mei Tanaka' })
+    await user.click(opener)
+    await user.type(within(article('p4').parentElement!).getByRole('textbox'), 'Same here')
+    await user.click(within(article('p4').parentElement!).getByRole('button', { name: 'Comment' }))
+    await waitFor(() => expect(status).toHaveTextContent('Reply posted.'))
+    expect(within(article('p4').parentElement!).queryByRole('textbox')).not.toBeInTheDocument()
+    expect(opener).toHaveFocus()
+    // Opening a composer again clears the announcement.
+    await user.click(opener)
+    expect(status).toHaveTextContent('')
+  })
+
+  it('gives focus back to the Reply button on Cancel', async () => {
+    const user = userEvent.setup()
+    render(<DiscussionsTopic {...props} onReply={vi.fn()} />)
+    const opener = within(article('p7')).getByRole('button', { name: /^Reply to/ })
+    await user.click(opener)
+    expect(within(article('p7').parentElement!).getByRole('textbox')).toHaveFocus()
+    await user.click(within(article('p7').parentElement!).getByRole('button', { name: 'Cancel' }))
+    expect(within(article('p7').parentElement!).queryByRole('textbox')).not.toBeInTheDocument()
+    expect(opener).toHaveFocus()
   })
 
   it('replying to a nested reply posts under the top-level parent', async () => {
     const user = userEvent.setup()
     const onReply = vi.fn().mockResolvedValue(undefined)
     render(<DiscussionsTopic {...props} onReply={onReply} />)
-    await user.click(within(article('p5')).getByRole('button', { name: 'Reply' }))
+    await user.click(within(article('p5')).getByRole('button', { name: /^Reply to/ }))
     await user.type(within(article('p4').parentElement!).getByRole('textbox'), 'Glad it worked')
     await user.click(within(article('p4').parentElement!).getByRole('button', { name: 'Comment' }))
     await waitFor(() =>
@@ -147,8 +189,8 @@ describe('DiscussionsTopic', () => {
   it('opens only one inline composer at a time', async () => {
     const user = userEvent.setup()
     render(<DiscussionsTopic {...props} onReply={vi.fn()} />)
-    await user.click(within(article('p2')).getAllByRole('button', { name: 'Reply' })[0]!)
-    await user.click(within(article('p7')).getAllByRole('button', { name: 'Reply' })[0]!)
+    await user.click(within(article('p2')).getAllByRole('button', { name: /^Reply to/ })[0]!)
+    await user.click(within(article('p7')).getAllByRole('button', { name: /^Reply to/ })[0]!)
     expect(screen.getAllByRole('textbox')).toHaveLength(2)
     expect(within(article('p7').parentElement!).getByRole('textbox')).toBeInTheDocument()
   })

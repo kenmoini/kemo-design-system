@@ -1,4 +1,5 @@
 'use client'
+import { useEffect, useRef } from 'react'
 import { Box, HStack, Stack, styled } from '../../../../styled-system/jsx'
 import { Button } from '../../../components/ui'
 import { firstParagraphText, formatCount, vocabulary } from '../content'
@@ -46,6 +47,20 @@ export function QaAnswer({
   const isQuestion = role === 'question'
   const votes = isQuestion ? topic.votes : post.votes
   const { author } = post
+  // "Add a comment" comes back when the composer closes (posted or cancelled) and takes focus,
+  // which would otherwise drop to the page as the composer unmounts.
+  const commentButton = useRef<HTMLButtonElement | null>(null)
+  const refocus = useRef(false)
+  useEffect(() => {
+    if (commentOpen || !refocus.current) return
+    refocus.current = false
+    commentButton.current?.focus()
+  }, [commentOpen])
+  const closeComment = () => {
+    refocus.current = true
+    onCloseComment()
+  }
+
   return (
     <Box
       as="article"
@@ -123,15 +138,15 @@ export function QaAnswer({
               idPrefix={`comment-${post.id}`}
               viewer={viewer}
               autoFocus
-              onCancel={onCloseComment}
+              onCancel={closeComment}
               onSubmit={async (body) => {
                 await onReply({ body, parentId: post.id })
-                onCloseComment()
+                closeComment()
               }}
             />
           ) : (
             <div>
-              <Button variant="plain" size="xs" onClick={onOpenComment}>
+              <Button ref={commentButton} variant="plain" size="xs" onClick={onOpenComment}>
                 Add a comment
               </Button>
             </div>

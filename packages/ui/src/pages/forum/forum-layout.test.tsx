@@ -117,6 +117,21 @@ describe('ForumLayout', () => {
     expect(assign).toHaveBeenCalledWith('/forum?q=crd')
   })
 
+  it('navigating mode hands the searchHref to navigate instead of a full load', async () => {
+    const assign = vi.fn()
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...window.location, assign },
+    })
+    const navigate = vi.fn()
+    const searchHref = (q: string) => `/forum?q=${q}`
+    renderLayout({ searchHref, navigate })
+    await userEvent.type(screen.getByRole('searchbox'), 'crd{Enter}')
+    expect(navigate).toHaveBeenCalledWith(searchHref('crd'))
+    expect(navigate).toHaveBeenCalledTimes(1)
+    expect(assign).not.toHaveBeenCalled()
+  })
+
   it('navigating mode ignores an empty value', async () => {
     const assign = vi.fn()
     Object.defineProperty(window, 'location', {

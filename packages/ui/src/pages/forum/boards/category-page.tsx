@@ -36,8 +36,8 @@ export function BoardsCategory(props: ForumCategoryPageProps) {
   const sorted = sortTopics(own, (filter === 'all' ? 'latest' : filter) as ListFilter, 'boards')
   const { page, setPage } = usePager(sorted.length, PAGE_SIZE, filter)
   const rows = pageOf(sorted, page, PAGE_SIZE)
-  const results = query ? searchTopics(topics, categories, query) : []
-  const byId = new Map(categories.map((c) => [c.id, c]))
+  // Search covers this category only, as in the other variations.
+  const results = query ? searchTopics(own, categories, query) : []
 
   return (
     <ForumLayout
@@ -53,6 +53,7 @@ export function BoardsCategory(props: ForumCategoryPageProps) {
       signInHref={props.signInHref}
       composerHref={props.composerHref}
       searchHref={props.searchHref}
+      navigate={props.navigate}
       composerCategory={category}
       search={search}
     >
@@ -98,8 +99,7 @@ export function BoardsCategory(props: ForumCategoryPageProps) {
                   <BoardsTopicRow
                     key={t.id}
                     topic={t}
-                    category={byId.get(t.categoryId)}
-                    showCategory
+                    category={category}
                     href={props.topicHref(t)}
                     linkComponent={linkComponent}
                     now={now}

@@ -74,9 +74,11 @@ export function BoardsTopicRow({
         </Box>
         <styled.span textStyle="sm" display={{ base: 'none', md: 'block' }} textAlign="end">
           <Count value={replies} />
+          <styled.span srOnly>{replies === 1 ? ' reply' : ' replies'}</styled.span>
         </styled.span>
         <styled.span textStyle="sm" display={{ base: 'none', md: 'block' }} textAlign="end">
           <Count value={topic.viewCount} abbreviate />
+          <styled.span srOnly>{topic.viewCount === 1 ? ' view' : ' views'}</styled.span>
         </styled.span>
         <HStack
           gap="2"

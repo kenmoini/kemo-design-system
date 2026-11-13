@@ -144,7 +144,19 @@ describe('QaTopic', () => {
       expect(onReply).toHaveBeenCalledWith({ body: 'Which cluster version?', parentId: 'p1' }),
     )
     expect(await screen.findByText('Comment posted.')).toBeInTheDocument()
-    expect(within(post('p1')).getByRole('button', { name: 'Add a comment' })).toBeInTheDocument()
+    await waitFor(() =>
+      expect(within(post('p1')).getByRole('button', { name: 'Add a comment' })).toHaveFocus(),
+    )
+  })
+
+  it('gives focus back to "Add a comment" on Cancel', async () => {
+    const user = userEvent.setup()
+    render(<QaTopic {...props} onReply={vi.fn()} />)
+    await user.click(within(post('p4')).getByRole('button', { name: 'Add a comment' }))
+    expect(within(post('p4')).getByRole('textbox', { name: 'Comment' })).toHaveFocus()
+    await user.click(within(post('p4')).getByRole('button', { name: 'Cancel' }))
+    expect(within(post('p4')).queryByRole('textbox')).not.toBeInTheDocument()
+    expect(within(post('p4')).getByRole('button', { name: 'Add a comment' })).toHaveFocus()
   })
 
   it('opens one comment composer at a time and posts an answer', async () => {

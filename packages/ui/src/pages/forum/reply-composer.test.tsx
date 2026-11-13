@@ -107,6 +107,26 @@ describe('ReplyComposer', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Comment posted.')
   })
 
+  it("shows a rejected comment's message, else the comment fallback", async () => {
+    const user = userEvent.setup()
+    const onSubmit = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('Comments are closed.'))
+      .mockRejectedValueOnce(new Error(''))
+    render(<ReplyComposer variant="qa" kind="comment" idPrefix="c" onSubmit={onSubmit} />)
+    const field = screen.getByLabelText('Comment')
+    await user.type(field, 'Which cluster?')
+    await user.click(screen.getByRole('button', { name: 'Post' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Comments are closed.')
+    expect(field).toHaveValue('Which cluster?')
+    await user.click(screen.getByRole('button', { name: 'Post' }))
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Your comment could not be posted. Try again.',
+      ),
+    )
+  })
+
   it('renders the quote and removes it on request', async () => {
     const user = userEvent.setup()
     const onRemoveQuote = vi.fn()

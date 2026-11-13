@@ -22,6 +22,7 @@ export type ForumLayoutProps = Pick<
   | 'signInHref'
   | 'composerHref'
   | 'searchHref'
+  | 'navigate'
 > & {
   /** Binds the top bar's search field to the page's own query. */
   search?: SearchBinding
@@ -56,13 +57,15 @@ const navLink = css({
   '&[aria-current=page]': { color: 'fg.default', fontWeight: 'medium' },
 })
 
-/** A search field that sends the visitor to `searchHref(query)` on submit. */
+/** A search field that sends the visitor to `searchHref(query)` on submit, through `navigate`. */
 function NavigatingSearch({
   variant,
   searchHref,
+  navigate,
 }: {
   variant: ForumChromeProps['variant']
   searchHref: (query: string) => string
+  navigate?: (href: string) => void
 }) {
   const [value, setValue] = useState('')
   return (
@@ -73,7 +76,9 @@ function NavigatingSearch({
         onChange: setValue,
         onSubmit: () => {
           const q = value.trim()
-          if (q) window.location.assign(searchHref(q))
+          if (!q) return
+          if (navigate) navigate(searchHref(q))
+          else window.location.assign(searchHref(q))
         },
       }}
     />
@@ -94,6 +99,7 @@ export function ForumLayout({
   signInHref,
   composerHref,
   searchHref,
+  navigate,
   search,
   composerCategory,
   hidePrimary,
@@ -102,7 +108,9 @@ export function ForumLayout({
   let field: ReactNode = null
   if (variant !== 'qa') {
     if (search) field = <SearchField variant={variant} binding={search} />
-    else if (searchHref) field = <NavigatingSearch variant={variant} searchHref={searchHref} />
+    else if (searchHref) {
+      field = <NavigatingSearch variant={variant} searchHref={searchHref} navigate={navigate} />
+    }
   }
   return (
     <Box minH="100dvh" bg="canvas" display="flex" flexDirection="column">

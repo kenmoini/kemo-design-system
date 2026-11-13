@@ -92,6 +92,7 @@ export function DiscussionsFeed(props: DiscussionsFeedProps) {
       signInHref={props.signInHref}
       composerHref={props.composerHref}
       searchHref={props.searchHref}
+      navigate={props.navigate}
       composerCategory={category}
       search={search}
     >
@@ -100,6 +101,9 @@ export function DiscussionsFeed(props: DiscussionsFeedProps) {
           display="grid"
           gap="6"
           gridTemplateColumns={{ base: '1fr', lg: '1fr 14.75rem' }}
+          // The feed spans both rows: the second takes its extra height, so the rail's rest follows
+          // "Start a discussion" directly.
+          gridTemplateRows={{ lg: 'auto 1fr' }}
           columnGap={{ lg: '9' }}
         >
           <Box gridColumn={{ lg: '2' }} gridRow={{ lg: '1' }}>

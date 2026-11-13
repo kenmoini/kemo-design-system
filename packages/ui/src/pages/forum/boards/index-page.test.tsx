@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { chrome, testCategories, testTopics } from '../test-data'
+import { chrome, testCategories, testTopics, TEST_NOW } from '../test-data'
 import { BoardsIndex } from './index-page'
 
 const props = {
@@ -26,7 +26,10 @@ describe('BoardsIndex', () => {
       ['posts', '9,310'],
       ['members', '412'],
     ] as const) {
-      expect(screen.getByText(label).previousElementSibling).toHaveTextContent(value)
+      // The stat's label follows its bold value (board rows carry visually hidden "topics" too).
+      expect(
+        screen.getByText(label, { selector: 'b + span' }).previousElementSibling,
+      ).toHaveTextContent(value)
     }
     expect(screen.getByRole('heading', { name: 'Product' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Community' })).toBeInTheDocument()
@@ -52,10 +55,25 @@ describe('BoardsIndex', () => {
     expect(within(row).getByText(/Jonas Lindqvist/)).toBeInTheDocument()
   })
 
+  it('names the board counts for assistive technology', () => {
+    render(<BoardsIndex {...props} />)
+    const row = screen.getByRole('heading', { name: 'Kemo Console' }).closest('article')!
+    expect(within(row).getByText('topics').parentElement).toHaveTextContent(/^486 topics$/)
+    expect(within(row).getByText('posts').parentElement).toHaveTextContent(/^3,902 posts$/)
+  })
+
   it('shows three Latest cards', () => {
     render(<BoardsIndex {...props} />)
     const latest = screen.getByRole('region', { name: 'Latest' })
     expect(within(latest).getAllByRole('article')).toHaveLength(3)
+  })
+
+  it('says "1 reply" on a Latest card with one reply', () => {
+    const fresh = { ...testTopics[0]!, id: 'fresh', slug: 'fresh', title: 'Fresh topic' }
+    const one = { ...fresh, posts: undefined, replyCount: 1, lastActivityAt: TEST_NOW }
+    render(<BoardsIndex {...props} topics={[one, ...testTopics]} />)
+    const card = within(screen.getByRole('region', { name: 'Latest' })).getAllByRole('article')[0]!
+    expect(card).toHaveTextContent(/· 1 reply$/)
   })
 
   it('searches on Enter and clears back to the page, focusing the input', async () => {

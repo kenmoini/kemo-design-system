@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Box, HStack, Stack, styled } from '../../../../styled-system/jsx'
 import { Button, Text } from '../../../components/ui'
 import { HostLink } from '../../blog/host-link'
@@ -31,12 +31,58 @@ interface Quoted {
 export function BoardsTopic(props: ForumTopicPageProps) {
   const { topic, category, linkComponent, now, viewer, onReply } = props
   const posts = topic.posts ?? []
-  const { page, setPage, range } = usePager(posts.length, PAGE_SIZE, topic.id)
+  const { page, setPage, pageCount, range } = usePager(posts.length, PAGE_SIZE, topic.id)
   const visible = pageOf(posts, page, PAGE_SIZE)
   const replies = replyCountOf(topic)
   const composerRef = useRef<HTMLTextAreaElement | HTMLInputElement | null>(null)
   const [quoted, setQuoted] = useState<Quoted | null>(null)
   const categoryHref = props.categoryHref(category)
+  // The post count when a reply went out (set before `onReply`, so it holds whichever comes first:
+  // the promise or the longer topic); a longer topic then shows its last page.
+  const replyFrom = useRef<number | null>(null)
+  // The post to scroll to once its page shows: a new reply, or the `#post-{id}` of the address.
+  const scrollTarget = useRef<string | null>(null)
+
+  // A link to a post past the first page (Share copies `#post-{id}`) opens on that post's page.
+  // Read once, after hydration: the server has no address fragment.
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash.startsWith('#post-')) return
+    const id = decodeURIComponent(hash.slice('#post-'.length))
+    const index = posts.findIndex((p) => p.id === id)
+    if (index < 0) return
+    scrollTarget.current = id
+    setPage(Math.floor(index / PAGE_SIZE) + 1)
+  }, [])
+
+  // The reply came back in the topic: show the last page, where the new post is.
+  useEffect(() => {
+    const from = replyFrom.current
+    const last = posts[posts.length - 1]
+    if (from === null || posts.length <= from || !last) return
+    replyFrom.current = null
+    scrollTarget.current = last.id
+    setPage(pageCount)
+  }, [posts.length])
+
+  useEffect(() => {
+    const id = scrollTarget.current
+    const target = id ? document.getElementById(`post-${id}`) : null
+    if (!target) return
+    scrollTarget.current = null
+    if (typeof target.scrollIntoView === 'function') target.scrollIntoView({ block: 'start' })
+  }, [page, posts.length])
+
+  async function reply(body: string) {
+    if (!onReply) return
+    replyFrom.current = posts.length
+    try {
+      await onReply({ body, quoteOf: quoted?.quoteOf })
+    } catch (cause) {
+      replyFrom.current = null
+      throw cause
+    }
+  }
 
   function focusComposer() {
     const field = composerRef.current
@@ -74,6 +120,7 @@ export function BoardsTopic(props: ForumTopicPageProps) {
       signInHref={props.signInHref}
       composerHref={props.composerHref}
       searchHref={props.searchHref}
+      navigate={props.navigate}
       composerCategory={category}
     >
       <Box maxW="62.5rem" mx="auto" px={{ base: '4', md: '7' }} py="7">
@@ -128,7 +175,7 @@ export function BoardsTopic(props: ForumTopicPageProps) {
               ) : null}
             </HStack>
           </Box>
-          {postBar}
+          {posts.length > 0 ? postBar : null}
           {posts.length === 0 ? (
             <Text color="fg.muted">No replies yet.</Text>
           ) : (
@@ -167,7 +214,7 @@ export function BoardsTopic(props: ForumTopicPageProps) {
               viewer={viewer}
               quote={quoted?.quote}
               onRemoveQuote={() => setQuoted(null)}
-              onSubmit={(body) => onReply({ body, quoteOf: quoted?.quoteOf })}
+              onSubmit={reply}
             />
           ) : (
             <Text color="fg.muted">

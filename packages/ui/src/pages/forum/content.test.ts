@@ -184,16 +184,21 @@ describe('topic readers', () => {
     expect(replyCountOf(topic('list', { replyCount: 7 }))).toBe(7)
   })
 
-  it('counts answers as top-level posts after the first', () => {
+  it('counts answers as the replies groupReplies lists, orphans included', () => {
     const t = topic('qa', {
       posts: [
         post('q', ada, ago(3 * DAY)),
+        post('cq', bo, ago(3 * DAY), { parentId: 'q' }),
         post('a1', bo, ago(2 * DAY)),
         post('c1', cy, ago(DAY), { parentId: 'a1' }),
         post('a2', cy, ago(DAY)),
       ],
     })
     expect(answerCountOf(t)).toBe(2)
+    // A comment whose post is gone is listed as an answer, so the count includes it.
+    const orphaned = { ...t, posts: [...t.posts!, post('o', bo, ago(HOUR), { parentId: 'gone' })] }
+    expect(answerCountOf(orphaned)).toBe(3)
+    expect(answerCountOf(orphaned)).toBe(groupReplies(orphaned.posts).replies.length)
     expect(answerCountOf(topic('list', { replyCount: 4 }))).toBe(4)
   })
 
@@ -382,6 +387,15 @@ describe('searchTopics', () => {
     ])
   })
 
+  it('orders by activity without pinning', () => {
+    const pinned = topic('pinned', { pinned: true, lastActivityAt: ago(30 * DAY) })
+    expect(searchTopics([pinned, crd, other], categories, 'console').map((x) => x.slug)).toEqual([
+      'other',
+      'crd',
+      'pinned',
+    ])
+  })
+
   it('returns nothing for a blank query', () => {
     expect(searchTopics([crd, other], categories, '   ')).toEqual([])
     expect(searchTopics([crd, other], categories, '')).toEqual([])
@@ -439,7 +453,7 @@ describe('trending, needs answer and week stats', () => {
 })
 
 describe('topContributors', () => {
-  it('counts authorship and posts, then orders by count and name', () => {
+  it('counts posts, or the author of a topic without them, then orders by count and name', () => {
     const t1 = topic('t1', {
       author: ada,
       posts: [post('1', ada, ago(DAY)), post('2', bo, ago(DAY)), post('3', cy, ago(DAY))],
@@ -447,10 +461,21 @@ describe('topContributors', () => {
     const t2 = topic('t2', { author: bo })
     const result = topContributors([t1, t2], 2)
     expect(result.map((r) => [r.user.id, r.count])).toEqual([
-      ['ada', 2],
       ['bo', 2],
+      ['ada', 1],
     ])
-    expect(topContributors([t1, t2]).map((r) => r.user.id)).toEqual(['ada', 'bo', 'cy'])
+    expect(topContributors([t1, t2]).map((r) => r.user.id)).toEqual(['bo', 'ada', 'cy'])
+  })
+
+  it("counts a topic's author once when the topic carries its posts", () => {
+    const t = topic('t', {
+      author: ada,
+      posts: [post('1', ada, ago(2 * DAY)), post('2', bo, ago(DAY)), post('3', ada, ago(HOUR))],
+    })
+    expect(topContributors([t]).map((r) => [r.user.id, r.count])).toEqual([
+      ['ada', 2],
+      ['bo', 1],
+    ])
   })
 })
 

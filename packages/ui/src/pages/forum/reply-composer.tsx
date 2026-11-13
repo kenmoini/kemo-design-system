@@ -112,9 +112,7 @@ export const ReplyComposer = forwardRef<Element, ReplyComposerProps>(function Re
         try {
           await onSubmit(body)
         } catch (cause) {
-          setFailure(
-            !isComment && cause instanceof Error && cause.message ? cause.message : fallback,
-          )
+          setFailure(cause instanceof Error && cause.message ? cause.message : fallback)
           return
         }
         setValue('body', '')

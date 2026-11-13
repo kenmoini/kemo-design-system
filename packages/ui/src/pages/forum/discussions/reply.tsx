@@ -14,8 +14,11 @@ export interface DiscussionReplyProps {
   topic: ForumTopic
   now: string
   onReact?: (postId: string, emoji: ReactionEmoji) => Promise<void>
-  /** Opens the inline composer under the top-level reply; absent hides "Reply". */
-  onReply?: () => void
+  /**
+   * Opens the inline composer under the top-level reply, given the button pressed (focus goes back
+   * to it when the composer closes); absent hides "Reply".
+   */
+  onReply?: (opener: HTMLButtonElement) => void
   /** The inline composer, rendered under the nested list. */
   composer?: ReactNode
   nested?: boolean
@@ -54,7 +57,12 @@ export function DiscussionReply({
         onReact={onReact && ((emoji) => onReact(post.id, emoji))}
       />
       {onReply ? (
-        <Button variant="plain" size="xs" onClick={onReply}>
+        <Button
+          variant="plain"
+          size="xs"
+          aria-label={`Reply to ${post.author.name}`}
+          onClick={(event) => onReply(event.currentTarget)}
+        >
           Reply
         </Button>
       ) : null}

@@ -101,6 +101,11 @@ export interface ForumChromeProps {
   topicHref: (topic: ForumTopic) => string
   composerHref: (category?: ForumCategory) => string
   searchHref?: (query: string) => string // a link into a search on the front page (Q&A hot tags)
+  /**
+   * Called with `searchHref(query)` when the top bar's search is submitted on a page without its
+   * own results; defaults to a full navigation.
+   */
+  navigate?: (href: string) => void
 }
 
 export interface ForumIndexPageProps extends ForumChromeProps {

@@ -183,9 +183,10 @@ export function scoreOf(topic: ForumTopic): number {
   return topic.votes?.score ?? 0
 }
 
+/** The answers as the Q&A page lists them (`groupReplies`), so an orphaned comment counts as one. */
 export function answerCountOf(topic: ForumTopic): number {
   if (!topic.posts) return topic.replyCount
-  return topic.posts.slice(1).filter((p) => p.parentId === undefined).length
+  return groupReplies(topic.posts).replies.length
 }
 
 export function participantsOf(topic: ForumTopic): ForumUser[] {
@@ -288,7 +289,7 @@ export function searchTopics(
         .toLowerCase()
       return words.every((w) => haystack.includes(w))
     })
-    .sort(latestOrder)
+    .sort(activityOrder)
 }
 
 export function trendingTopics(topics: ForumTopic[], now: string, count = 5): ForumTopic[] {
@@ -332,8 +333,9 @@ export function topContributors(
     else tally.set(user.id, { user, count: 1 })
   }
   for (const t of topics) {
-    add(t.author)
-    for (const p of t.posts ?? []) add(p.author)
+    // With posts, the first post is the topic's own: its author is counted there, once.
+    if (t.posts) for (const p of t.posts) add(p.author)
+    else add(t.author)
   }
   return [...tally.values()]
     .sort((a, b) => b.count - a.count || compareText(a.user.name, b.user.name))

@@ -1,13 +1,30 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
-import { chrome, testCategories, testTopics } from '../test-data'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { chrome, dan, testCategories, testTopics, TEST_NOW } from '../test-data'
+import type { ForumPost, ForumTopic } from '../types'
 import { BoardsTopic } from './topic-page'
 
 const topic = testTopics.find((t) => t.slug === 'schema-browser-crd')!
 const category = testCategories.find((c) => c.id === topic.categoryId)!
 const props = { ...chrome, variant: 'boards' as const, topic, category }
 const posts = () => screen.getAllByRole('article')
+
+afterEach(() => {
+  window.location.hash = ''
+  delete (HTMLElement.prototype as { scrollIntoView?: unknown }).scrollIntoView
+})
+
+/** jsdom has no scrollIntoView; the page calls it only where it exists. */
+function stubScroll() {
+  const scrollIntoView = vi.fn()
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+    configurable: true,
+    writable: true,
+    value: scrollIntoView,
+  })
+  return scrollIntoView
+}
 
 describe('BoardsTopic', () => {
   it('renders the breadcrumb, one h1 and the meta line', () => {
@@ -82,6 +99,83 @@ describe('BoardsTopic', () => {
     expect(screen.getByRole('textbox', { name: 'Reply' })).toHaveFocus()
   })
 
+  it('moves to the last page and scrolls to the new post once the reply comes back', async () => {
+    const user = userEvent.setup()
+    const scroll = stubScroll()
+    const reply: ForumPost = {
+      id: 'p14',
+      author: dan,
+      postedAt: TEST_NOW,
+      body: [{ type: 'paragraph', content: 'Fixed here too.' }],
+    }
+    const longer: ForumTopic = { ...topic, posts: [...topic.posts!, reply] }
+    let rerenderWith: (t: ForumTopic) => void = () => {}
+    const onReply = vi.fn(async () => rerenderWith(longer))
+    const { rerender } = render(<BoardsTopic {...props} onReply={onReply} />)
+    rerenderWith = (t) => rerender(<BoardsTopic {...props} topic={t} onReply={onReply} />)
+    expect(screen.getAllByText('Posts 1–10 of 13')).toHaveLength(2)
+    await user.type(screen.getByRole('textbox', { name: 'Reply' }), 'Fixed here too.')
+    await user.click(screen.getByRole('button', { name: 'Post reply' }))
+    await waitFor(() => expect(screen.getAllByText('Posts 11–14 of 14')).toHaveLength(2))
+    expect(within(posts().at(-1)!).getByText('#14')).toBeInTheDocument()
+    await waitFor(() => expect(scroll).toHaveBeenCalled())
+    expect(scroll.mock.contexts.at(-1)).toBe(document.getElementById('post-p14'))
+  })
+
+  it('also lands on the last page when the topic comes back after the promise', async () => {
+    const user = userEvent.setup()
+    const reply: ForumPost = {
+      id: 'p14',
+      author: dan,
+      postedAt: TEST_NOW,
+      body: [{ type: 'paragraph', content: 'Fixed here too.' }],
+    }
+    const onReply = vi.fn().mockResolvedValue(undefined)
+    const { rerender } = render(<BoardsTopic {...props} onReply={onReply} />)
+    await user.type(screen.getByRole('textbox', { name: 'Reply' }), 'Fixed here too.')
+    await user.click(screen.getByRole('button', { name: 'Post reply' }))
+    expect(await screen.findByText('Reply posted.')).toBeInTheDocument()
+    expect(screen.getAllByText('Posts 1–10 of 13')).toHaveLength(2)
+    rerender(
+      <BoardsTopic
+        {...props}
+        topic={{ ...topic, posts: [...topic.posts!, reply] }}
+        onReply={onReply}
+      />,
+    )
+    await waitFor(() => expect(screen.getAllByText('Posts 11–14 of 14')).toHaveLength(2))
+  })
+
+  it('stays on its page when a reply is rejected', async () => {
+    const user = userEvent.setup()
+    const onReply = vi.fn().mockRejectedValue(new Error('Topic is locked.'))
+    render(<BoardsTopic {...props} onReply={onReply} />)
+    await user.type(screen.getByRole('textbox', { name: 'Reply' }), 'Fixed here too.')
+    await user.click(screen.getByRole('button', { name: 'Post reply' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Topic is locked.')
+    expect(screen.getAllByText('Posts 1–10 of 13')).toHaveLength(2)
+  })
+
+  it('opens on the page of the post the address names', async () => {
+    const scroll = stubScroll()
+    window.location.hash = '#post-p12'
+    render(<BoardsTopic {...props} />)
+    await waitFor(() => expect(screen.getAllByText('Posts 11–13 of 13')).toHaveLength(2))
+    expect(scroll.mock.contexts.at(-1)).toBe(document.getElementById('post-p12'))
+  })
+
+  it('ignores an address that names no post', () => {
+    window.location.hash = '#post-nope'
+    render(<BoardsTopic {...props} />)
+    expect(screen.getAllByText('Posts 1–10 of 13')).toHaveLength(2)
+  })
+
+  it('shows no thumbs-up count without onReact on a post nobody reacted to', () => {
+    render(<BoardsTopic {...props} />)
+    expect(within(posts()[1]!).queryByText('👍 0')).not.toBeInTheDocument()
+    expect(within(posts()[3]!).getByText('👍 18')).toBeInTheDocument()
+  })
+
   it('reacts with a thumbs-up on every post', async () => {
     const user = userEvent.setup()
     const onReact = vi.fn().mockResolvedValue(undefined)
@@ -111,9 +205,9 @@ describe('BoardsTopic', () => {
     expect(within(line).getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
   })
 
-  it('renders an empty topic with the composer', () => {
+  it('renders an empty topic with the composer and no post bars', () => {
     render(<BoardsTopic {...props} topic={{ ...topic, posts: [] }} onReply={vi.fn()} />)
-    expect(screen.getByText('Posts 0–0 of 0')).toBeInTheDocument()
+    expect(screen.queryByText(/^Posts \d/)).not.toBeInTheDocument()
     expect(screen.getByText('No replies yet.')).toBeInTheDocument()
     expect(screen.queryByRole('article')).not.toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Reply' })).toBeInTheDocument()

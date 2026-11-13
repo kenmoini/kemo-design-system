@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { VoteColumn } from './vote-column'
@@ -24,6 +24,24 @@ describe('VoteColumn', () => {
     expect(onVote).toHaveBeenLastCalledWith(null)
     await user.click(screen.getByRole('button', { name: 'Downvote' }))
     expect(onVote).toHaveBeenLastCalledWith('down')
+  })
+
+  it('keeps the arrows enabled and focused while a vote saves, ignoring a second press', async () => {
+    const user = userEvent.setup()
+    let resolve!: () => void
+    const onVote = vi.fn(() => new Promise<void>((r) => (resolve = r)))
+    render(<VoteColumn score={1} onVote={onVote} />)
+    const up = screen.getByRole('button', { name: /Upvote/ })
+    await user.click(up)
+    expect(up).toBeEnabled()
+    expect(up).toHaveAttribute('aria-disabled', 'true')
+    expect(up).toHaveFocus()
+    await user.click(screen.getByRole('button', { name: 'Downvote' }))
+    expect(onVote).toHaveBeenCalledTimes(1)
+    resolve()
+    await waitFor(() => expect(up).not.toHaveAttribute('aria-disabled'))
+    await user.click(up)
+    expect(onVote).toHaveBeenCalledTimes(2)
   })
 
   it('shows only the score without onVote', () => {

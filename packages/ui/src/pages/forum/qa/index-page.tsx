@@ -62,6 +62,7 @@ export function QaIndex(props: ForumIndexPageProps) {
     aside: string,
     list: ForumTopic[],
     trailing: 'time' | 'votes',
+    empty: string,
   ) => (
     <styled.section aria-labelledby={id}>
       <Box display="flex" justifyContent="space-between" alignItems="baseline" mb="2">
@@ -73,7 +74,7 @@ export function QaIndex(props: ForumIndexPageProps) {
         </Text>
       </Box>
       {list.length === 0 ? (
-        <EmptyState message="No questions yet." />
+        <EmptyState message={empty} />
       ) : (
         <styled.ul m="0" p="0" borderTopWidth="1px" borderColor="border">
           {list.map((t) => cell(t, trailing, true))}
@@ -96,6 +97,7 @@ export function QaIndex(props: ForumIndexPageProps) {
       signInHref={props.signInHref}
       composerHref={props.composerHref}
       searchHref={props.searchHref}
+      navigate={props.navigate}
     >
       <Box
         className="dark"
@@ -224,6 +226,7 @@ export function QaIndex(props: ForumIndexPageProps) {
                 `${formatCount(openCount(categories))} open`,
                 needsAnswer(topics, 5),
                 'time',
+                'No questions yet.',
               )}
               {column(
                 'qa-trending',
@@ -231,6 +234,7 @@ export function QaIndex(props: ForumIndexPageProps) {
                 'by votes',
                 trendingTopics(topics, now, 5),
                 'votes',
+                'Nothing trending this week.',
               )}
             </Box>
           </Stack>

@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Box, HStack, Stack, styled } from '../../../../styled-system/jsx'
 import { Button, Text } from '../../../components/ui'
 import { HostLink } from '../../blog/host-link'
@@ -54,6 +54,10 @@ export function DiscussionsTopic(props: ForumTopicPageProps) {
   const posts = topic.posts ?? []
   const [sort, setSort] = useState<Sort>('oldest')
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  // The inline composer unmounts once it posts, so the page announces the reply itself.
+  const [announcement, setAnnouncement] = useState('')
+  // The "Reply" button that opened the inline composer: focus goes back to it when it closes.
+  const opener = useRef<HTMLButtonElement | null>(null)
   const { original, originalChildren, replies } = groupReplies(posts)
   const ordered = [...replies].sort(
     (a, b) =>
@@ -69,6 +73,32 @@ export function DiscussionsTopic(props: ForumTopicPageProps) {
     onReact &&
     ((postId: string) => (emoji: Parameters<typeof onReact>[1]) => onReact(postId, emoji))
 
+  const openReply = (parentId: string) => (button: HTMLButtonElement) => {
+    opener.current = button
+    setAnnouncement('')
+    setReplyingTo(parentId)
+  }
+  const closeReply = () => {
+    setReplyingTo(null)
+    opener.current?.focus()
+  }
+  const inlineComposer = (parentId: string) =>
+    onReply && replyingTo === parentId ? (
+      <ReplyComposer
+        variant="discussions"
+        kind="reply"
+        idPrefix={`reply-${parentId}`}
+        viewer={viewer}
+        autoFocus
+        onCancel={closeReply}
+        onSubmit={async (body) => {
+          await onReply({ body, parentId })
+          setAnnouncement(vocabulary.discussions.replyPosted)
+          closeReply()
+        }}
+      />
+    ) : null
+
   return (
     <ForumLayout
       variant="discussions"
@@ -83,6 +113,7 @@ export function DiscussionsTopic(props: ForumTopicPageProps) {
       signInHref={props.signInHref}
       composerHref={props.composerHref}
       searchHref={props.searchHref}
+      navigate={props.navigate}
       composerCategory={category}
     >
       <Box maxW="65rem" mx="auto" px={{ base: '4', md: '7' }} py="7">
@@ -94,6 +125,9 @@ export function DiscussionsTopic(props: ForumTopicPageProps) {
         >
           <Box minW="0">
             <Stack gap="5">
+              <styled.p srOnly role="status" aria-live="polite">
+                {announcement}
+              </styled.p>
               <Crumbs
                 items={[
                   { label: 'Discussions', href: props.indexHref },
@@ -176,27 +210,14 @@ export function DiscussionsTopic(props: ForumTopicPageProps) {
                                 topic={topic}
                                 now={now}
                                 onReact={onReact}
-                                onReply={onReply ? () => setReplyingTo(original.id) : undefined}
+                                onReply={onReply ? openReply(original.id) : undefined}
                                 nested
                               />
                             ))}
                           </styled.ul>
                         ) : null}
                         {onReply && replyingTo === original.id ? (
-                          <Box mt="3">
-                            <ReplyComposer
-                              variant="discussions"
-                              kind="reply"
-                              idPrefix={`reply-${original.id}`}
-                              viewer={viewer}
-                              autoFocus
-                              onCancel={() => setReplyingTo(null)}
-                              onSubmit={async (body) => {
-                                await onReply({ body, parentId: original.id })
-                                setReplyingTo(null)
-                              }}
-                            />
-                          </Box>
+                          <Box mt="3">{inlineComposer(original.id)}</Box>
                         ) : null}
                       </Box>
                     ) : null}
@@ -239,23 +260,8 @@ export function DiscussionsTopic(props: ForumTopicPageProps) {
                       topic={topic}
                       now={now}
                       onReact={onReact}
-                      onReply={onReply ? () => setReplyingTo(post.id) : undefined}
-                      composer={
-                        onReply && replyingTo === post.id ? (
-                          <ReplyComposer
-                            variant="discussions"
-                            kind="reply"
-                            idPrefix={`reply-${post.id}`}
-                            viewer={viewer}
-                            autoFocus
-                            onCancel={() => setReplyingTo(null)}
-                            onSubmit={async (body) => {
-                              await onReply({ body, parentId: post.id })
-                              setReplyingTo(null)
-                            }}
-                          />
-                        ) : undefined
-                      }
+                      onReply={onReply ? openReply(post.id) : undefined}
+                      composer={inlineComposer(post.id)}
                     >
                       {children}
                     </DiscussionReply>

@@ -53,6 +53,27 @@ describe('BoardsCategory', () => {
     expect(screen.queryByRole('navigation', { name: 'Topics' })).not.toBeInTheDocument()
   })
 
+  it('names the reply and view counts of a row for assistive technology', () => {
+    render(<BoardsCategory {...props} />)
+    const pinned = rows()[0]!
+    expect(within(pinned).getByText('replies').parentElement).toHaveTextContent(/^2 replies$/)
+    expect(within(pinned).getByText('views').parentElement).toHaveTextContent(/^5\.4k views$/)
+  })
+
+  it('searches this category only, without category badges', async () => {
+    const user = userEvent.setup()
+    render(<BoardsCategory {...props} />)
+    const field = screen.getAllByRole('searchbox')[0]!
+    // "rbac" is a Getting started topic: not in Kemo Console's results.
+    await user.type(field, 'rbac{Enter}')
+    expect(screen.getByRole('heading', { name: '0 results for “rbac”' })).toBeInTheDocument()
+    await user.clear(field)
+    await user.type(field, 'shell{Enter}')
+    expect(screen.getByRole('heading', { name: '1 result for “shell”' })).toBeInTheDocument()
+    expect(rows()).toHaveLength(1)
+    expect(within(rows()[0]!).queryByText('Kemo Console')).not.toBeInTheDocument()
+  })
+
   it('shows an empty state without topics', () => {
     render(<BoardsCategory {...props} topics={[]} />)
     expect(screen.getByText('No topics yet.')).toBeInTheDocument()

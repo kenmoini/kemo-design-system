@@ -127,7 +127,8 @@ export function BoardsPost({
             reactions={[{ emoji: '👍', count: thumbs?.count ?? 0, reacted: thumbs?.reacted }]}
             onReact={onReact ? () => onReact(post.id, '👍') : undefined}
             addable={false}
-            showEmpty
+            // "👍 0" is an invitation only where it is a button.
+            showEmpty={!!onReact}
           />
           {onQuote ? (
             <Button variant="plain" size="xs" onClick={() => onQuote(post)}>

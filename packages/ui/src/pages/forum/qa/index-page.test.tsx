@@ -97,6 +97,15 @@ describe('QaIndex', () => {
     render(<QaIndex {...props} categories={[]} topics={[]} />)
     expect(screen.getByText(/0 of 0 questions/)).toBeInTheDocument()
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
-    expect(screen.getAllByText('No questions yet.')).toHaveLength(2)
+    expect(
+      within(screen.getByRole('region', { name: 'Needs an answer' })).getByText(
+        'No questions yet.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('region', { name: 'Trending this week' })).getByText(
+        'Nothing trending this week.',
+      ),
+    ).toBeInTheDocument()
   })
 })

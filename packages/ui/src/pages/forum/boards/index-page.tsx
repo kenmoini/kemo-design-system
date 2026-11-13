@@ -78,6 +78,7 @@ export function BoardsIndex(props: ForumIndexPageProps) {
       signInHref={props.signInHref}
       composerHref={props.composerHref}
       searchHref={props.searchHref}
+      navigate={props.navigate}
       search={search}
     >
       <Box maxW="62.5rem" mx="auto" px={{ base: '4', md: '7' }} py="7">
@@ -206,6 +207,9 @@ export function BoardsIndex(props: ForumIndexPageProps) {
                               display={{ base: 'none', md: 'block' }}
                             >
                               <Count value={category.topicCount} />
+                              <styled.span srOnly>
+                                {category.topicCount === 1 ? ' topic' : ' topics'}
+                              </styled.span>
                             </styled.span>
                             <styled.span
                               textStyle="sm"
@@ -213,6 +217,9 @@ export function BoardsIndex(props: ForumIndexPageProps) {
                               display={{ base: 'none', md: 'block' }}
                             >
                               <Count value={category.postCount} />
+                              <styled.span srOnly>
+                                {category.postCount === 1 ? ' post' : ' posts'}
+                              </styled.span>
                             </styled.span>
                             {last ? (
                               <HStack gap="2" alignItems="flex-start" minW="0">
@@ -271,7 +278,8 @@ export function BoardsIndex(props: ForumIndexPageProps) {
                           </HostLink>
                         </styled.h3>
                         <Text color="fg.muted" textStyle="xs" mt="1">
-                          {t.author.name} · {formatCount(replyCountOf(t))} replies
+                          {t.author.name} · {formatCount(replyCountOf(t))}{' '}
+                          {replyCountOf(t) === 1 ? 'reply' : 'replies'}
                         </Text>
                       </Box>
                     ))}
