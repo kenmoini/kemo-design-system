@@ -13,7 +13,7 @@ import { SearchField } from '../search-field'
 import { SearchResults } from '../search-results'
 import type { ForumCategoryPageProps, ListFilter } from '../types'
 import { useQuery } from '../use-query'
-import { focusSearch } from './focus-search'
+import { focusSearch } from '../focus-search'
 import { BoardsTopicRow } from './topic-row'
 
 type Filter = 'all' | 'unanswered' | 'solved'

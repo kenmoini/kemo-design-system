@@ -11,7 +11,7 @@ import { SearchField } from '../search-field'
 import { SearchResults } from '../search-results'
 import type { ForumCategory, ForumIndexPageProps, ForumTopic } from '../types'
 import { useQuery } from '../use-query'
-import { focusSearch } from './focus-search'
+import { focusSearch } from '../focus-search'
 import { BoardsTopicRow } from './topic-row'
 
 const link = css({
