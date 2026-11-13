@@ -93,11 +93,11 @@ export function mergeActions(
   defaults: readonly StatusAction[],
   overrides?: readonly StatusAction[],
 ): StatusAction[] {
-  if (!overrides) return defaults as StatusAction[]
   const merged = defaults.map((action) => {
-    const override = overrides.find((o) => o.label === action.label)
-    return override ? { ...action, ...override } : action
+    const override = overrides?.find((o) => o.label === action.label)
+    return { ...action, ...override }
   })
+  if (!overrides) return merged
   const known = new Set(defaults.map((d) => d.label))
   return [...merged, ...overrides.filter((o) => !known.has(o.label))]
 }

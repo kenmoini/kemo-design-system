@@ -28,6 +28,7 @@ describe('EmptyState', () => {
     render(<EmptyState message="Empty" action={{ label: 'Add content' }} />)
     const button = screen.getByRole('button', { name: 'Add content' })
     expect(button).toBeEnabled()
+    expect(button).toHaveAttribute('type', 'button')
     await user.click(button)
   })
 })

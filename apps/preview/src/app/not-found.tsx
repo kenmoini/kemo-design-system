@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { StatusDemo } from '@/components/status/status-demo'
+import { NotFoundDemo } from '@/components/status/not-found-demo'
 
 export const metadata: Metadata = { title: 'Not found' }
 
@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: 'Not found' }
 // goes through a client component because `linkComponent={NextLink}` is a function, and functions
 // can't be passed from a server component to the client `StatusLayout`.
 export default function NotFound() {
-  return <StatusDemo page="404" />
+  return <NotFoundDemo />
 }

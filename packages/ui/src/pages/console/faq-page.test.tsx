@@ -77,6 +77,15 @@ describe('FaqPage', () => {
     expect(within(nav).getByRole('link', { name: 'Billing' })).not.toHaveAttribute('aria-current')
   })
 
+  it('shows a glyph beside the current topic only', () => {
+    render(<FaqPage topics={topics} />)
+    const nav = screen.getByRole('navigation', { name: 'Topics' })
+    const glyphs = nav.querySelectorAll('[data-current-glyph]')
+    expect(glyphs).toHaveLength(1)
+    expect(glyphs[0]).toHaveAttribute('aria-hidden', 'true')
+    expect(within(nav).getByRole('link', { name: 'Deployments' }).contains(glyphs[0]!)).toBe(true)
+  })
+
   it('renders the header context and fires the action', async () => {
     const user = userEvent.setup()
     const onSelect = vi.fn()

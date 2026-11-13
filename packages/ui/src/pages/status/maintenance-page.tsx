@@ -22,7 +22,7 @@ export function MaintenancePage({ startedAt, expectedBackAt, ...props }: Mainten
   return (
     <StatusLayout
       {...merged}
-      meta={meta}
+      meta={meta.length ? meta : undefined}
       footerNote={
         merged.footerNote ??
         (merged.refreshIntervalMs ? 'This page refreshes itself every minute' : undefined)

@@ -57,18 +57,12 @@ stay as the record. Dates are the phase that left the item.
 
 ## Status pages and console pages (2026-11-11)
 
-| #   | Item                                                                                                                           | Proposed | Why                                                 |
-| --- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | --------------------------------------------------- |
-| S1  | `mergeActions` returns the shared readonly `statusCopy` defaults via a cast; a mutating host could corrupt them                | Fix      | Return copies                                       |
-| S2  | `MaintenancePage` may pass `meta: []`                                                                                          | Fix      | Trivial                                             |
-| S3  | FAQ ids are host-supplied and not namespaced                                                                                   | Document | Documented in the guide                             |
-| S4  | The mobile FAQ index marks the current topic by colour and weight only                                                         | Fix      | Add `aria-current` and a glyph                      |
-| S5  | Current-topic tracking cannot reach a short last topic at the page bottom                                                      | Document | Hash following covers clicks                        |
-| S6  | The inert `EmptyState` test does not assert `type="button"`                                                                    | Fix      | One assertion                                       |
-| S7  | The word watermark's tallest letters sit flush with the top edge from 768px; the message block sits 2px higher than the mockup | Drop     | Visual nits                                         |
-| S8  | The preview's real 404 "Go back" is inert                                                                                      | Fix      | The preview is a host: wire `history.back()` there  |
-| S9  | The preview panel trigger covers the footer version text bottom-right (also on the auth pages at 375px)                        | Fix      | Lift the footer text or move the trigger below `sm` |
-| S10 | `StatusActionButton` is exported deliberately; reconsider before publishing                                                    | Document | Part of the export review (T1)                      |
+| #   | Item                                                                                                                           | Proposed | Why                            |
+| --- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | ------------------------------ |
+| S3  | FAQ ids are host-supplied and not namespaced                                                                                   | Document | Documented in the guide        |
+| S5  | Current-topic tracking cannot reach a short last topic at the page bottom                                                      | Document | Hash following covers clicks   |
+| S7  | The word watermark's tallest letters sit flush with the top edge from 768px; the message block sits 2px higher than the mockup | Drop     | Visual nits                    |
+| S10 | `StatusActionButton` is exported deliberately; reconsider before publishing                                                    | Document | Part of the export review (T1) |
 
 ## Application shell and dashboard (2026-11-10)
 
@@ -91,14 +85,11 @@ stay as the record. Dates are the phase that left the item.
 
 ## Auth pages (2026-11-09)
 
-| #   | Item                                                                                                                                    | Proposed | Why                                    |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------- |
-| U1  | Explicit `trapFocus={false}` and `preventScroll={false}` on the auth Drawer (Zag derives both from `modal` today)                       | Fix      | Pin the behaviour against a Zag change |
-| U2  | `PasswordInput` forwards `id`, `aria-*`, `data-*` and other input-only attrs to the Ark Root                                            | Fix      | Route them to the input                |
-| U3  | The `.dark, .light` globalCss rule resets `colorPalette` to gray at every forced-color boundary                                         | Drop     | Fine today                             |
-| U4  | The dark-drawer e2e background assertion is weak; the Register keyboard test focuses the checkbox programmatically; no max-length tests | Fix      | A tests task (max-length only)         |
-| U5  | The panel backdrop does not dim the auth drawer                                                                                         | Drop     |                                        |
-| U6  | README states Zag's initial-focus ordering (tied to Zag 1.47); Ark merges the Heading ref under `Drawer.Title asChild`                  | Drop     |                                        |
+| #   | Item                                                                                                                   | Proposed | Why        |
+| --- | ---------------------------------------------------------------------------------------------------------------------- | -------- | ---------- |
+| U3  | The `.dark, .light` globalCss rule resets `colorPalette` to gray at every forced-color boundary                        | Drop     | Fine today |
+| U5  | The panel backdrop does not dim the auth drawer                                                                        | Drop     |            |
+| U6  | README states Zag's initial-focus ordering (tied to Zag 1.47); Ark merges the Heading ref under `Drawer.Title asChild` | Drop     |            |
 
 ## Tooling, CI, preview infrastructure (2026-11-09)
 

@@ -46,6 +46,8 @@ export function AuthLayout({
       <Drawer.Root
         open
         modal={false}
+        trapFocus={false}
+        preventScroll={false}
         closeOnEscape={false}
         closeOnInteractOutside={false}
         lazyMount={false}
@@ -100,7 +102,14 @@ export function AuthLayout({
               {children}
               {extras ? <Box mt="4">{extras}</Box> : null}
               {footer ? (
-                <Text as="div" mt="auto" pt="8" textStyle="xs" color="fg.subtle">
+                <Text
+                  as="div"
+                  mt="auto"
+                  pt="8"
+                  pb={{ base: '20', sm: '0' }}
+                  textStyle="xs"
+                  color="fg.subtle"
+                >
                   {footer}
                 </Text>
               ) : null}

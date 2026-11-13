@@ -69,6 +69,12 @@ describe('named status pages', () => {
     ).toBeInTheDocument()
   })
 
+  it('MaintenancePage renders no meta row without a window', () => {
+    render(<MaintenancePage />)
+    expect(screen.queryByText('Started')).not.toBeInTheDocument()
+    expect(screen.queryByText('Expected back')).not.toBeInTheDocument()
+  })
+
   it('MaintenancePage renders meta and the refresh note', () => {
     render(
       <MaintenancePage
@@ -103,7 +109,7 @@ describe('mergeActions', () => {
     { label: 'B', variant: 'outline' as const },
   ]
   it('returns defaults when no overrides', () => {
-    expect(mergeActions(defaults)).toBe(defaults)
+    expect(mergeActions(defaults)).toEqual(defaults)
   })
   it('keeps order and variant, appends unknown, does not mutate', () => {
     const copy = structuredClone(defaults)
@@ -114,5 +120,14 @@ describe('mergeActions', () => {
       { label: 'C' },
     ])
     expect(defaults).toEqual(copy)
+  })
+  it('returns fresh copies of the defaults, with or without overrides', () => {
+    for (const overrides of [undefined, [{ label: 'C' }]]) {
+      const first = mergeActions(defaults, overrides)
+      expect(first).not.toBe(defaults)
+      first[0]!.label = 'Changed'
+      expect(mergeActions(defaults, overrides)[0]).toEqual({ label: 'A', variant: 'solid' })
+      expect(defaults[0]).toEqual({ label: 'A', variant: 'solid' })
+    }
   })
 })

@@ -61,6 +61,20 @@ describe('PasswordInput', () => {
     )
   })
 
+  it('routes input attributes to the input and not the root', () => {
+    const { container } = render(
+      <PasswordInput placeholder="Password" id="pw" aria-describedby="hint" data-foo="bar" />,
+    )
+    const input = screen.getByPlaceholderText('Password')
+    expect(input).toHaveAttribute('id', 'pw')
+    expect(input).toHaveAttribute('aria-describedby', 'hint')
+    expect(input).toHaveAttribute('data-foo', 'bar')
+    const root = container.firstElementChild!
+    expect(root).not.toHaveAttribute('aria-describedby')
+    expect(root).not.toHaveAttribute('data-foo')
+    expect(root).not.toHaveAttribute('id', 'pw')
+  })
+
   it('supports a controlled value', () => {
     render(<PasswordInput placeholder="Password" value="secret" onChange={() => {}} />)
     expect(screen.getByPlaceholderText('Password')).toHaveValue('secret')

@@ -17,12 +17,17 @@ import {
 } from '@/lib/mock-status'
 
 /** One named status page with the preview's brand, request id, version and routed actions. */
-export function StatusDemo({ page }: Readonly<{ page: StatusDemoPage }>) {
+export function StatusDemo({
+  page,
+  onGoBack,
+}: Readonly<{ page: StatusDemoPage; onGoBack?: () => void }>) {
   const props = {
     ...statusDemoProps,
     logo: <BrandMark letter="K" />,
     linkComponent: NextLink,
-    actions: statusDemoActions[page],
+    actions: onGoBack
+      ? [...statusDemoActions[page], { label: 'Go back', onSelect: onGoBack }]
+      : statusDemoActions[page],
   }
   switch (page) {
     case '401':

@@ -1,10 +1,10 @@
-import { styled } from '../../../styled-system/jsx'
+import { Box, styled } from '../../../styled-system/jsx'
 import { Link } from '../../components/ui'
 import type { FaqTopic } from './types'
 
 export interface FaqIndexProps {
   topics: FaqTopic[]
-  /** The topic id marked current (`aria-current`, a start border and medium weight). */
+  /** The topic id marked current (`aria-current`, medium weight, and a start border on `lg` or a leading square below it). */
   currentId?: string
 }
 
@@ -42,6 +42,19 @@ export function FaqIndex({ topics, currentId }: FaqIndexProps) {
                 textDecoration="none"
                 _hover={{ color: 'fg.default' }}
               >
+                {current ? (
+                  <Box
+                    data-current-glyph=""
+                    aria-hidden="true"
+                    display={{ base: 'inline-block', lg: 'none' }}
+                    flexShrink="0"
+                    w="1.5"
+                    h="1.5"
+                    mt="1.5"
+                    me="2"
+                    bg="fg.default"
+                  />
+                ) : null}
                 {label}
               </Link>
             </li>

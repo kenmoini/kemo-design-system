@@ -184,7 +184,7 @@ export function StatusLayout({
           position="relative"
           mt="4"
           px="8"
-          pb="4"
+          pb={{ base: '20', sm: '4' }}
           justify="space-between"
           textStyle="xs"
           color="fg.muted"
