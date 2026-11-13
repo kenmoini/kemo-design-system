@@ -15,10 +15,11 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -34,10 +35,11 @@ jobs:
   e2e:
     needs: check
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -46,11 +48,26 @@ jobs:
       - run: pnpm --filter @kemo/ui lib
       # next build downloads DM Sans from Google Fonts, so the runner needs network access.
       - run: pnpm --filter @kemo/preview build
-      - run: pnpm e2e:install
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm --filter @kemo/preview exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      # A cache hit skips the browser download; the OS libraries are still installed (they are not cached).
+      - name: Install Chromium and OS libraries
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm e2e:install
+      - name: Install OS libraries only
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @kemo/preview exec playwright install-deps chromium
       - run: pnpm test:e2e
         env:
           CI: true
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: playwright-report
@@ -60,11 +77,12 @@ jobs:
   container:
     needs: [check, e2e]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Lowercase repository owner
         id: owner
         run: echo "name=${OWNER,,}" >> "$GITHUB_OUTPUT"
@@ -73,14 +91,14 @@ jobs:
       # The Containerfile runs next build, which downloads DM Sans from Google Fonts (network required).
       - name: Build image
         id: build
-        uses: redhat-actions/buildah-build@v3
+        uses: redhat-actions/buildah-build@719e3c40d8af9790c23eca13f7daa339f2867034 # v3.1.0
         with:
           containerfiles: ./Containerfile
           image: ghcr.io/${{ steps.owner.outputs.name }}/kemo-design-system
           tags: latest ${{ github.sha }}
       - name: Push image to GHCR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: redhat-actions/push-to-registry@v3
+        uses: redhat-actions/push-to-registry@94ade333c38ecc0e60e94785125d9a52ca423b37 # v3.0.0
         with:
           image: ${{ steps.build.outputs.image }}
           tags: ${{ steps.build.outputs.tags }}

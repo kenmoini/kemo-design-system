@@ -4,6 +4,3 @@ packages:
 allowBuilds:
   '@parcel/watcher': false
   esbuild: false
-minimumReleaseAgeExclude:
-  - '@hookform/resolvers@7.0.5'
-  - '@vitejs/plugin-react@6.3.0'

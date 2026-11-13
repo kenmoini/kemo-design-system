@@ -106,6 +106,19 @@ test('panel navigates and closes', async ({ page }) => {
   await expect(buttonsLink).toHaveAttribute('aria-current', 'page')
 })
 
+test('panel closes from its close button', async ({ page }) => {
+  await page.goto('/')
+  const trigger = page.getByTestId('preview-panel-trigger')
+  const dialog = page.getByRole('dialog', { name: 'Preview', exact: true })
+
+  await trigger.click()
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: /close/i }).click()
+
+  await expect(dialog).toBeHidden()
+  await expect(trigger).toBeFocused()
+})
+
 test('panel closes on history navigation and Escape', async ({ page }) => {
   await page.goto('/')
   const trigger = page.getByTestId('preview-panel-trigger')

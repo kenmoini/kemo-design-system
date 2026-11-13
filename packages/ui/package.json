@@ -59,7 +59,7 @@
     "prepare": "panda codegen",
     "codegen": "panda codegen",
     "lib": "panda codegen && panda lib",
-    "watch": "panda codegen && panda lib --watch",
+    "watch": "panda codegen && concurrently -k -n codegen,lib \"panda codegen --watch\" \"panda lib --watch\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",

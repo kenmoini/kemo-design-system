@@ -1,6 +1,7 @@
 FROM registry.access.redhat.com/ubi9/nodejs-24-minimal:latest AS base
 USER 0
-RUN npm install -g pnpm@12.4.2
+COPY package.json /tmp/package.json
+RUN npm install -g "pnpm@$(cd /tmp && node -p "require('./package.json').packageManager.split('@')[1]")" && rm /tmp/package.json
 USER 1001
 WORKDIR /opt/app-root/src
 ENV CI=1 NEXT_TELEMETRY_DISABLED=1

@@ -5,12 +5,12 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',
-  use: { baseURL: 'http://localhost:3000' },
+  use: { baseURL: 'http://localhost:3100' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'pnpm start',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    command: 'pnpm exec next start -p 3100',
+    url: 'http://localhost:3100',
+    reuseExistingServer: false,
     timeout: 60_000,
   },
 })

@@ -90,19 +90,13 @@ stay as the record. Dates are the phase that left the item.
 
 ## Tooling, CI, preview infrastructure (2026-11-09)
 
-| #   | Item                                                                                                                                                                          | Proposed | Why                                                                      |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------ |
-| T1  | Export surface review before publishing: `StatusActionButton`, `AppShellProvider`, `QuickActions`, the forum helpers, unused Deployments exports                              | Document | A publishing-phase decision                                              |
-| T2  | `pnpm test:e2e` silently reuses a running `pnpm dev` on :3000 (`reuseExistingServer: !CI`), contradicting the docs                                                            | Fix      | Run e2e on :3100 against the built preview, `reuseExistingServer: false` |
-| T3  | `watch` runs codegen once; recipe and token changes need `make codegen`                                                                                                       | Fix      | Add `panda codegen --watch`                                              |
-| T4  | `pnpm-workspace.yaml` `minimumReleaseAgeExclude` pins are dated housekeeping                                                                                                  | Fix      | Remove                                                                   |
-| T5  | CI: no `timeout-minutes`, Playwright browsers not cached, actions pinned by tag not SHA                                                                                       | Fix      | Small workflow edit                                                      |
-| T6  | Containerfile: base tag `latest` unpinned (plan-mandated); pnpm version duplicated from `packageManager`; `public/` copy depends on `.gitkeep`                                | Fix      | Dedupe the pnpm version; the rest stays                                  |
-| T7  | `next.config.ts` relies on Next compiling to CJS for `__dirname`; tripwire: `.next/standalone/apps/preview/server.js` must exist after build                                  | Document |                                                                          |
-| T8  | The sync script's barrel writer: `appendExport` merges non-`export … from` text; dedupe keyed on the whole statement; imports unsorted; palette scan covers recipe files only | Document |                                                                          |
-| T9  | The theme toggle exposes no state; the component pages omit ButtonGroup, CloseButton, Fieldset, InputGroup, Spinner, Loader, Icon                                             | Fix      | Add them to the component pages                                          |
-| T10 | e2e covers panel close via link, history back and Escape, but not the close button click                                                                                      | Fix      | One test                                                                 |
-| T11 | Historical notes in the scaffold spec and plan (font caveat, pre-ruling font string)                                                                                          | Drop     | Spec, README and tests are the living sources                            |
+| #   | Item                                                                                                                                                                          | Proposed | Why                                           |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------- |
+| T1  | Export surface review before publishing: `StatusActionButton`, `AppShellProvider`, `QuickActions`, the forum helpers, unused Deployments exports                              | Document | A publishing-phase decision                   |
+| T7  | `next.config.ts` relies on Next compiling to CJS for `__dirname`; tripwire: `.next/standalone/apps/preview/server.js` must exist after build                                  | Document |                                               |
+| T8  | The sync script's barrel writer: `appendExport` merges non-`export … from` text; dedupe keyed on the whole statement; imports unsorted; palette scan covers recipe files only | Document |                                               |
+| T9  | The theme toggle exposes no state; the component pages omit ButtonGroup, CloseButton, Fieldset, InputGroup, Spinner, Loader, Icon                                             | Fix      | Add them to the component pages               |
+| T11 | Historical notes in the scaffold spec and plan (font caveat, pre-ruling font string)                                                                                          | Drop     | Spec, README and tests are the living sources |
 
 ## Park UI upstream quirks
 

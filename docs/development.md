@@ -5,10 +5,10 @@
 `make dev` first runs `pnpm --filter @kemo/ui lib`, then starts two watchers together with
 `concurrently`:
 
-- `pnpm --filter @kemo/ui watch` runs `panda codegen && panda lib --watch`. `panda lib --watch`
-  re-emits the manifest in `packages/ui/dist/panda` whenever recipes or tokens change, but it does
-  not re-run codegen. After adding a recipe variant or a token, run `make codegen` (or restart
-  `make dev`) so the generated `styled-system` code knows about it.
+- `pnpm --filter @kemo/ui watch` runs `panda codegen` once, then `panda codegen --watch` and
+  `panda lib --watch` together. The lib watcher re-emits the manifest in `packages/ui/dist/panda`
+  and the codegen watcher regenerates `styled-system`, so token and recipe changes are picked up
+  without a restart.
 - `pnpm --filter @kemo/preview dev` runs Next.js (Turbopack) with the Panda PostCSS plugin.
 
 `lib` runs first because the preview's `panda codegen` reads the design-system manifest
@@ -34,7 +34,7 @@ network access.
 | `make test` (`pnpm test`)       | Vitest in `packages/ui` and `apps/preview`, then Node's test runner for `scripts/` |
 | `pnpm test:scripts`             | Only the `scripts/park-ui` tests                                                   |
 | `make e2e-install`              | Once: installs Chromium for Playwright (`pnpm e2e:install`)                        |
-| `make e2e` (`pnpm test:e2e`)    | Builds, then runs the Playwright smoke suite in `apps/preview/e2e`                 |
+| `make e2e` (`pnpm test:e2e`)    | Builds, then runs the Playwright suite in `apps/preview/e2e` on port 3100          |
 | `make check`                    | Lint, format check, typecheck and unit tests                                       |
 | `make gallery` (`pnpm gallery`) | Builds, then captures the screenshot gallery into `docs/gallery` (see below)       |
 
@@ -72,7 +72,9 @@ section, its rail resting above Copy link at the end of the post, and at 375px i
 order that runs down the page, Copy link and dark mode. The forum suite
 (`apps/preview/e2e/forum.spec.ts`) covers the twelve forum pages, their filters, search, paging,
 replies, reactions, votes, accept, follow, comments, topic creation, the failure path and 375px. It
-runs against a built preview, so build first (`make e2e` does).
+runs against a built preview, so build first (`make e2e` does). Playwright serves it itself on port
+3100 (`next start -p 3100`) and never reuses a running server, so a `next dev` on 3000 is left alone.
+The screenshot gallery uses 3100 too, so the two cannot run at the same time.
 
 ## Screenshot gallery
 
