@@ -24,7 +24,11 @@ describe('DiscussionsTopic', () => {
       'href',
       '/forum/boards',
     )
-    expect(within(crumbs).getByText('Kemo Console')).toHaveAttribute('aria-current', 'page')
+    expect(within(crumbs).getByRole('link', { name: 'Kemo Console' })).toHaveAttribute(
+      'href',
+      '/forum/boards/c/kemo-console',
+    )
+    expect(crumbs.querySelector('[aria-current]')).toBeNull()
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(topic.title)
     const n = participantsOf(topic).length

@@ -18,4 +18,18 @@ describe('Crumbs', () => {
     expect(screen.queryByRole('link', { name: 'Topic' })).not.toBeInTheDocument()
     expect(screen.getByText('Topic')).toHaveAttribute('aria-current', 'page')
   })
+
+  it('with currentIsLast false links every item and marks none current', () => {
+    render(
+      <Crumbs
+        currentIsLast={false}
+        items={[
+          { label: 'Discussions', href: '/d' },
+          { label: 'Console', href: '/d/console' },
+        ]}
+      />,
+    )
+    expect(screen.getByRole('link', { name: 'Console' })).toHaveAttribute('href', '/d/console')
+    expect(document.querySelector('[aria-current]')).toBeNull()
+  })
 })

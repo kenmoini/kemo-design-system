@@ -100,6 +100,7 @@ export function DiscussionsTopic(props: ForumTopicPageProps) {
                   { label: category.label, href: categoryHref },
                 ]}
                 linkComponent={linkComponent}
+                currentIsLast={false}
               />
               <div>
                 <styled.h1 textStyle="2xl" fontWeight="semibold" letterSpacing="-0.02em">

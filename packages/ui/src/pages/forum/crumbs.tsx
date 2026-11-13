@@ -6,15 +6,18 @@ import { HostLink } from '../blog/host-link'
 export function Crumbs({
   items,
   linkComponent,
+  currentIsLast = true,
 }: {
   items: { label: string; href?: string }[]
   linkComponent?: LinkComponent
+  /** false: a trail of ancestors only; every item with an href is a link and none is current. */
+  currentIsLast?: boolean
 }) {
   return (
     <Breadcrumb.Root aria-label="Breadcrumb">
       <Breadcrumb.List>
         {items.map((item, i) => {
-          const last = i === items.length - 1
+          const last = currentIsLast && i === items.length - 1
           return (
             <Fragment key={i}>
               {i > 0 ? <Breadcrumb.Separator /> : null}
