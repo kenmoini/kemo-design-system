@@ -75,6 +75,32 @@ describe('PasswordInput', () => {
     expect(root).not.toHaveAttribute('id', 'pw')
   })
 
+  it('names the input through Zag so the trigger controls it when an id is given', () => {
+    render(<PasswordInput placeholder="Password" id="pw" />)
+    expect(screen.getByPlaceholderText('Password')).toHaveAttribute('id', 'pw')
+    expect(screen.getByRole('button', { name: /show password/i })).toHaveAttribute(
+      'aria-controls',
+      'pw',
+    )
+  })
+
+  it('points the trigger at the generated input id when no id is given', () => {
+    render(<PasswordInput placeholder="Password" />)
+    const inputId = screen.getByPlaceholderText('Password').id
+    expect(inputId).not.toBe('')
+    expect(screen.getByRole('button', { name: /show password/i })).toHaveAttribute(
+      'aria-controls',
+      inputId,
+    )
+  })
+
+  it('focuses the input after a toggle when an id is given', async () => {
+    const user = userEvent.setup()
+    render(<PasswordInput placeholder="Password" id="pw" />)
+    await user.click(screen.getByRole('button', { name: /show password/i }))
+    expect(screen.getByPlaceholderText('Password')).toHaveFocus()
+  })
+
   it('supports a controlled value', () => {
     render(<PasswordInput placeholder="Password" value="secret" onChange={() => {}} />)
     expect(screen.getByPlaceholderText('Password')).toHaveValue('secret')

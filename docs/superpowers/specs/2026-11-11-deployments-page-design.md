@@ -66,6 +66,8 @@ multiple` rendering the chosen values as chips with a "+N" overflow, "All cluste
   when complete, red when degraded, gray when paused), Labels (up to three chips + "+N"), Age (relative, from a
   host-supplied `now`), actions (Scale…, Restart, Pause|Resume, Edit YAML (link), Delete). Default sort: name.
   Empty scope: "No deployments in this scope" + a "Clear filters" button when filters are set.
+- 2026-11-13 cleanup: a fifth status, Scaled to zero (`spec.replicas: 0`), neutral tone, in the badge and the
+  list filter.
 
 ### Detail page (`/deployments/{cluster}/{namespace}/{name}`, tab segment `overview` (default) | `yaml` | `events`)
 
@@ -336,7 +338,7 @@ schemaFor(registry: SchemaRegistry, apiVersion: string, kind: string): object | 
 // widgets/yaml-editor
 YamlEditor({ value: string; onChange?: (text: string) => void; schema?: object; readOnly?: boolean; onProblems?: (problems: { from: number; to: number; message: string; severity: 'error' | 'warning' }[]) => void; onCursorPath?: (path: (string | number)[]) => void; height?: string; ariaLabel: string })
   // 'use client'; CodeMirror 6 EditorView with lineNumbers, foldGutter, history, yaml(), schema lint/hover/completion from codemirror-json-schema when `schema` is given, a Park-token theme (EditorView.theme + HighlightStyle via token.var), `aria-label` on the content, Tab inserts two spaces, Escape moves focus out
-useYamlDocument({ initial: string }): { text; setText; dirty; reset(next?) }
+// useYamlDocument: 2026-11-13 cleanup: removed (it had no callers); no longer exported
 // widgets/schema-browser
 SchemaBrowser({ schema: object; path: (string | number)[]; onPathChange: (path) => void; onSelectField?: (path) => void })
   // resolves `$ref`/`properties`/`items`/`additionalProperties`; renders the breadcrumb, the node description, and the field list (name, type, required, description, enum, default); arrays show their item type and drill into `items`

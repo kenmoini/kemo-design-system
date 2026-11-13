@@ -152,7 +152,8 @@ function slugify(text: string): string {
 
 /**
  * The table of contents. Generated ids carry a `section-` prefix, so they cannot meet the ids the
- * page owns (`comments-section`); an explicit `id` is used verbatim and generated ids step around it.
+ * page owns (`comments`): a heading titled "Comments" becomes `section-comments`. An explicit `id`
+ * is used verbatim and generated ids step around it.
  */
 export function tocOf(body: BlogBlock[]): { id: string; text: string; level: 2 | 3 }[] {
   const taken = new Set<string>()

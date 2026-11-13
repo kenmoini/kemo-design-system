@@ -138,7 +138,7 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
 
   return (
     <styled.section
-      id="comments-section"
+      id="comments"
       aria-labelledby={headingId}
       maxW="40rem"
       scrollMarginTop="6"

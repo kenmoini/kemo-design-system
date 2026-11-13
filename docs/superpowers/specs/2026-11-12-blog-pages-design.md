@@ -455,6 +455,8 @@ a built preview on :3100 with a scratch Playwright config, never the owner's dev
   not in the theme; the build uses `canvas`, `gray.surface.bg` and `border`. A `code` font token was added
   so inline code renders in monospace.
 - **Dates.** Editorial list rows show the long date ("04 Nov 2026").
+- 2026-11-13 cleanup: generated heading ids carry a `section-` prefix (`section-results`); explicit ids are
+  used verbatim.
 
 ## Left to the builder
 

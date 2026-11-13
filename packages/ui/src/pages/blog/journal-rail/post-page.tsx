@@ -47,7 +47,7 @@ export function JournalRailPost({
   const items: OnThisPageItem[] = tocOf(post.body)
   if (comments) {
     items.push({
-      id: 'comments-section',
+      id: 'comments',
       text: 'Comments',
       level: 2,
       suffix: String(countComments(comments)),

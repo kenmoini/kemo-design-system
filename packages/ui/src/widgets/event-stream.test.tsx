@@ -76,6 +76,14 @@ describe('EventStream', () => {
 
   describe('pause control', () => {
     const newer: EventStreamEvent = { id: 'e6', time: '14:03:00', tone: 'info', text: 'Newest' }
+    // The toggle's live region: the status that is not the Events list.
+    const toggleStatus = () => {
+      const [status, ...rest] = screen
+        .getAllByRole('status')
+        .filter((el) => el.getAttribute('aria-label') !== 'Events')
+      expect(rest).toHaveLength(0)
+      return status!
+    }
 
     it('is absent unless the stream is live', () => {
       render(<EventStream events={events} />)
@@ -87,11 +95,13 @@ describe('EventStream', () => {
       render(<EventStream events={events} live />)
       const toggle = screen.getByRole('button', { name: 'Pause' })
       expect(toggle).toHaveAttribute('aria-pressed', 'false')
-      expect(screen.getByText('Live')).toBeInTheDocument()
+      const status = toggleStatus()
+      expect(status).toHaveTextContent(/^Live$/)
       await user.click(toggle)
       const resume = screen.getByRole('button', { name: 'Resume' })
       expect(resume).toHaveAttribute('aria-pressed', 'true')
-      expect(screen.getByText('Paused')).toBeInTheDocument()
+      expect(toggleStatus()).toBe(status)
+      expect(status).toHaveTextContent(/^Paused$/)
       expect(screen.queryByText('Live')).not.toBeInTheDocument()
     })
 
@@ -111,23 +121,31 @@ describe('EventStream', () => {
       const user = userEvent.setup()
       const { rerender } = render(<EventStream events={events} live />)
       await user.hover(screen.getAllByRole('listitem')[0]!)
-      expect(screen.getByText('Paused while you read')).toBeInTheDocument()
+      expect(screen.getByText('Paused while you read')).toBeVisible()
       rerender(<EventStream events={[newer, ...events]} live />)
       expect(screen.getAllByRole('listitem')).toHaveLength(5)
       await user.unhover(screen.getAllByRole('listitem')[0]!)
       expect(screen.getAllByRole('listitem')).toHaveLength(6)
     })
 
-    it('words the status by the cause of the hold', async () => {
+    it('shows the reader hold without announcing it, and announces only the toggle', async () => {
       const user = userEvent.setup()
       render(<EventStream events={events} live />)
+      const status = toggleStatus()
       await user.hover(screen.getAllByRole('listitem')[0]!)
-      expect(screen.getByText('Paused while you read')).toBeInTheDocument()
+      // A pointer pass changes what is shown, not what the live region says.
+      const hold = screen.getByText('Paused while you read')
+      expect(hold).toHaveAttribute('aria-hidden', 'true')
+      expect(status).not.toContainElement(hold)
+      expect(status).toHaveTextContent(/^Live$/)
+      expect(toggleStatus()).toBe(status)
       await user.click(screen.getByRole('button', { name: 'Pause' }))
-      expect(screen.getByText('Paused')).toBeInTheDocument()
+      expect(status).toHaveTextContent(/^Paused$/)
+      expect(screen.queryByText('Paused while you read')).not.toBeInTheDocument()
       await user.unhover(screen.getAllByRole('listitem')[0]!)
       await user.click(screen.getByRole('button', { name: 'Resume' }))
-      expect(screen.getByText('Live')).toBeInTheDocument()
+      expect(status).toHaveTextContent(/^Live$/)
+      expect(toggleStatus()).toBe(status)
     })
 
     it('lets a host own the state with paused and onPausedChange', async () => {

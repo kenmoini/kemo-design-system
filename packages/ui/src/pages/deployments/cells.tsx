@@ -47,9 +47,10 @@ const barFill: Record<StatusTone, string> = {
   off: css({ bg: 'gray.6' }),
 }
 
-/** The ready bar's tone: gray while paused, red when degraded, green when complete, else amber. */
+/** The ready bar's tone: gray while paused or scaled to zero, red when degraded, green when
+ * complete, else amber. */
 export function readyTone(ready: number, desired: number, status: DeploymentStatus): StatusTone {
-  if (status === 'paused') return 'off'
+  if (status === 'paused' || status === 'scaled-to-zero') return 'off'
   if (status === 'degraded') return 'critical'
   return ready >= desired ? 'good' : 'warning'
 }

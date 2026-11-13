@@ -86,6 +86,20 @@ describe('BoardsIndex', () => {
     expect(status).toHaveTextContent('1 result')
   })
 
+  it('updates the same status node on a second search with a different count', async () => {
+    const user = userEvent.setup()
+    render(<BoardsIndex {...props} />)
+    const status = screen.getByRole('status')
+    await user.type(field(), 'crd{Enter}')
+    expect(screen.getByRole('status')).toBe(status)
+    expect(status).toHaveTextContent(/^1 result$/)
+    await user.clear(field())
+    await user.type(field(), 'oidc{Enter}')
+    expect(screen.getByRole('heading', { name: /results? for “oidc”/ })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toBe(status)
+    expect(status).toHaveTextContent(/^No results$/)
+  })
+
   it('searches on Enter and clears back to the page, focusing the input', async () => {
     const user = userEvent.setup()
     render(<BoardsIndex {...props} />)

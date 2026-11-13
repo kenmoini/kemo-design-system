@@ -52,8 +52,9 @@ pieces, so the next app can copy it, drop widgets, or add its own. It is a demo 
      Node health, Top endpoints, Recent deployments, Rollouts, Event stream, Activity. Below `lg` cards span 6;
      below `md` 12.
 - **Cards**: Park `Card` `outline` variant (radius `l3`), padding `4`, header row with a semibold `md` title
-  and a muted `xs` caption on the right. Headline numbers `textStyle: 2xl`, semibold, tight tracking; deltas
-  `xs` with ▲/▼ in `green.11`/`red.11` and a text suffix ("vs yesterday"), never color alone.
+  and a muted `xs` caption on the right (built as `sm` under the title; 2026-11-13 cleanup note). Headline
+  numbers `textStyle: 2xl`, semibold, tight tracking; deltas `xs` with ▲/▼ in `green.11`/`red.11` and a text
+  suffix ("vs yesterday"), never color alone.
 - **Footer**: `Text xs` muted: product name and version on the left, a status dot + "All systems normal" in the
   middle, links (Docs, Support, Status, Privacy) on the right with spacing, no separators.
 - **Motion**: none on load. Hover tooltips on charts answer the pointer; nothing else animates.

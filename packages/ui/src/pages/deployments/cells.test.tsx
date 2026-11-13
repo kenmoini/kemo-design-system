@@ -1,6 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { DeploymentStatusBadge, deploymentStatusOptions, LabelChips } from './cells'
+import {
+  DeploymentStatusBadge,
+  deploymentStatusOptions,
+  LabelChips,
+  ReadyCell,
+  readyTone,
+} from './cells'
 
 const labels = { app: 'checkout-api', tier: 'backend', team: 'payments' }
 
@@ -34,5 +40,19 @@ describe('DeploymentStatusBadge', () => {
       value: 'scaled-to-zero',
       label: 'Scaled to zero',
     })
+  })
+})
+
+describe('readyTone', () => {
+  it('reads a Deployment scaled to zero as off, not complete', () => {
+    expect(readyTone(0, 0, 'scaled-to-zero')).toBe('off')
+    expect(readyTone(0, 0, 'available')).toBe('good')
+    expect(readyTone(1, 3, 'paused')).toBe('off')
+  })
+
+  it('fills the Ready bar gray for a Deployment scaled to zero', () => {
+    const { container } = render(<ReadyCell ready={0} desired={0} status="scaled-to-zero" />)
+    expect(screen.getByText('0/0')).toBeInTheDocument()
+    expect(container.querySelector('[data-part="range"]')).toHaveClass('bg_gray.6')
   })
 })

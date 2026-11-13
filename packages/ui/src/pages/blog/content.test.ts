@@ -179,7 +179,7 @@ describe('blog content helpers', () => {
   it('does not collide with the comments section when a heading is titled Comments', () => {
     const ids = tocOf([{ type: 'heading', level: 2, text: 'Comments' }]).map((t) => t.id)
     expect(ids).toEqual(['section-comments'])
-    expect(ids).not.toContain('comments-section')
+    expect(ids).not.toContain('comments')
   })
 
   it('keeps an explicit id verbatim, so it cannot clash with a generated -2 id', () => {

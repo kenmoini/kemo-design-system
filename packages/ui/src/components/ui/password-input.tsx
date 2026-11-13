@@ -26,8 +26,8 @@ export interface PasswordInputProps
 
 // Attributes of the <input> itself go to it; the rest (className, style props and Ark's state
 // options: name, disabled, readOnly, required, which Ark applies to the input) stays on the Root.
+// `id` is not among them: it names the input through Zag's `ids` (see below).
 const inputOnlyKeys = new Set([
-  'id',
   'placeholder',
   'value',
   'defaultValue',
@@ -53,11 +53,15 @@ function splitInputProps(props: Record<string, unknown>) {
 
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   function PasswordInput(props, ref) {
-    const { size, variant, autoComplete = 'current-password', ...rest } = props
+    const { size, variant, autoComplete = 'current-password', id, ...rest } = props
     const { rootProps, inputProps } = splitInputProps(rest)
+    // An explicit `id` names the input through Zag's `ids`, so the trigger's `aria-controls`, the
+    // focus after a toggle and the reveal reset on form submit and reset find it. Without one, `ids`
+    // is left out so Ark takes the input id from a surrounding Field.
+    const idProps = id === undefined ? {} : { ids: { ...props.ids, input: id } }
 
     return (
-      <ArkPasswordInput.Root autoComplete={autoComplete} {...rootProps}>
+      <ArkPasswordInput.Root autoComplete={autoComplete} {...rootProps} {...idProps}>
         <Control position="relative" display="flex" width="full">
           <Input ref={ref} size={size} variant={variant} {...inputProps} pe="var(--input-height)" />
           <ArkPasswordInput.VisibilityTrigger asChild>

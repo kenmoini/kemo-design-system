@@ -27,7 +27,7 @@ describe('BlogComments', () => {
   it('names the section with the total including replies', () => {
     const { container } = render(<BlogComments comments={comments} />)
     expect(screen.getByRole('heading', { level: 2, name: 'Comments (5)' })).toBeInTheDocument()
-    expect(container.querySelector('section#comments-section')).not.toBeNull()
+    expect(container.querySelector('section#comments')).not.toBeNull()
     expect(screen.getByRole('region', { name: 'Comments (5)' })).toBeInTheDocument()
   })
 
@@ -68,7 +68,7 @@ describe('BlogComments', () => {
       />,
     )
     expect(screen.getByText('<img src=x onerror=alert(1)> <b>hi</b>')).toBeInTheDocument()
-    expect(document.querySelector('#comments-section img, #comments-section b')).toBeNull()
+    expect(document.querySelector('#comments img, #comments b')).toBeNull()
   })
 
   it('tags the post author', () => {

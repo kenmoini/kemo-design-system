@@ -21,5 +21,7 @@ describe('SkeletonCircle', () => {
       circle: true,
       css: { borderRadius: 'full' },
     })
+    const { container } = render(<SkeletonCircle />)
+    expect(container.firstElementChild).toHaveClass('skeleton--compound__circle_true__loading_true')
   })
 })

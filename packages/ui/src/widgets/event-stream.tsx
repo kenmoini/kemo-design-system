@@ -1,5 +1,6 @@
 'use client'
 import { type ReactNode, useState } from 'react'
+import { css } from '../../styled-system/css'
 import { Box, Flex, styled } from '../../styled-system/jsx'
 import { Button, Text } from '../components/ui'
 import { useReaderPause } from '../pages/access/use-reader-pause'
@@ -18,14 +19,16 @@ export interface EventStreamProps {
   events: EventStreamEvent[]
   /**
    * The stream is live: announce additions politely to assistive tech as events arrive, and show a
-   * Pause / Resume toggle. The list also holds still (status "Paused while you read") while the
-   * pointer is over it or focus is inside.
+   * Pause / Resume toggle. The list also holds still (shown as "Paused while you read", not
+   * announced) while the pointer is over it or focus is inside.
    */
   live?: boolean
   /** The toggle's state, when the host owns it (it may also stop feeding events); else internal. */
   paused?: boolean
   onPausedChange?: (paused: boolean) => void
 }
+
+const srOnly = css({ srOnly: true })
 
 const TONE_LABEL: Record<EventStreamEvent['tone'], string> = {
   info: 'Info',
@@ -66,7 +69,8 @@ export function EventStream({ events, live = false, paused, onPausedChange }: Ev
   const readerHandlers = useReaderPause(setReading)
 
   const toggled = paused ?? ownPaused
-  const reader = live && reading
+  // The hold shows only when the toggle has not already paused the list.
+  const readerHold = live && reading && !toggled
   const frozen = live && (toggled || reading)
   if (frozen && !held) setHeld(events)
   if (!frozen && held) setHeld(null)
@@ -81,9 +85,14 @@ export function EventStream({ events, live = false, paused, onPausedChange }: Ev
     <Box>
       {live ? (
         <Flex justify="space-between" align="center" gap="3" mb="3">
-          {/* A persistent region whose text changes, so each change is announced once. */}
-          <Text as="span" role="status" textStyle="xs" color="fg.muted">
-            {toggled && live ? 'Paused' : reader ? 'Paused while you read' : 'Live'}
+          <Text as="span" textStyle="xs" color="fg.muted">
+            {/* A persistent region whose text changes, so each change is announced once. It speaks
+                the toggle's state only: the reader's hold is shown in its place but hidden from
+                assistive tech, so a pointer passing over the list is not announced. */}
+            <span role="status" className={readerHold ? srOnly : undefined}>
+              {toggled ? 'Paused' : 'Live'}
+            </span>
+            {readerHold ? <span aria-hidden="true">Paused while you read</span> : null}
           </Text>
           <Button size="xs" variant="outline" aria-pressed={toggled} onClick={toggle}>
             {toggled ? 'Resume' : 'Pause'}
