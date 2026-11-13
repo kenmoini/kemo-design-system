@@ -1,4 +1,5 @@
 'use client'
+import type { ReactNode } from 'react'
 import { Badge } from '../../../components/ui'
 import { DateTimeText, MonoText, NameCell, StatusBadge, statusOptions } from '../cells'
 import {
@@ -30,7 +31,7 @@ const typeLabels = new Map(oauthTypeOptions.map((option) => [option.value, optio
  * with Status and Type filters; Add, Edit, "Rotate secret", Disable/Enable and Delete per row;
  * Enable, Disable and Delete for the selection.
  */
-export const AccessOAuthAppsTab = createEntityTab<
+export const AccessOAuthAppsTab: (props: AccessOAuthAppsTabProps) => ReactNode = createEntityTab<
   OAuthApp,
   OAuthAppValues,
   AccessOAuthAppsTabOwnProps

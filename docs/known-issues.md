@@ -47,18 +47,13 @@ stay as the record. Dates are the phase that left the item.
 
 ## Access page and DataTable (2026-11-11)
 
-| #   | Item                                                                                                                                       | Proposed | Why                                         |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------- |
-| A1  | The tab strip hides its scrollbar at 375px with no overflow cue                                                                            | Fix      | A fade at the trailing edge                 |
-| A2  | `AccessRolesTab` and `AccessOAuthAppsTab` leak `columns` and `filters` override props                                                      | Fix      | Omit from the props type                    |
-| A3  | "Delete 2 roles?" uses the selected count while the description carries the built-in skip note; Edit pre-fills `tokenLifetimeDays` with 90 | Drop     | Described in the dialog                     |
-| A4  | `aria-disabled` "off" buttons still hover-tint (the Park recipe only skips `:disabled`)                                                    | Fix      | A `css` override on the aria-disabled state |
-| A5  | Keyboard-open while `aria-disabled` is forced shut, but only the click path is tested                                                      | Fix      | One test                                    |
-| A6  | A controlled `selectedIds` rejected by a host leaves Ark's hidden checkbox input drifting                                                  | Document | JSDoc warns                                 |
-| A7  | `DateTimeText` is hard-coded `en`/UTC                                                                                                      | Document | Localisation is a non-goal                  |
-| A8  | The permission-name regex rejects hyphens                                                                                                  | Fix      | Trivial                                     |
-| A9  | The live region also announces the sort; audit tone mapping differs from the mockup's illustrative colours                                 | Drop     | Rulings                                     |
-| A10 | Test quirks: `userEvent.setup({ delay: 20 })` for a jsdom caret race; `stubLayout()` for Zag focus; a smoke test mutates a module ref      | Document | Explained in the tests                      |
+| #   | Item                                                                                                                                       | Proposed | Why                        |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- | -------------------------- |
+| A3  | "Delete 2 roles?" uses the selected count while the description carries the built-in skip note; Edit pre-fills `tokenLifetimeDays` with 90 | Drop     | Described in the dialog    |
+| A6  | A controlled `selectedIds` rejected by a host leaves Ark's hidden checkbox input drifting                                                  | Document | JSDoc warns                |
+| A7  | `DateTimeText` is hard-coded `en`/UTC                                                                                                      | Document | Localisation is a non-goal |
+| A9  | The live region also announces the sort; audit tone mapping differs from the mockup's illustrative colours                                 | Drop     | Rulings                    |
+| A10 | Test quirks: `userEvent.setup({ delay: 20 })` for a jsdom caret race; `stubLayout()` for Zag focus; a smoke test mutates a module ref      | Document | Explained in the tests     |
 
 ## Status pages and console pages (2026-11-11)
 

@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ariaDisabledOutline, ariaDisabledSolid } from '../../../lib/aria-disabled'
 import { stubLayout } from '../../../test/layout'
 import type { AccessSettingsValues } from '../types'
 import { AccessSettings, type AccessSettingsProps } from './settings-tab'
@@ -88,6 +89,9 @@ describe('AccessSettings', () => {
     expect(save()).toHaveAttribute('aria-disabled', 'true')
     expect(discard()).toHaveAttribute('aria-disabled', 'true')
     expect(save()).not.toBeDisabled()
+    // No hover tint while off.
+    expect(save()).toHaveClass(ariaDisabledSolid)
+    expect(discard()).toHaveClass(ariaDisabledOutline)
     save().focus()
     await user.keyboard('{Enter}')
     expect(onSave).not.toHaveBeenCalled()
@@ -96,6 +100,8 @@ describe('AccessSettings', () => {
     await choose(user, 'Access token lifetime', '30 minutes')
     expect(save()).not.toHaveAttribute('aria-disabled')
     expect(discard()).not.toHaveAttribute('aria-disabled')
+    expect(save()).not.toHaveClass(ariaDisabledSolid)
+    expect(discard()).not.toHaveClass(ariaDisabledOutline)
     // The select hands focus back to its trigger as it closes; move on from there.
     await waitFor(() =>
       expect(screen.getByRole('combobox', { name: 'Access token lifetime' })).toHaveFocus(),

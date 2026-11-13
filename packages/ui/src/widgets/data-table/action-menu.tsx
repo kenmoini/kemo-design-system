@@ -3,6 +3,7 @@ import { Portal } from '@ark-ui/react/portal'
 import { ChevronDown, EllipsisVertical } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { Button, IconButton, Menu } from '../../components/ui'
+import { ariaDisabledOutline } from '../../lib/aria-disabled'
 import type { LinkComponent } from '../../pages/auth/types'
 import type { ActionItem } from './types'
 
@@ -87,7 +88,12 @@ export function ActionMenu({
     >
       <Menu.Trigger asChild>
         {trigger === 'button' ? (
-          <Button variant="outline" size="sm" aria-disabled={disabled || undefined}>
+          <Button
+            variant="outline"
+            size="sm"
+            aria-disabled={disabled || undefined}
+            className={disabled ? ariaDisabledOutline : undefined}
+          >
             {buttonLabel ?? label}
             <ChevronDown />
           </Button>

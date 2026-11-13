@@ -51,7 +51,10 @@ export const permissionSchema = z.object({
   name: z
     .string()
     .trim()
-    .regex(/^[a-z]+\.[a-z]+$/, 'Use the form resource.action, e.g. deployments.create.'),
+    .regex(
+      /^[a-z]+(?:-[a-z]+)*\.[a-z]+(?:-[a-z]+)*$/,
+      'Use the form resource.action, e.g. deployments.create.',
+    ),
   resource: z.string().min(1, 'Choose a resource.'),
   action: z.enum(permissionActions, 'Choose an action.'),
   description: descriptionField,

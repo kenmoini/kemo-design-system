@@ -116,6 +116,18 @@ describe('AccessUsersTab', () => {
     vi.restoreAllMocks()
   })
 
+  it('keeps the Bulk actions menu shut on Enter and Space while nothing is selected', async () => {
+    const user = userEvent.setup()
+    renderTab()
+    const bulk = screen.getByRole('button', { name: 'Bulk actions' })
+    expect(bulk).toHaveAttribute('aria-disabled', 'true')
+    bulk.focus()
+    await user.keyboard('{Enter}')
+    expect(screen.queryByRole('menu')).toBeNull()
+    await user.keyboard(' ')
+    expect(screen.queryByRole('menu')).toBeNull()
+  })
+
   it('renders the columns and badges', () => {
     renderTab()
     for (const header of ['Name', 'Role', 'Source', 'Status', 'Last sign-in']) {

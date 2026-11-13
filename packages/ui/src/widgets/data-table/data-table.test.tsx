@@ -4,6 +4,7 @@ import { forwardRef, useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Badge } from '../../components/ui'
 import { MEDIA_LG } from '../../layouts/app-shell'
+import { ariaDisabledOutline } from '../../lib/aria-disabled'
 import type { LinkComponent } from '../../pages/auth/types'
 import { setMediaMatches } from '../../test/media'
 import { DataTable } from './data-table'
@@ -199,10 +200,13 @@ describe('DataTable', () => {
     expect(bulk).toHaveAttribute('aria-disabled', 'true')
     await user.click(bulk)
     expect(screen.queryByRole('menu')).toBeNull()
+    // The "off" trigger drops the recipe's hover tint.
+    expect(bulk).toHaveClass(ariaDisabledOutline)
 
     await user.click(screen.getByRole('checkbox', { name: 'Select Priya Natarajan' }))
     await user.click(screen.getByRole('checkbox', { name: 'Select Marcus Lee' }))
     expect(bulk).not.toHaveAttribute('aria-disabled')
+    expect(bulk).not.toHaveClass(ariaDisabledOutline)
     expect(screen.getByText('· 2 selected')).toBeInTheDocument()
     expect(onSelectionChange).toHaveBeenLastCalledWith(['u1', 'u2'])
 

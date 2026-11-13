@@ -1,4 +1,5 @@
 'use client'
+import type { ReactNode } from 'react'
 import { BuiltInName, StatusBadge, statusOptions } from '../cells'
 import {
   cloneAction,
@@ -25,7 +26,11 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
  * status, with Status and Built-in filters. Built-in roles can be edited and cloned but not
  * disabled or deleted, per row or in bulk (bulk Disable and Delete skip them and say so).
  */
-export const AccessRolesTab = createEntityTab<AccessRole, RoleValues, AccessRolesTabOwnProps>({
+export const AccessRolesTab: (props: AccessRolesTabProps) => ReactNode = createEntityTab<
+  AccessRole,
+  RoleValues,
+  AccessRolesTabOwnProps
+>({
   entity: { singular: 'role', plural: 'roles' },
   columns: [
     {

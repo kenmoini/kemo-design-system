@@ -4,6 +4,7 @@ import { type ReactNode, useRef, useState } from 'react'
 import { type Control, Controller, useForm, useWatch } from 'react-hook-form'
 import { Box, Grid, HStack, Stack } from '../../../../styled-system/jsx'
 import { Button, Card, Heading, Loader, Text } from '../../../components/ui'
+import { ariaDisabledOutline, ariaDisabledSolid } from '../../../lib/aria-disabled'
 import type { Option } from '../../../widgets'
 import { accessSettingsSchema } from '../schemas'
 import type { AccessSettingsValues } from '../types'
@@ -339,6 +340,7 @@ export function AccessSettingsForm({ values, onSubmit, onSendTestEmail }: Access
             type="button"
             variant="outline"
             aria-disabled={!isDirty || isSubmitting || undefined}
+            className={!isDirty || isSubmitting ? ariaDisabledOutline : undefined}
             onClick={discard}
           >
             Discard changes
@@ -347,6 +349,7 @@ export function AccessSettingsForm({ values, onSubmit, onSendTestEmail }: Access
             type="submit"
             variant="solid"
             aria-disabled={!isDirty || undefined}
+            className={!isDirty ? ariaDisabledSolid : undefined}
             aria-busy={isSubmitting || undefined}
           >
             <Loader visible={isSubmitting} text="Saving…">

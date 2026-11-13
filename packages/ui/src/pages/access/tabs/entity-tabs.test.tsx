@@ -1,6 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { ComponentProps } from 'react'
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { MEDIA_LG } from '../../../layouts/app-shell'
 import { stubLayout } from '../../../test/layout'
 import { setMediaMatches } from '../../../test/media'
@@ -192,6 +193,15 @@ describe('AccessGroupsTab', () => {
     await user.click(await screen.findByRole('option', { name: 'Viewer' }))
     await user.click(within(dialog).getByRole('button', { name: 'Assign role' }))
     await waitFor(() => expect(p.onAssignRole).toHaveBeenCalledWith(['g1'], 'r-viewer'))
+  })
+})
+
+describe('Access tab props', () => {
+  it('keep columns and filters internal to the Roles and OAuth apps tabs', () => {
+    expectTypeOf<ComponentProps<typeof AccessRolesTab>>().not.toHaveProperty('columns')
+    expectTypeOf<ComponentProps<typeof AccessRolesTab>>().not.toHaveProperty('filters')
+    expectTypeOf<ComponentProps<typeof AccessOAuthAppsTab>>().not.toHaveProperty('columns')
+    expectTypeOf<ComponentProps<typeof AccessOAuthAppsTab>>().not.toHaveProperty('filters')
   })
 })
 
