@@ -170,9 +170,25 @@ describe('blog content helpers', () => {
         { type: 'heading', level: 2, text: 'Next', id: 'what-next' },
       ]),
     ).toEqual([
-      { id: 'results', text: 'Results', level: 2 },
-      { id: 'results-2', text: 'Results', level: 3 },
+      { id: 'section-results', text: 'Results', level: 2 },
+      { id: 'section-results-2', text: 'Results', level: 3 },
       { id: 'what-next', text: 'Next', level: 2 },
     ])
+  })
+
+  it('does not collide with the comments section when a heading is titled Comments', () => {
+    const ids = tocOf([{ type: 'heading', level: 2, text: 'Comments' }]).map((t) => t.id)
+    expect(ids).toEqual(['section-comments'])
+    expect(ids).not.toContain('comments-section')
+  })
+
+  it('keeps an explicit id verbatim, so it cannot clash with a generated -2 id', () => {
+    const ids = tocOf([
+      { type: 'heading', level: 2, text: 'Results' },
+      { type: 'heading', level: 2, text: 'Results again', id: 'section-results-2' },
+      { type: 'heading', level: 3, text: 'Results' },
+    ]).map((t) => t.id)
+    expect(ids).toEqual(['section-results', 'section-results-2', 'section-results-3'])
+    expect(new Set(ids).size).toBe(ids.length)
   })
 })

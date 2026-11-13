@@ -54,8 +54,8 @@ describe('BlogProse', () => {
     ]
     render(<BlogProse blocks={blocks} />)
     expect(screen.getAllByRole('heading').map((h) => [h.tagName, h.id])).toEqual([
-      ['H2', 'results'],
-      ['H3', 'results-2'],
+      ['H2', 'section-results'],
+      ['H3', 'section-results-2'],
     ])
   })
 

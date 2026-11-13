@@ -16,7 +16,15 @@ export function CopyLinkButton({ label = 'Copy link', href, ...buttonProps }: Co
   const [state, setState] = useState<CopyState>('idle')
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
-  useEffect(() => () => clearTimeout(timer.current), [])
+  const mounted = useRef(true)
+
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+      clearTimeout(timer.current)
+    }
+  }, [])
 
   async function copy() {
     let next: CopyState = 'failed'
@@ -28,6 +36,7 @@ export function CopyLinkButton({ label = 'Copy link', href, ...buttonProps }: Co
     } catch {
       // Missing API or a rejected write: fall through to the failed state.
     }
+    if (!mounted.current) return
     clearTimeout(timer.current)
     setState(next)
     timer.current = setTimeout(() => setState('idle'), 2000)

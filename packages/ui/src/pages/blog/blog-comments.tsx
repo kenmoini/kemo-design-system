@@ -22,13 +22,20 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [posted, setPosted] = useState(false)
+  const [announcement, setAnnouncement] = useState('')
   const replyButtons = useRef(new Map<string, HTMLButtonElement>())
   const total = countComments(comments)
+
+  const clearConfirmation = () => {
+    setPosted(false)
+    setAnnouncement('')
+  }
 
   const submit = async (values: { name: string; body: string }, parentId?: string) => {
     await onAddComment!(parentId ? { ...values, parentId } : values)
     setName(values.name)
     setPosted(true)
+    setAnnouncement('Comment posted.')
     if (parentId) {
       // The reply form, and its focused button, unmount: hand focus back as Cancel does.
       setReplyingTo(null)
@@ -76,7 +83,7 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
                   size="xs"
                   aria-expanded={open}
                   onClick={() => {
-                    setPosted(false)
+                    clearConfirmation()
                     setReplyingTo(open ? null : comment.id)
                   }}
                 >
@@ -115,6 +122,7 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
               commentPlaceholder={`Reply to ${comment.author.name}`}
               defaultName={name}
               onNameChange={setName}
+              onEdit={clearConfirmation}
               autoFocus
               onSubmit={(values) => submit(values, comment.id)}
               onCancel={() => {
@@ -130,7 +138,7 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
 
   return (
     <styled.section
-      id="comments"
+      id="comments-section"
       aria-labelledby={headingId}
       maxW="40rem"
       scrollMarginTop="6"
@@ -146,6 +154,10 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
         </styled.span>
         <styled.span srOnly> ({total})</styled.span>
       </styled.h2>
+      {/* One persistent region: its text changes, so every post is announced. */}
+      <styled.span srOnly role="status">
+        {announcement}
+      </styled.span>
       {onAddComment ? (
         <Stack
           gap="3"
@@ -158,6 +170,7 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
             hint="Plain text. Be kind."
             defaultName={name}
             onNameChange={setName}
+            onEdit={clearConfirmation}
             confirmed={posted}
             onSubmit={(values) => submit(values)}
           />

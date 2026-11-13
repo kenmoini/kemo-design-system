@@ -85,7 +85,7 @@ describe('JournalRailPost', () => {
       'link',
     )
     const last = links[links.length - 1]!
-    expect(last).toHaveAttribute('href', '#comments')
+    expect(last).toHaveAttribute('href', '#comments-section')
     expect(last).toHaveTextContent('Comments 3')
     const main = screen.getByRole('main')
     expect(within(main).getByRole('heading', { name: 'Comments (3)' })).toBeInTheDocument()
@@ -101,7 +101,7 @@ describe('JournalRailPost', () => {
       'link',
     )
     expect(links).toHaveLength(1)
-    expect(links[0]).toHaveAttribute('href', '#comments')
+    expect(links[0]).toHaveAttribute('href', '#comments-section')
   })
 
   it('renders the details and the back link', () => {

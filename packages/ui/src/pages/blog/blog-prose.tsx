@@ -30,6 +30,8 @@ const Quote = styled('blockquote', {
       insetInlineStart: '0',
       w: '2px',
       bgGradient: 'auth',
+      // The gradient's dark end sinks into the dark canvas: a flat, lighter token holds there.
+      _dark: { bgGradient: 'none', bg: 'gray.8' },
     },
   },
 })

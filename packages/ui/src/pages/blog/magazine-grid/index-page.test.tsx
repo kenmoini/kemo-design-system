@@ -17,7 +17,7 @@ describe('MagazineGridIndex', () => {
     expect(within(articles[0]!).getByRole('heading', { level: 2 })).toHaveTextContent(coldStart)
     expect(screen.getAllByText(coldStart)).toHaveLength(1)
     expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('8 posts')
+    expect(screen.getByText(/^8 posts$/, { selector: '[role="status"]' })).toBeInTheDocument()
   })
 
   it('moves to the second page', async () => {
@@ -42,7 +42,9 @@ describe('MagazineGridIndex', () => {
     expect(screen.getAllByRole('article')).toHaveLength(4)
     expect(screen.getByRole('link', { name: coldStart })).toBeInTheDocument()
     expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('4 posts in Engineering')
+    expect(
+      screen.getByText('4 posts in Engineering', { selector: '[role="status"]' }),
+    ).toBeInTheDocument()
   })
 
   it('returns to page one when switching back to an earlier topic', async () => {
@@ -53,6 +55,34 @@ describe('MagazineGridIndex', () => {
     await user.click(screen.getByRole('tab', { name: 'Engineering' }))
     await user.click(screen.getByRole('tab', { name: 'All posts' }))
     expect(screen.getAllByRole('article')).toHaveLength(7)
+  })
+
+  it('scrolls to the grid and announces the page on a page change', async () => {
+    const user = userEvent.setup()
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    try {
+      render(<MagazineGridIndex {...props} />)
+      await user.click(screen.getByRole('button', { name: /page 2/i }))
+      expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start' })
+      expect(screen.getByText('Page 2 of 2', { selector: '[role="status"]' })).toBeInTheDocument()
+    } finally {
+      delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView
+    }
+  })
+
+  it('returns to page one when a controlled topic changes', async () => {
+    const user = userEvent.setup()
+    const onTopicChange = vi.fn()
+    const { rerender } = render(
+      <MagazineGridIndex {...props} topic={undefined} onTopicChange={onTopicChange} />,
+    )
+    const firstTitle = within(screen.getAllByRole('article')[1]!).getByRole('heading').textContent!
+    await user.click(screen.getByRole('button', { name: /page 2/i }))
+    expect(screen.queryByText(firstTitle)).not.toBeInTheDocument()
+    rerender(<MagazineGridIndex {...props} topic="engineering" onTopicChange={onTopicChange} />)
+    rerender(<MagazineGridIndex {...props} topic={undefined} onTopicChange={onTopicChange} />)
+    expect(screen.getByText(firstTitle)).toBeInTheDocument()
   })
 
   it('makes the whole card one link', () => {

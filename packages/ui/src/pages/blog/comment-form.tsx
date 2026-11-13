@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Box, Stack, styled } from '../../../styled-system/jsx'
-import { Button, Field, Input, Text, Textarea } from '../../components/ui'
+import { Button, Field, Input, Textarea } from '../../components/ui'
 import { FormAlert } from '../auth/form-alert'
 
 const commentSchema = z.object({
@@ -30,6 +30,8 @@ export interface CommentFormProps {
   hint?: string
   defaultName?: string
   onNameChange?: (name: string) => void
+  /** Called when the form opens or a field changes: the host clears its confirmation. */
+  onEdit?: () => void
   /** Let the host decide whether the confirmation shows (the section keeps one at a time). */
   confirmed?: boolean
 }
@@ -45,6 +47,7 @@ export function CommentForm({
   hint,
   defaultName = '',
   onNameChange,
+  onEdit,
   confirmed,
 }: CommentFormProps) {
   const [posted, setPosted] = useState(false)
@@ -54,6 +57,7 @@ export function CommentForm({
     handleSubmit,
     setFocus,
     setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<CommentValues>({
     resolver: zodResolver(commentSchema),
@@ -67,8 +71,13 @@ export function CommentForm({
     // Only on mount: the form is mounted when its reply opens.
   }, [])
 
-  const showPosted = !failure && (confirmed ?? posted)
-  const message = failure ? null : showPosted ? 'Comment posted.' : hint
+  // The name typed in another form of the section arrives as `defaultName`.
+  useEffect(() => {
+    if (getValues('name') !== defaultName) setValue('name', defaultName)
+  }, [defaultName, getValues, setValue])
+
+  // The host's live region announces the post; this text is only the visible confirmation.
+  const message = failure ? null : (confirmed ?? posted) ? 'Comment posted.' : hint
 
   return (
     <form
@@ -98,27 +107,30 @@ export function CommentForm({
             <Input
               autoComplete="name"
               placeholder="Your name"
-              {...register('name', { onChange: (e) => onNameChange?.(e.target.value) })}
+              {...register('name', {
+                onChange: (e) => {
+                  onNameChange?.(e.target.value)
+                  onEdit?.()
+                },
+              })}
             />
           </Box>
           <Field.ErrorText>{errors.name?.message}</Field.ErrorText>
         </Field.Root>
         <Field.Root invalid={!!errors.body} ids={{ control: `${idPrefix}-body` }}>
           <Field.Label>Comment</Field.Label>
-          <Textarea rows={4} placeholder={commentPlaceholder} {...register('body')} />
+          <Textarea
+            rows={4}
+            placeholder={commentPlaceholder}
+            {...register('body', { onChange: () => onEdit?.() })}
+          />
           <Field.ErrorText>{errors.body?.message}</Field.ErrorText>
         </Field.Root>
         <FormAlert message={failure} />
         <Box display="flex" alignItems="center" justifyContent="space-between" gap="3">
-          {showPosted ? (
-            <Text role="status" textStyle="xs" color="fg.muted">
-              {message}
-            </Text>
-          ) : (
-            <styled.span textStyle="xs" color="fg.subtle">
-              {failure ? null : message}
-            </styled.span>
-          )}
+          <styled.span textStyle="xs" color={message === hint ? 'fg.subtle' : 'fg.muted'}>
+            {message}
+          </styled.span>
           <Box display="flex" gap="2" ml="auto">
             {onCancel ? (
               <Button type="button" variant="outline" size="sm" onClick={onCancel}>

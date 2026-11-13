@@ -150,15 +150,24 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
+/**
+ * The table of contents. Generated ids carry a `section-` prefix, so they cannot meet the ids the
+ * page owns (`comments-section`); an explicit `id` is used verbatim and generated ids step around it.
+ */
 export function tocOf(body: BlogBlock[]): { id: string; text: string; level: 2 | 3 }[] {
-  const used = new Map<string, number>()
+  const taken = new Set<string>()
+  for (const block of body) if (block.type === 'heading' && block.id) taken.add(block.id)
   const out: { id: string; text: string; level: 2 | 3 }[] = []
   for (const block of body) {
     if (block.type !== 'heading') continue
-    const base = block.id ?? (slugify(block.text) || 'section')
-    const n = (used.get(base) ?? 0) + 1
-    used.set(base, n)
-    out.push({ id: n === 1 ? base : `${base}-${n}`, text: block.text, level: block.level })
+    let id = block.id
+    if (!id) {
+      const base = `section-${slugify(block.text) || 'section'}`
+      id = base
+      for (let n = 2; taken.has(id); n++) id = `${base}-${n}`
+      taken.add(id)
+    }
+    out.push({ id, text: block.text, level: block.level })
   }
   return out
 }

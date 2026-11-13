@@ -267,7 +267,7 @@ test.describe('blog routes', () => {
       .getByRole('link', { name: 'Results' })
     await link.click()
 
-    await expect(page).toHaveURL(/#results$/)
+    await expect(page).toHaveURL(/#section-results$/)
     await expect(link).toHaveAttribute('aria-current', 'location')
   })
 

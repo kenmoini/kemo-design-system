@@ -27,7 +27,7 @@ describe('BlogComments', () => {
   it('names the section with the total including replies', () => {
     const { container } = render(<BlogComments comments={comments} />)
     expect(screen.getByRole('heading', { level: 2, name: 'Comments (5)' })).toBeInTheDocument()
-    expect(container.querySelector('section#comments')).not.toBeNull()
+    expect(container.querySelector('section#comments-section')).not.toBeNull()
     expect(screen.getByRole('region', { name: 'Comments (5)' })).toBeInTheDocument()
   })
 
@@ -68,7 +68,7 @@ describe('BlogComments', () => {
       />,
     )
     expect(screen.getByText('<img src=x onerror=alert(1)> <b>hi</b>')).toBeInTheDocument()
-    expect(document.querySelector('#comments img, #comments b')).toBeNull()
+    expect(document.querySelector('#comments-section img, #comments-section b')).toBeNull()
   })
 
   it('tags the post author', () => {
@@ -260,6 +260,34 @@ describe('BlogComments', () => {
       'aria-expanded',
       'true',
     )
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+  })
+
+  it('announces each post through one persistent status and clears it on typing', async () => {
+    const user = userEvent.setup()
+    render(<BlogComments comments={comments} onAddComment={vi.fn().mockResolvedValue(undefined)} />)
+    const status = screen.getByRole('status')
+    expect(status).toBeEmptyDOMElement()
+    await user.type(screen.getByLabelText('Name'), 'Ada')
+    await user.type(screen.getByLabelText('Comment'), 'First')
+    await user.click(screen.getByRole('button', { name: 'Post comment' }))
+    await waitFor(() => expect(status).toHaveTextContent('Comment posted.'))
+    await user.type(screen.getByLabelText('Comment'), 'x')
+    expect(status).toBeEmptyDOMElement()
+    await user.type(screen.getByLabelText('Comment'), 'Second')
+    await user.click(screen.getByRole('button', { name: 'Post comment' }))
+    await waitFor(() => expect(status).toHaveTextContent('Comment posted.'))
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+    await user.click(screen.getAllByRole('button', { name: 'Reply' })[0]!)
+    expect(status).toBeEmptyDOMElement()
+  })
+
+  it('carries a name typed in a reply form back to the top-level form', async () => {
+    const user = userEvent.setup()
+    render(<BlogComments comments={comments} onAddComment={vi.fn()} />)
+    await user.click(screen.getAllByRole('button', { name: 'Reply' })[0]!)
+    const [top, reply] = screen.getAllByLabelText('Name')
+    await user.type(reply!, 'Grace')
+    expect(top).toHaveValue('Grace')
   })
 })

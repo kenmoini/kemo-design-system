@@ -80,4 +80,19 @@ describe('CopyLinkButton', () => {
     expect(error).not.toHaveBeenCalled()
     error.mockRestore()
   })
+
+  it('sets no state and no timer when unmounted before the clipboard resolves', async () => {
+    let resolve!: () => void
+    stubClipboard({ writeText: vi.fn(() => new Promise<void>((r) => (resolve = r))) })
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { unmount } = render(<CopyLinkButton />)
+    await click()
+    unmount()
+    await act(async () => {
+      resolve()
+    })
+    expect(vi.getTimerCount()).toBe(0)
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
+  })
 })

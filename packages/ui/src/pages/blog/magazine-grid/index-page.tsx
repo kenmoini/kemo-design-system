@@ -1,6 +1,6 @@
 'use client'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Box, Stack, styled } from '../../../../styled-system/jsx'
 import { Button, Heading, IconButton, Pagination, Tabs, Text } from '../../../components/ui'
 import { EmptyState } from '../../../widgets'
@@ -24,12 +24,23 @@ export function MagazineGridIndex(props: BlogIndexPageProps) {
   const items = hero ? visible.filter((p) => p.slug !== hero.slug) : visible
 
   // The page belongs to the topic it was chosen in, so a topic change lands on page one.
+  const gridRef = useRef<HTMLDivElement>(null)
+  const [announcement, setAnnouncement] = useState('')
   const [pageState, setPageState] = useState({ topic, page: 1 })
   const pageCount = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
   // Adjusting state during render: any topic change, however it arrives, restarts at page one.
-  if (pageState.topic !== topic) setPageState({ topic, page: 1 })
+  if (pageState.topic !== topic) {
+    setPageState({ topic, page: 1 })
+    setAnnouncement('')
+  }
   const page = Math.min(pageState.topic === topic ? pageState.page : 1, pageCount)
   const pageItems = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  const changePage = (next: number) => {
+    setPageState({ topic, page: next })
+    setAnnouncement(`Page ${next} of ${pageCount}`)
+    gridRef.current?.scrollIntoView?.({ block: 'start' })
+  }
 
   const body =
     visible.length === 0 ? (
@@ -40,6 +51,7 @@ export function MagazineGridIndex(props: BlogIndexPageProps) {
     ) : (
       <Stack gap="6">
         <Box
+          ref={gridRef}
           as="ul"
           m="0"
           p="0"
@@ -66,7 +78,7 @@ export function MagazineGridIndex(props: BlogIndexPageProps) {
             pageSize={PAGE_SIZE}
             page={page}
             siblingCount={1}
-            onPageChange={(details) => setPageState({ topic, page: details.page })}
+            onPageChange={(details) => changePage(details.page)}
             display="flex"
             alignItems="center"
             justifyContent="center"
@@ -176,6 +188,9 @@ export function MagazineGridIndex(props: BlogIndexPageProps) {
                 </Text>
               </Box>
               <PostCountStatus count={visible.length} topic={topic} topicLabel={topicLabel} />
+              <styled.span srOnly role="status">
+                {announcement}
+              </styled.span>
               <Tabs.Content value="all" pt="6">
                 {known ? body : null}
               </Tabs.Content>
