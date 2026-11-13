@@ -1,6 +1,5 @@
 'use client'
-import { useRef } from 'react'
-import { css } from '../../../../styled-system/css'
+import { useId, useRef } from 'react'
 import { Box, HStack, Stack, styled } from '../../../../styled-system/jsx'
 import { Button, Text } from '../../../components/ui'
 import { EmptyState } from '../../../widgets/empty-state'
@@ -22,18 +21,12 @@ import { SearchField } from '../search-field'
 import { SearchResults } from '../search-results'
 import type { ForumIndexPageProps, ForumTopic } from '../types'
 import { useQuery } from '../use-query'
-import { QuestionCell } from './question-cell'
-
-const link = css({
-  color: 'fg.default',
-  textDecoration: 'none',
-  _hover: { textDecoration: 'underline' },
-  _focusVisible: { outline: '2px solid', outlineOffset: '2px', rounded: 'l1' },
-})
+import { QuestionCell, titleLink } from './question-cell'
 
 export function QaIndex(props: ForumIndexPageProps) {
   const { categories, topics, linkComponent, now } = props
   const { input, setInput, query, commit, clear } = useQuery(props)
+  const uid = useId()
   const inputRef = useRef<HTMLInputElement | null>(null)
   const binding = { value: input, onChange: setInput, onSubmit: commit, inputRef }
 
@@ -57,16 +50,16 @@ export function QaIndex(props: ForumIndexPageProps) {
     )
   }
   const column = (
-    id: string,
+    key: string,
     title: string,
     aside: string,
     list: ForumTopic[],
     trailing: 'time' | 'votes',
     empty: string,
   ) => (
-    <styled.section aria-labelledby={id}>
+    <styled.section aria-labelledby={`${uid}-${key}`}>
       <Box display="flex" justifyContent="space-between" alignItems="baseline" mb="2">
-        <styled.h2 id={id} textStyle="md" fontWeight="semibold">
+        <styled.h2 id={`${uid}-${key}`} textStyle="md" fontWeight="semibold">
           {title}
         </styled.h2>
         <Text textStyle="xs" color="fg.subtle">
@@ -161,8 +154,8 @@ export function QaIndex(props: ForumIndexPageProps) {
           </SearchResults>
         ) : (
           <Stack gap="7">
-            <styled.section aria-labelledby="qa-categories">
-              <styled.h2 id="qa-categories" srOnly>
+            <styled.section aria-labelledby={`${uid}-categories`}>
+              <styled.h2 id={`${uid}-categories`} srOnly>
                 Categories
               </styled.h2>
               <Box
@@ -176,7 +169,11 @@ export function QaIndex(props: ForumIndexPageProps) {
                   return (
                     <Box key={c.id} borderWidth="1px" borderColor="border" borderRadius="l2" p="4">
                       <styled.h3 textStyle="sm" fontWeight="semibold">
-                        <HostLink as={linkComponent} href={props.categoryHref(c)} className={link}>
+                        <HostLink
+                          as={linkComponent}
+                          href={props.categoryHref(c)}
+                          className={titleLink}
+                        >
                           {c.label}
                         </HostLink>
                       </styled.h3>
@@ -232,7 +229,7 @@ export function QaIndex(props: ForumIndexPageProps) {
                 'qa-trending',
                 'Trending this week',
                 'by votes',
-                trendingTopics(topics, now, 5),
+                trendingTopics(topics, now, 5, true),
                 'votes',
                 'Nothing trending this week.',
               )}

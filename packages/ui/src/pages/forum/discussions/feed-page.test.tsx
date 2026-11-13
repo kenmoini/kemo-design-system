@@ -131,6 +131,20 @@ describe('DiscussionsIndex', () => {
     expect(rowsOf()).toHaveLength(8)
   })
 
+  it('shows the category badge on index search results but not on a category page', async () => {
+    const user = userEvent.setup()
+    const { unmount } = render(<DiscussionsIndex {...indexProps} />)
+    await user.type(screen.getAllByRole('searchbox')[0]!, 'schema{Enter}')
+    expect(within(rowsOf()[0]!).getByRole('link', { name: 'Kemo Console' })).toBeInTheDocument()
+    unmount()
+    render(<DiscussionsCategory {...categoryProps} />)
+    await user.type(screen.getAllByRole('searchbox')[0]!, 'schema{Enter}')
+    expect(rowsOf().length).toBeGreaterThan(0)
+    for (const row of rowsOf()) {
+      expect(within(row).queryByRole('link', { name: 'Kemo Console' })).not.toBeInTheDocument()
+    }
+  })
+
   it('shows an empty state with no topics', () => {
     render(<DiscussionsIndex {...indexProps} topics={[]} />)
     expect(screen.getByText('No discussions yet.')).toBeInTheDocument()

@@ -154,6 +154,7 @@ export function ForumTopicDemo({
       topic={topic}
       category={category}
       related={topics.filter((t) => t.slug !== slug)}
+      categories={state.categories}
       docs={forumDocs}
       onReply={(input) => reply(slug, input)}
       onReact={(postId, emoji) => react(slug, postId, emoji)}

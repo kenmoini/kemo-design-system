@@ -108,4 +108,33 @@ describe('QaIndex', () => {
       ),
     ).toBeInTheDocument()
   })
+
+  it('gives two mounted pages distinct section ids', () => {
+    const { container } = render(
+      <>
+        <QaIndex {...props} />
+        <QaIndex {...props} />
+      </>,
+    )
+    const ids = Array.from(container.querySelectorAll('section[aria-labelledby]')).map((s) =>
+      s.getAttribute('aria-labelledby'),
+    )
+    expect(ids.length).toBeGreaterThan(2)
+    expect(new Set(ids).size).toBe(ids.length)
+    for (const id of ids) expect(document.getElementById(id!)).toBeInTheDocument()
+  })
+
+  it('keeps discussions and announcements out of the Needs an answer and Trending lists', () => {
+    const talk = {
+      ...testTopics.find((t) => t.slug === 'minimum-rbac')!,
+      slug: 'talk',
+      id: 'talk',
+      title: 'Show your dashboards',
+      kind: 'discussion' as const,
+    }
+    render(<QaIndex {...props} topics={[talk, ...testTopics]} />)
+    const needs = screen.getByRole('region', { name: 'Needs an answer' })
+    expect(within(needs).queryByText('Show your dashboards')).not.toBeInTheDocument()
+    expect(within(needs).getAllByRole('listitem').length).toBeGreaterThan(0)
+  })
 })

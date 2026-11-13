@@ -103,4 +103,19 @@ describe('BoardsIndex', () => {
     expect(screen.getAllByText('No topics yet')).toHaveLength(testCategories.length)
     expect(screen.queryByRole('heading', { name: 'Latest' })).not.toBeInTheDocument()
   })
+
+  it('gives two mounted pages distinct section ids', () => {
+    const { container } = render(
+      <>
+        <BoardsIndex {...props} />
+        <BoardsIndex {...props} />
+      </>,
+    )
+    const ids = Array.from(container.querySelectorAll('section[aria-labelledby]')).map((s) =>
+      s.getAttribute('aria-labelledby'),
+    )
+    expect(ids.length).toBeGreaterThan(2)
+    expect(new Set(ids).size).toBe(ids.length)
+    for (const id of ids) expect(document.getElementById(id!)).toBeInTheDocument()
+  })
 })

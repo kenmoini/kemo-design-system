@@ -12,6 +12,7 @@ import {
   formatCount,
   groupReplies,
   hotTags,
+  isQuestion,
   isSolved,
   joinedLabel,
   needsAnswer,
@@ -179,6 +180,21 @@ describe('topic readers', () => {
     expect(acceptedPost(topic('open'))).toBeUndefined()
   })
 
+  it('reads a list row summary when posts are absent, and ignores it otherwise', () => {
+    expect(isSolved(topic('row', { solved: true }))).toBe(true)
+    expect(isSolved(topic('row', { solved: false }))).toBe(false)
+    expect(isSolved(topic('loaded', { solved: true, posts: [post('p1', ada, ago(DAY))] }))).toBe(
+      false,
+    )
+  })
+
+  it('treats a topic as a question unless it is an announcement or a discussion', () => {
+    expect(isQuestion(topic('a'))).toBe(true)
+    expect(isQuestion(topic('a', { kind: 'question' }))).toBe(true)
+    expect(isQuestion(topic('a', { kind: 'discussion' }))).toBe(false)
+    expect(isQuestion(topic('a', { kind: 'announcement' }))).toBe(false)
+  })
+
   it('counts replies from posts, else from replyCount', () => {
     expect(replyCountOf(solved)).toBe(1)
     expect(replyCountOf(topic('list', { replyCount: 7 }))).toBe(7)
@@ -330,6 +346,18 @@ describe('sortTopics', () => {
   it('filters unanswered by replies, or by solved state in qa', () => {
     expect(slugs(sortTopics(all, 'unanswered', 'boards'))).toEqual(['fresh', 'pinned'])
     expect(slugs(sortTopics(all, 'unanswered', 'qa'))).toEqual(['fresh', 'hot', 'pinned'])
+    const talk = topic('talk', { kind: 'discussion', lastActivityAt: ago(HOUR / 2) })
+    expect(slugs(sortTopics([...all, talk], 'unanswered', 'qa'))).toEqual([
+      'talk',
+      'fresh',
+      'hot',
+      'pinned',
+    ])
+    expect(slugs(sortTopics([...all, talk], 'unanswered', 'qa', true))).toEqual([
+      'fresh',
+      'hot',
+      'pinned',
+    ])
   })
 
   it('filters solved without pinning', () => {
@@ -427,6 +455,28 @@ describe('trending, needs answer and week stats', () => {
     const b = topic('b', { createdAt: ago(2 * DAY) })
     expect(needsAnswer([a, solved, b]).map((x) => x.slug)).toEqual(['b', 'a'])
     expect(needsAnswer([a, b], 1).map((x) => x.slug)).toEqual(['b'])
+  })
+
+  it('leaves announcements and discussions out of needs answer', () => {
+    const q = topic('q', { createdAt: ago(3 * DAY) })
+    const talk = topic('talk', { createdAt: ago(HOUR), kind: 'discussion' })
+    const news = topic('news', { createdAt: ago(HOUR), kind: 'announcement' })
+    expect(needsAnswer([q, talk, news]).map((x) => x.slug)).toEqual(['q'])
+  })
+
+  it('limits trending to questions on request', () => {
+    const talk = topic('talk', {
+      lastActivityAt: ago(HOUR),
+      votes: { score: 50 },
+      kind: 'discussion',
+    })
+    expect(trendingTopics([talk, recentHigh], NOW).map((x) => x.slug)).toEqual([
+      'talk',
+      'recent-high',
+    ])
+    expect(trendingTopics([talk, recentHigh], NOW, 5, true).map((x) => x.slug)).toEqual([
+      'recent-high',
+    ])
   })
 
   it('counts the week, leaving out a solve from 8 days ago', () => {
@@ -618,5 +668,7 @@ describe('pageOf', () => {
     expect(pageOf(items, 1, 2)).toEqual([1, 2])
     expect(pageOf(items, 3, 2)).toEqual([5])
     expect(pageOf(items, 4, 2)).toEqual([])
+    expect(pageOf(items, 0, 2)).toEqual([1, 2])
+    expect(pageOf(items, -3, 2)).toEqual([1, 2])
   })
 })

@@ -15,6 +15,8 @@ export interface FeedRowProps {
   now: string
   /** The pinned topic under Latest: a tinted row. */
   pinned?: boolean
+  /** Show the category badge; false on a category's own page. Default true. */
+  showCategory?: boolean
 }
 
 const titleLink = css({
@@ -33,6 +35,7 @@ export function FeedRow({
   linkComponent,
   now,
   pinned = false,
+  showCategory = true,
 }: FeedRowProps) {
   const replies = replyCountOf(topic)
   const reactions = reactionTotalOf(topic)
@@ -65,7 +68,7 @@ export function FeedRow({
           </styled.p>
           <HStack gap="2" flexWrap="wrap" mt="2" textStyle="xs" color="fg.subtle">
             <StatusBadge topic={topic} />
-            {category ? (
+            {showCategory && category ? (
               <CategoryBadge
                 category={category}
                 href={categoryHref}

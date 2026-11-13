@@ -53,6 +53,7 @@ interface ForumTopic {
   createdAt: string // ISO 8601; Newest and Needs an answer order by it
   lastActivityAt: string // Latest orders by it
   replyCount: number // used when `posts` is absent
+  solved?: boolean // used when `posts` is absent: whether an answer is accepted
   viewCount: number
   votes?: { score: number; viewer?: 'up' | 'down' } // the question's votes; Top and Votes use it
   reactionTotal?: number // used when `posts` is absent
@@ -89,8 +90,9 @@ interface ForumUser {
 
 What the pages derive rather than read:
 
-- **Solved**: a topic is solved when one of its posts is `accepted` (`isSolved`); there is no
-  solved flag, so a list row that should read "Solved" needs at least its accepted post.
+- **Solved**: a topic is solved when one of its posts is `accepted` (`isSolved`). A list row
+  without `posts` reads its `solved` flag instead, the way it reads `replyCount`; the flag is
+  ignored once `posts` is present.
 - **Counts**: when a topic carries `posts`, its reply count is `posts.length - 1`, its reaction
   total the sum over its posts and its participants their authors; without `posts` the pages use
   `replyCount`, `reactionTotal` and `participants`. A Q&A answer count is the answers the topic
@@ -107,7 +109,8 @@ What the pages derive rather than read:
   totals beside them.
 - **The four Q&A category cards** are the four categories with the most topics; the rest go in the
   "Also:" line. Trending (topics active in the last seven days, by votes), Needs an answer (the
-  newest unsolved), This week, Top contributors and Related are computed from the loaded topics and
+  newest unsolved; the Q&A pages leave announcements and discussions out of these and of
+  Unanswered, see `isQuestion`), This week, Top contributors and Related are computed from the loaded topics and
   `now`.
 - **One post model, three readings**: a post with a `parentId` is a nested reply under its parent in
   Discussions, a comment under its post in Q&A, and just the next numbered post in Boards, which
@@ -208,6 +211,7 @@ const chrome = (now: string, viewer?: ForumUser): ForumChromeProps => ({
   topic={topic}
   category={category}
   related={topics}
+  categories={categories} // Discussions: Related shows each topic's category
   onReply={async (input) => setTopic(await api.reply(topic.id, input))} // throw to fail
   onVote={async (postId, direction) => setTopic(await api.vote(postId, direction))}
   onAcceptAnswer={

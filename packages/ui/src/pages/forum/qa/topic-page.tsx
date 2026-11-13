@@ -1,6 +1,6 @@
 'use client'
 import { CheckIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Box, HStack, Stack, styled } from '../../../../styled-system/jsx'
 import { Button, Text } from '../../../components/ui'
 import { HostLink } from '../../blog/host-link'
@@ -43,6 +43,7 @@ function MetaItem({ label, children }: { label: string; children: React.ReactNod
 }
 
 export function QaTopic(props: ForumTopicPageProps) {
+  const uid = useId()
   const { topic, category, linkComponent, now, viewer, onReply } = props
   const [sort, setSort] = useState<Sort>('votes')
   const [commentingOn, setCommentingOn] = useState<string | null>(null)
@@ -242,8 +243,8 @@ export function QaTopic(props: ForumTopicPageProps) {
           <styled.aside aria-label="About this question" minW="0">
             <Stack gap="6">
               {related.length > 0 ? (
-                <section aria-labelledby="qa-related">
-                  <RailHeading id="qa-related">Related questions</RailHeading>
+                <section aria-labelledby={`${uid}-related`}>
+                  <RailHeading id={`${uid}-related`}>Related questions</RailHeading>
                   <styled.ul m="0" p="0">
                     {related.map((t) => (
                       <QuestionCell
@@ -259,8 +260,8 @@ export function QaTopic(props: ForumTopicPageProps) {
                 </section>
               ) : null}
               {docs.length > 0 ? (
-                <section aria-labelledby="qa-docs">
-                  <RailHeading id="qa-docs">Linked docs</RailHeading>
+                <section aria-labelledby={`${uid}-docs`}>
+                  <RailHeading id={`${uid}-docs`}>Linked docs</RailHeading>
                   <styled.ul m="0" p="0">
                     {docs.map((doc) => (
                       <styled.li key={doc.href} listStyle="none" py="1.5" textStyle="sm">
@@ -278,8 +279,8 @@ export function QaTopic(props: ForumTopicPageProps) {
                 </section>
               ) : null}
               {tags.length > 0 ? (
-                <section aria-labelledby="qa-tags">
-                  <RailHeading id="qa-tags">Hot tags</RailHeading>
+                <section aria-labelledby={`${uid}-tags`}>
+                  <RailHeading id={`${uid}-tags`}>Hot tags</RailHeading>
                   <HStack gap="1.5" flexWrap="wrap">
                     {tags.map((tag) => (
                       <TagBadge

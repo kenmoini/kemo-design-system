@@ -960,7 +960,7 @@ export const forumTopics: ForumTopic[] = [
     lastActivityAt: days(33),
     replyCount: 8,
     viewCount: 760,
-    votes: { score: 12 },
+    votes: { score: 25 },
     reactionTotal: 9,
     tags: ['gitops', 'yaml-editor'],
   }),

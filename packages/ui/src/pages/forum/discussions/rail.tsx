@@ -1,3 +1,5 @@
+'use client'
+import { useId } from 'react'
 import { css } from '../../../../styled-system/css'
 import { Box, HStack, Stack, styled } from '../../../../styled-system/jsx'
 import { Button, Text } from '../../../components/ui'
@@ -36,9 +38,10 @@ export interface StartDiscussionProps {
 
 /** The Nightfall call to action; first in reading order below `lg`. */
 export function StartDiscussion({ composerHref, linkComponent }: StartDiscussionProps) {
+  const headingId = useId()
   return (
     <styled.section
-      aria-labelledby="discussions-start"
+      aria-labelledby={headingId}
       className="dark"
       colorScheme="dark"
       bgGradient="auth"
@@ -46,7 +49,7 @@ export function StartDiscussion({ composerHref, linkComponent }: StartDiscussion
       p="5"
       color="fg.default"
     >
-      <styled.h2 id="discussions-start" textStyle="lg" fontWeight="semibold">
+      <styled.h2 id={headingId} textStyle="lg" fontWeight="semibold">
         Start a discussion
       </styled.h2>
       <Text color="fg.muted" textStyle="sm" mt="1" mb="4">

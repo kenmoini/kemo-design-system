@@ -165,7 +165,12 @@ export function acceptedPost(topic: ForumTopic): ForumPost | undefined {
 }
 
 export function isSolved(topic: ForumTopic): boolean {
-  return acceptedPost(topic) !== undefined
+  return topic.posts ? topic.posts.some((p) => p.accepted) : (topic.solved ?? false)
+}
+
+/** Whether the topic is a question: anything that is not an announcement or a discussion. */
+export function isQuestion(topic: ForumTopic): boolean {
+  return topic.kind !== 'announcement' && topic.kind !== 'discussion'
 }
 
 export function replyCountOf(topic: ForumTopic): number {
@@ -244,6 +249,7 @@ export function sortTopics(
   topics: ForumTopic[],
   filter: ListFilter,
   variant: ForumVariant,
+  questionsOnly = false,
 ): ForumTopic[] {
   const list = [...topics]
   switch (filter) {
@@ -253,6 +259,7 @@ export function sortTopics(
       return list.sort((a, b) => scoreOf(b) - scoreOf(a) || activityOrder(a, b))
     case 'unanswered':
       return list
+        .filter((t) => !questionsOnly || isQuestion(t))
         .filter((t) => (variant === 'qa' ? !isSolved(t) : replyCountOf(t) === 0))
         .sort(activityOrder)
     case 'solved':
@@ -292,16 +299,21 @@ export function searchTopics(
     .sort(activityOrder)
 }
 
-export function trendingTopics(topics: ForumTopic[], now: string, count = 5): ForumTopic[] {
+export function trendingTopics(
+  topics: ForumTopic[],
+  now: string,
+  count = 5,
+  questionsOnly = false,
+): ForumTopic[] {
   return topics
-    .filter((t) => withinWeek(t.lastActivityAt, now))
+    .filter((t) => withinWeek(t.lastActivityAt, now) && (!questionsOnly || isQuestion(t)))
     .sort((a, b) => scoreOf(b) - scoreOf(a) || activityOrder(a, b))
     .slice(0, count)
 }
 
 export function needsAnswer(topics: ForumTopic[], count = 5): ForumTopic[] {
   return topics
-    .filter((t) => !isSolved(t))
+    .filter((t) => isQuestion(t) && !isSolved(t))
     .sort((a, b) => timeOf(b.createdAt) - timeOf(a.createdAt) || compareText(a.slug, b.slug))
     .slice(0, count)
 }
@@ -420,5 +432,6 @@ export function firstParagraphText(post: ForumPost): string {
 }
 
 export function pageOf<T>(items: T[], page: number, pageSize: number): T[] {
-  return items.slice((page - 1) * pageSize, page * pageSize)
+  const current = Math.max(1, page)
+  return items.slice((current - 1) * pageSize, current * pageSize)
 }

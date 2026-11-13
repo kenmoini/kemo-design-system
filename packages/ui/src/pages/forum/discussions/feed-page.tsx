@@ -62,7 +62,7 @@ export function DiscussionsFeed(props: DiscussionsFeedProps) {
   const { shown, hasMore, more } = useReveal(list.length, STEP, filter)
   const results = query ? searchTopics(scoped, categories, query) : []
   const byId = new Map(categories.map((c) => [c.id, c]))
-  const row = (t: ForumTopic, pinned = false) => {
+  const row = (t: ForumTopic, pinned = false, showCategory = true) => {
     const own = byId.get(t.categoryId)
     return (
       <FeedRow
@@ -74,6 +74,7 @@ export function DiscussionsFeed(props: DiscussionsFeedProps) {
         linkComponent={linkComponent}
         now={now}
         pinned={pinned}
+        showCategory={showCategory}
       />
     )
   }
@@ -144,7 +145,7 @@ export function DiscussionsFeed(props: DiscussionsFeedProps) {
                   }}
                 >
                   <styled.ul m="0" p="0" borderTopWidth="1px" borderColor="border">
-                    {results.map((t) => row(t))}
+                    {results.map((t) => row(t, false, mode !== 'category'))}
                   </styled.ul>
                 </SearchResults>
               ) : (

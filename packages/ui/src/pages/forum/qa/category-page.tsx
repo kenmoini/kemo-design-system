@@ -30,7 +30,7 @@ export function QaCategory(props: ForumCategoryPageProps) {
   const [filter, setFilter] = useState<Filter>('newest')
 
   const own = topics.filter((t) => t.categoryId === category.id)
-  const sorted = sortTopics(own, filter, 'qa')
+  const sorted = sortTopics(own, filter, 'qa', true)
   const { page, setPage } = usePager(sorted.length, PAGE_SIZE, filter)
   const rows = pageOf(sorted, page, PAGE_SIZE)
   const results = query ? searchTopics(own, categories, query) : []

@@ -51,7 +51,7 @@ describe('QaCategory', () => {
       'true',
     )
     expect(screen.queryByText('Schema browser shows no CRD fields after 4.2')).toBeNull()
-    expect(screen.getByText('11 questions', { selector: 'p:not([role=status])' })).toBeVisible()
+    expect(screen.getByText('10 questions', { selector: 'p:not([role=status])' })).toBeVisible()
   })
 
   it('orders by votes and shows votes in the meta line', async () => {

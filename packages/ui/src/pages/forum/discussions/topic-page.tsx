@@ -68,6 +68,7 @@ export function DiscussionsTopic(props: ForumTopicPageProps) {
   const replyCount = replyCountOf(topic)
   const participants = participantsOf(topic)
   const related = relatedTopics(topic, props.related ?? [], 3)
+  const labels = new Map((props.categories ?? []).map((c) => [c.id, c.label]))
   const categoryHref = props.categoryHref(category)
   const react =
     onReact &&
@@ -352,6 +353,7 @@ export function DiscussionsTopic(props: ForumTopicPageProps) {
                           {t.title}
                         </HostLink>
                         <styled.span display="block" color="fg.subtle" textStyle="xs">
+                          {labels.has(t.categoryId) ? `${labels.get(t.categoryId)} · ` : null}
                           <RelativeTime iso={t.lastActivityAt} now={now} />
                         </styled.span>
                       </styled.li>

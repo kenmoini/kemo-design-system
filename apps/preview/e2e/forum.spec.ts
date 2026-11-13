@@ -229,19 +229,17 @@ test.describe('forum routes', () => {
     const main = page.getByRole('main')
     const titles = main.getByRole('article').getByRole('heading', { level: 3 })
     const votes = main.getByRole('group', { name: 'Filter' }).getByRole('button', { name: 'Votes' })
-    // Newest first: the sample thread, then the next newest question.
+    // Newest first: the sample thread is the newest question.
     await expect(titles.nth(0)).toHaveText(SAMPLE)
-    const newestSecond = await titles.nth(1).innerText()
 
     await votes.click()
 
     await expect(votes).toHaveAttribute('aria-pressed', 'true')
-    // The sample thread has the most votes too (18); after it the order is by score.
-    await expect(titles.nth(0)).toHaveText(SAMPLE)
-    await expect(titles.nth(1)).toHaveText('A warning before editing a Deployment Argo CD manages')
+    // The most voted question (25) is older than the sample thread (18), so the first row changes.
+    await expect(titles.nth(0)).toHaveText('A warning before editing a Deployment Argo CD manages')
+    await expect(titles.nth(1)).toHaveText(SAMPLE)
     await expect(titles.nth(2)).toHaveText('Keeping Deployment drafts when the tab is closed')
-    await expect(titles.nth(1)).not.toHaveText(newestSecond)
-    await expect(main.getByRole('article').first()).toContainText('18 votes')
+    await expect(main.getByRole('article').first()).toContainText('25 votes')
   })
 
   for (const variant of VARIANTS) {

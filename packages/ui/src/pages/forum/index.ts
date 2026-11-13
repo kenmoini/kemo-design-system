@@ -11,6 +11,7 @@ export {
   formatCount,
   groupReplies,
   hotTags,
+  isQuestion,
   isSolved,
   joinedLabel,
   needsAnswer,

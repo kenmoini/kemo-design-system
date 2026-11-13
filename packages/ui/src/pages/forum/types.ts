@@ -72,6 +72,8 @@ export interface ForumTopic {
   createdAt: string
   lastActivityAt: string
   replyCount: number // used when `posts` is absent
+  /** For list rows without `posts`: whether an answer is accepted. Ignored when `posts` is present. */
+  solved?: boolean
   viewCount: number
   votes?: { score: number; viewer?: 'up' | 'down' } // the question's votes (Q&A); Top sort elsewhere
   reactionTotal?: number // used when `posts` is absent
@@ -132,6 +134,8 @@ export interface ForumTopicPageProps extends ForumChromeProps {
   topic: ForumTopic // with `posts`
   category: ForumCategory
   related?: ForumTopic[] // candidates for Related; the page ranks them
+  /** For lookups the page needs beyond `category`, e.g. Related topics' category labels. */
+  categories?: ForumCategory[]
   docs?: { label: string; href: string; description?: string }[] // Q&A "Linked docs"
   onReply?: (input: { body: string; parentId?: string; quoteOf?: string }) => Promise<void>
   onReact?: (postId: string, emoji: ReactionEmoji) => Promise<void>

@@ -85,39 +85,43 @@ export function ForumDemoShell({ children }: Readonly<{ children: ReactNode }>) 
     [state.order, state.topics],
   )
 
-  const value: ForumDemoValue = {
-    state,
-    topics,
-    reply: async (slug, input) => {
-      await wait(SAVE_MS)
-      if (input.body.includes('fail')) throw new Error(SAVE_FAILED)
-      dispatch({ type: 'reply', slug, ...input })
-    },
-    react: async (slug, postId, emoji) => {
-      await wait(SAVE_MS)
-      dispatch({ type: 'react', slug, postId, emoji })
-    },
-    vote: async (slug, postId, direction) => {
-      await wait(SAVE_MS)
-      dispatch({ type: 'vote', slug, postId, direction })
-    },
-    accept: async (slug, postId) => {
-      await wait(SAVE_MS)
-      dispatch({ type: 'accept', slug, postId })
-    },
-    follow: async (slug, following) => {
-      await wait(SAVE_MS)
-      dispatch({ type: 'follow', slug, following })
-    },
-    create: async (values) => {
-      await wait(SAVE_MS)
-      if (values.body.includes('fail')) throw new Error(SAVE_FAILED)
-      // The reducer names the topic after the id it is about to use.
-      const slug = slugFor(values.title, latest.current.nextId)
-      dispatch({ type: 'create', ...values })
-      return slug
-    },
-  }
+  // Rebuilt only when the state changes, so consumers of the context do not re-render for nothing.
+  const value = useMemo<ForumDemoValue>(
+    () => ({
+      state,
+      topics,
+      reply: async (slug, input) => {
+        await wait(SAVE_MS)
+        if (input.body.includes('fail')) throw new Error(SAVE_FAILED)
+        dispatch({ type: 'reply', slug, ...input })
+      },
+      react: async (slug, postId, emoji) => {
+        await wait(SAVE_MS)
+        dispatch({ type: 'react', slug, postId, emoji })
+      },
+      vote: async (slug, postId, direction) => {
+        await wait(SAVE_MS)
+        dispatch({ type: 'vote', slug, postId, direction })
+      },
+      accept: async (slug, postId) => {
+        await wait(SAVE_MS)
+        dispatch({ type: 'accept', slug, postId })
+      },
+      follow: async (slug, following) => {
+        await wait(SAVE_MS)
+        dispatch({ type: 'follow', slug, following })
+      },
+      create: async (values) => {
+        await wait(SAVE_MS)
+        if (values.body.includes('fail')) throw new Error(SAVE_FAILED)
+        // The reducer names the topic after the id it is about to use.
+        const slug = slugFor(values.title, latest.current.nextId)
+        dispatch({ type: 'create', ...values })
+        return slug
+      },
+    }),
+    [state, topics],
+  )
 
   return <ForumDemoContext.Provider value={value}>{children}</ForumDemoContext.Provider>
 }

@@ -246,6 +246,23 @@ describe('DiscussionsTopic', () => {
     for (const a of links) expect(a.getAttribute('href')).not.toContain('schema-browser-crd')
   })
 
+  it('prefixes a related topic with its category when `categories` is given', () => {
+    const { rerender } = render(<DiscussionsTopic {...props} related={testTopics} />)
+    const related = () => {
+      const rail = screen.getByRole('complementary', { name: 'About this discussion' })
+      return within(rail).getByRole('heading', { name: 'Related' }).closest('section')!
+    }
+    for (const li of within(related()).getAllByRole('listitem')) {
+      expect(li.textContent).not.toContain(' · ')
+    }
+    rerender(<DiscussionsTopic {...props} related={testTopics} categories={testCategories} />)
+    for (const li of within(related()).getAllByRole('listitem')) {
+      const own = testTopics.find((t) => li.textContent?.startsWith(t.title))!
+      const label = testCategories.find((c) => c.id === own.categoryId)!.label
+      expect(li.textContent).toContain(`${label} · `)
+    }
+  })
+
   it('renders "No replies yet." when posts is empty', () => {
     render(<DiscussionsTopic {...props} topic={{ ...topic, posts: [] }} />)
     expect(screen.getByRole('heading', { level: 2, name: '0 replies' })).toBeInTheDocument()

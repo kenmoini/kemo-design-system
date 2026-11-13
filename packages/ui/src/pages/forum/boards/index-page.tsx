@@ -1,5 +1,5 @@
 'use client'
-import { useRef } from 'react'
+import { useId, useRef } from 'react'
 import { css } from '../../../../styled-system/css'
 import { Box, HStack, Stack, styled } from '../../../../styled-system/jsx'
 import { Text } from '../../../components/ui'
@@ -48,6 +48,7 @@ function Stat({ value, label }: { value: number; label: string }) {
 export function BoardsIndex(props: ForumIndexPageProps) {
   const { title, description, categories, topics, memberCount, linkComponent, now } = props
   const { input, setInput, query, commit, clear } = useQuery(props)
+  const uid = useId()
   const inputRef = useRef<HTMLInputElement | null>(null)
   const mobileRef = useRef<HTMLInputElement | null>(null)
   const search = { value: input, onChange: setInput, onSubmit: commit, inputRef }
@@ -140,8 +141,8 @@ export function BoardsIndex(props: ForumIndexPageProps) {
           ) : (
             <>
               {sections.map((section, i) => (
-                <styled.section key={section.name} aria-labelledby={`boards-section-${i}`}>
-                  <styled.h2 id={`boards-section-${i}`} textStyle="md" fontWeight="semibold" mb="2">
+                <styled.section key={section.name} aria-labelledby={`${uid}-section-${i}`}>
+                  <styled.h2 id={`${uid}-section-${i}`} textStyle="md" fontWeight="semibold" mb="2">
                     {section.name}
                   </styled.h2>
                   <Box
@@ -253,8 +254,8 @@ export function BoardsIndex(props: ForumIndexPageProps) {
                 </styled.section>
               ))}
               {latest.length > 0 ? (
-                <styled.section aria-labelledby="boards-latest">
-                  <styled.h2 id="boards-latest" textStyle="md" fontWeight="semibold" mb="3">
+                <styled.section aria-labelledby={`${uid}-latest`}>
+                  <styled.h2 id={`${uid}-latest`} textStyle="md" fontWeight="semibold" mb="3">
                     Latest
                   </styled.h2>
                   <Box

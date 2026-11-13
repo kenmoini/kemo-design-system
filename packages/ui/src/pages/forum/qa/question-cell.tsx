@@ -17,7 +17,8 @@ export interface QuestionCellProps {
   trailing: 'time' | 'votes'
 }
 
-const titleLink = css({
+/** The plain link style of Q&A titles; shared by the front page and the question cell. */
+export const titleLink = css({
   color: 'fg.default',
   textDecoration: 'none',
   _hover: { textDecoration: 'underline' },
