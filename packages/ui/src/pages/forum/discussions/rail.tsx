@@ -14,9 +14,10 @@ export const railLink = css({
   _focusVisible: { outline: '2px solid', outlineOffset: '2px', rounded: 'l1' },
 })
 
-export function RailHeading({ children }: { children: string }) {
+export function RailHeading({ children, id }: { children: string; id?: string }) {
   return (
     <styled.h2
+      id={id}
       textStyle="xs"
       textTransform="uppercase"
       letterSpacing="0.04em"
