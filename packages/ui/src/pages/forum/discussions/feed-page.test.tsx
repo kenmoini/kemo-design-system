@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { replyCountOf, topContributors, weekStats } from '../content'
+import { isSolved, replyCountOf, topContributors, weekStats } from '../content'
 import { chrome, testCategories, testTopics, TEST_NOW } from '../test-data'
 import { DiscussionsCategory } from './category-page'
 import { DiscussionsIndex } from './index-page'
@@ -17,11 +17,31 @@ const consoleCategory = testCategories.find((c) => c.id === 'kemo-console')!
 const categoryProps = { ...base, category: consoleCategory, topics: testTopics }
 
 const rowsOf = () => screen.getAllByRole('article')
-const titlesOf = () => rowsOf().map((r) => within(r).getByRole('heading', { level: 3 }).textContent)
+const titlesOf = () => rowsOf().map((r) => within(r).getByRole('heading', { level: 2 }).textContent)
 const pinnedTitle = 'Read this before posting in Kemo Console'
 const unanswered = testTopics.filter((t) => replyCountOf(t) === 0)
 
 describe('DiscussionsIndex', () => {
+  it('offers Show all when a filter matches nothing', async () => {
+    const user = userEvent.setup()
+    render(<DiscussionsIndex {...indexProps} topics={testTopics.filter((t) => !isSolved(t))} />)
+    await user.click(screen.getByRole('button', { name: 'Solved' }))
+    expect(screen.getByText('No discussions match this filter.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Show all' }))
+    expect(screen.getByRole('button', { name: 'Latest' })).toHaveAttribute('aria-pressed', 'true')
+    expect(rowsOf().length).toBeGreaterThan(0)
+  })
+
+  it('moves focus to the first revealed row when Load more is used', async () => {
+    const user = userEvent.setup()
+    render(<DiscussionsIndex {...indexProps} />)
+    await user.click(screen.getByRole('button', { name: 'Load more' }))
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
+    expect(document.activeElement).toBe(
+      within(within(rowsOf()[8]!).getByRole('heading')).getByRole('link'),
+    )
+  })
+
   it('renders exactly one h1, visually hidden', () => {
     render(<DiscussionsIndex {...indexProps} />)
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
@@ -153,6 +173,17 @@ describe('DiscussionsIndex', () => {
 })
 
 describe('DiscussionsCategory', () => {
+  it('offers Show all when a filter matches nothing', async () => {
+    const user = userEvent.setup()
+    render(<DiscussionsCategory {...categoryProps} topics={[]} />)
+    expect(screen.getByText('No discussions yet.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Show all' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Solved' }))
+    expect(screen.getByText('No discussions match this filter.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Show all' }))
+    expect(screen.getByRole('button', { name: 'Latest' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('renders the category h1 and description', () => {
     render(<DiscussionsCategory {...categoryProps} />)
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)

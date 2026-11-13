@@ -147,7 +147,10 @@ describe('DiscussionsTopic', () => {
     const user = userEvent.setup()
     const onReply = vi.fn().mockResolvedValue(undefined)
     render(<DiscussionsTopic {...props} onReply={onReply} />)
-    const status = screen.getByRole('status')
+    // The page's own region; each composer keeps its own `role=status` too.
+    const status = screen
+      .getAllByRole('status')
+      .find((el) => el.getAttribute('aria-live') === 'polite')!
     expect(status).toHaveAttribute('aria-live', 'polite')
     expect(status).toHaveTextContent('')
     // Mei's nested reply opens the composer under Priya's answer; focus returns to Mei's button.

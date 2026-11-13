@@ -13,6 +13,8 @@ export interface FeedRowProps {
   categoryHref?: string
   linkComponent?: LinkComponent
   now: string
+  /** The heading level of the title: 2 under a page `h1`, 3 under a section `h2`. Default 3. */
+  headingLevel?: 2 | 3
   /** The pinned topic under Latest: a tinted row. */
   pinned?: boolean
   /** Show the category badge; false on a category's own page. Default true. */
@@ -36,8 +38,10 @@ export function FeedRow({
   now,
   pinned = false,
   showCategory = true,
+  headingLevel = 3,
 }: FeedRowProps) {
   const replies = replyCountOf(topic)
+  const Title = headingLevel === 2 ? styled.h2 : styled.h3
   const reactions = reactionTotalOf(topic)
   return (
     <styled.li
@@ -58,11 +62,11 @@ export function FeedRow({
       >
         <UserAvatar user={topic.author} size="sm" />
         <Box minW="0">
-          <styled.h3 textStyle="md" fontWeight="semibold">
+          <Title textStyle="md" fontWeight="semibold">
             <HostLink as={linkComponent} href={href} className={titleLink}>
               {topic.title}
             </HostLink>
-          </styled.h3>
+          </Title>
           <styled.p color="fg.muted" textStyle="sm" lineClamp="2">
             {topic.excerpt}
           </styled.p>

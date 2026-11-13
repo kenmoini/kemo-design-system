@@ -27,6 +27,13 @@ function stubScroll() {
 }
 
 describe('BoardsTopic', () => {
+  it('ignores a malformed post fragment', () => {
+    window.location.hash = '#post-%'
+    render(<BoardsTopic {...props} />)
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(topic.title)
+    expect(posts().length).toBeGreaterThan(0)
+  })
+
   it('renders the breadcrumb, one h1 and the meta line', () => {
     render(<BoardsTopic {...props} />)
     const crumbs = screen.getByRole('navigation', { name: 'Breadcrumb' })

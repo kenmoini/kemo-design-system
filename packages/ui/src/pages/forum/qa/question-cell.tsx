@@ -14,6 +14,8 @@ export interface QuestionCellProps {
   categoryHref?: string
   linkComponent?: LinkComponent
   now: string
+  /** The heading level of the title: 2 under a page `h1`, 3 under a section `h2`. Default 3. */
+  headingLevel?: 2 | 3
   trailing: 'time' | 'votes'
 }
 
@@ -45,8 +47,10 @@ export function QuestionCell({
   linkComponent,
   now,
   trailing,
+  headingLevel = 3,
 }: QuestionCellProps) {
   const answers = answerCountOf(topic)
+  const Title = headingLevel === 2 ? styled.h2 : styled.h3
   const solved = isSolved(topic)
   const tone = solved ? 'solved' : answers > 0 ? 'some' : 'none'
   const label = solved
@@ -70,11 +74,11 @@ export function QuestionCell({
           </styled.span>
         </div>
         <Box minW="0">
-          <styled.h3 textStyle="sm" fontWeight="semibold">
+          <Title textStyle="sm" fontWeight="semibold">
             <HostLink as={linkComponent} href={href} className={titleLink}>
               {topic.title}
             </HostLink>
-          </styled.h3>
+          </Title>
           <HStack gap="2" flexWrap="wrap" mt="1" textStyle="xs" color="fg.subtle">
             {category ? (
               <CategoryBadge

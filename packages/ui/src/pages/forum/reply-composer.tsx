@@ -76,7 +76,15 @@ export const ReplyComposer = forwardRef<Element, ReplyComposerProps>(function Re
     // Only on mount.
   }, [])
 
-  const { ref: registerRef, ...field } = register('body')
+  const { ref: registerRef, onChange: registerOnChange, ...registered } = register('body')
+  // Typing again clears the "posted" message.
+  const field = {
+    ...registered,
+    onChange: (event: Parameters<typeof registerOnChange>[0]) => {
+      setPosted(false)
+      return registerOnChange(event)
+    },
+  }
   const setRefs = (node: Element | null) => {
     registerRef(node)
     if (typeof forwardedRef === 'function') forwardedRef(node)
@@ -89,6 +97,13 @@ export const ReplyComposer = forwardRef<Element, ReplyComposerProps>(function Re
     : 'Your reply could not be posted. Try again.'
   const hint = isComment ? null : 'Plain text. Be kind.'
   const showPosted = !failure && posted
+
+  // Always mounted, so a screen reader announces the text each time it changes.
+  const status = (
+    <Text role="status" textStyle="xs" color="fg.muted" srOnly={!showPosted}>
+      {showPosted ? (isComment ? 'Comment posted.' : vocabulary[variant].replyPosted) : ''}
+    </Text>
+  )
 
   const buttons = (
     <>
@@ -165,18 +180,11 @@ export const ReplyComposer = forwardRef<Element, ReplyComposerProps>(function Re
         </Field.Root>
         <FormAlert message={failure} />
         {isComment ? (
-          showPosted ? (
-            <Text role="status" textStyle="xs" color="fg.muted">
-              Comment posted.
-            </Text>
-          ) : null
+          status
         ) : (
           <Box display="flex" alignItems="center" justifyContent="space-between" gap="3">
-            {showPosted ? (
-              <Text role="status" textStyle="xs" color="fg.muted">
-                {vocabulary[variant].replyPosted}
-              </Text>
-            ) : (
+            {status}
+            {showPosted ? null : (
               <styled.span textStyle="xs" color="fg.subtle">
                 {failure ? null : hint}
               </styled.span>

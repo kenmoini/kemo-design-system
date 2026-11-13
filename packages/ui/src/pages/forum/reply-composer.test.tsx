@@ -155,4 +155,29 @@ describe('ReplyComposer', () => {
     await waitFor(() => expect(onSubmit).toHaveBeenCalledWith('<img src=x onerror=alert(1)>'))
     expect(container.querySelector('img')).toBeNull()
   })
+
+  it('keeps one status element, filled after each post and emptied while typing', async () => {
+    const user = userEvent.setup()
+    render(
+      <ReplyComposer
+        variant="boards"
+        idPrefix="r"
+        onSubmit={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+    const status = screen.getByRole('status')
+    expect(status).toBeEmptyDOMElement()
+    const field = screen.getByLabelText('Reply')
+    const post = () =>
+      user.click(screen.getByRole('button', { name: vocabulary.boards.replySubmit }))
+    await user.type(field, 'First reply')
+    await post()
+    await waitFor(() => expect(status).toHaveTextContent(vocabulary.boards.replyPosted))
+    await user.type(field, 'S')
+    expect(status).toBeEmptyDOMElement()
+    await user.type(field, 'econd reply')
+    await post()
+    await waitFor(() => expect(status).toHaveTextContent(vocabulary.boards.replyPosted))
+    expect(screen.getByRole('status')).toBe(status)
+  })
 })

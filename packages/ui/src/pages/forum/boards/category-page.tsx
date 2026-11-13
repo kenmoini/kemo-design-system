@@ -129,7 +129,14 @@ export function BoardsCategory(props: ForumCategoryPageProps) {
               </Box>
               <ListStatus count={sorted.length} noun="topics" />
               {sorted.length === 0 ? (
-                <EmptyState message={filter === 'all' ? 'No topics yet.' : 'No topics match.'} />
+                filter === 'all' ? (
+                  <EmptyState message="No topics yet." />
+                ) : (
+                  <EmptyState
+                    message="No topics match this filter."
+                    action={{ label: 'Show all', onSelect: () => setFilter('all') }}
+                  />
+                )
               ) : (
                 <>
                   <styled.ul m="0" p="0" borderTopWidth="1px" borderColor="border">
@@ -141,6 +148,7 @@ export function BoardsCategory(props: ForumCategoryPageProps) {
                         href={props.topicHref(t)}
                         linkComponent={linkComponent}
                         now={now}
+                        headingLevel={2}
                       />
                     ))}
                   </styled.ul>

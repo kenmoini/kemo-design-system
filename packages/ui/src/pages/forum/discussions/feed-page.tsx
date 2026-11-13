@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Box, HStack, Stack, styled } from '../../../../styled-system/jsx'
 import { Button, Text } from '../../../components/ui'
 import { EmptyState } from '../../../widgets/empty-state'
@@ -60,9 +60,19 @@ export function DiscussionsFeed(props: DiscussionsFeedProps) {
   const scoped = category ? topics.filter((t) => t.categoryId === category.id) : topics
   const list = sortTopics(scoped, filter, 'discussions')
   const { shown, hasMore, more } = useReveal(list.length, STEP, filter)
+  // "Load more" unmounts when it reveals the last batch: focus the first new row's title instead of
+  // letting it fall to the body.
+  const listRef = useRef<HTMLUListElement | null>(null)
+  const focusFrom = useRef<number | null>(null)
+  useEffect(() => {
+    const from = focusFrom.current
+    if (from === null) return
+    focusFrom.current = null
+    listRef.current?.querySelectorAll<HTMLElement>('article h2 a')[from]?.focus()
+  }, [shown])
   const results = query ? searchTopics(scoped, categories, query) : []
   const byId = new Map(categories.map((c) => [c.id, c]))
-  const row = (t: ForumTopic, pinned = false, showCategory = true) => {
+  const row = (t: ForumTopic, pinned = false, showCategory = true, headingLevel: 2 | 3 = 3) => {
     const own = byId.get(t.categoryId)
     return (
       <FeedRow
@@ -75,6 +85,7 @@ export function DiscussionsFeed(props: DiscussionsFeedProps) {
         now={now}
         pinned={pinned}
         showCategory={showCategory}
+        headingLevel={headingLevel}
       />
     )
   }
@@ -177,15 +188,31 @@ export function DiscussionsFeed(props: DiscussionsFeedProps) {
                   </HStack>
                   <ListStatus count={list.length} noun="discussions" />
                   {list.length === 0 ? (
-                    <EmptyState message="No discussions yet." />
+                    filter === 'latest' ? (
+                      <EmptyState message="No discussions yet." />
+                    ) : (
+                      <EmptyState
+                        message="No discussions match this filter."
+                        action={{ label: 'Show all', onSelect: () => setFilter('latest') }}
+                      />
+                    )
                   ) : (
                     <>
-                      <styled.ul m="0" p="0">
-                        {list.slice(0, shown).map((t) => row(t, filter === 'latest' && !!t.pinned))}
+                      <styled.ul ref={listRef} m="0" p="0">
+                        {list
+                          .slice(0, shown)
+                          .map((t) => row(t, filter === 'latest' && !!t.pinned, true, 2))}
                       </styled.ul>
                       {hasMore ? (
                         <Box display="flex" justifyContent="center">
-                          <Button variant="outline" size="sm" onClick={more}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              focusFrom.current = shown
+                              more()
+                            }}
+                          >
                             Load more
                           </Button>
                         </Box>

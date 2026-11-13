@@ -12,6 +12,8 @@ export interface BoardsTopicRowProps {
   href: string
   linkComponent?: LinkComponent
   now: string
+  /** The heading level of the title: 2 under a page `h1`, 3 under a section `h2`. Default 3. */
+  headingLevel?: 2 | 3
   /** Shows the category badge (search results list topics from every category). */
   showCategory?: boolean
 }
@@ -31,8 +33,10 @@ export function BoardsTopicRow({
   linkComponent,
   now,
   showCategory = false,
+  headingLevel = 3,
 }: BoardsTopicRowProps) {
   const replies = replyCountOf(topic)
+  const Title = headingLevel === 2 ? styled.h2 : styled.h3
   return (
     <styled.li listStyle="none" borderBottomWidth="1px" borderColor="border">
       <Box
@@ -47,11 +51,11 @@ export function BoardsTopicRow({
         <UserAvatar user={topic.author} size="sm" />
         <Box minW="0">
           <HStack gap="2" flexWrap="wrap">
-            <styled.h3 textStyle="sm" fontWeight="medium">
+            <Title textStyle="sm" fontWeight="medium">
               <HostLink as={linkComponent} href={href} className={titleLink}>
                 {topic.title}
               </HostLink>
-            </styled.h3>
+            </Title>
             <StatusBadge topic={topic} />
             {showCategory && category ? <CategoryBadge category={category} /> : null}
             {topic.tags.map((tag) => (

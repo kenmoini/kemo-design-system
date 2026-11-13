@@ -197,7 +197,7 @@ test.describe('forum routes', () => {
       'false',
     )
     await expect(main.getByRole('status')).toHaveText('3 topics')
-    await expect(main.getByRole('article').getByRole('heading', { level: 3 })).toHaveText([
+    await expect(main.getByRole('article').getByRole('heading', { level: 2 })).toHaveText([
       SAMPLE,
       'Keeping Deployment drafts when the tab is closed',
       'Registering a schema for a CRD with several versions',
@@ -217,7 +217,7 @@ test.describe('forum routes', () => {
     await expect(unanswered).toHaveAttribute('aria-pressed', 'true')
     await expect(main.getByText('2 unanswered', { exact: true })).toBeVisible()
     await expect(main.getByRole('status')).toHaveText('2 discussions')
-    await expect(main.getByRole('article').getByRole('heading', { level: 3 })).toHaveText([
+    await expect(main.getByRole('article').getByRole('heading', { level: 2 })).toHaveText([
       'Minimum RBAC for a read-only console account?',
       'Events tab stops updating after a laptop sleep',
     ])
@@ -227,7 +227,7 @@ test.describe('forum routes', () => {
     await page.goto('/forum/qa/c/kemo-console')
     await hydrated(page)
     const main = page.getByRole('main')
-    const titles = main.getByRole('article').getByRole('heading', { level: 3 })
+    const titles = main.getByRole('article').getByRole('heading', { level: 2 })
     const votes = main.getByRole('group', { name: 'Filter' }).getByRole('button', { name: 'Votes' })
     // Newest first: the sample thread is the newest question.
     await expect(titles.nth(0)).toHaveText(SAMPLE)
@@ -520,7 +520,7 @@ test.describe('forum routes', () => {
         await expect(latest.first().getByRole('heading')).toHaveText(title)
       } else if (variant === 'discussions') {
         // The pinned guidelines lead the feed; the new discussion comes straight after.
-        const titles = main.getByRole('article').getByRole('heading', { level: 3 })
+        const titles = main.getByRole('article').getByRole('heading', { level: 2 })
         await expect(titles.nth(0)).toHaveText(
           'Forum guidelines and how to ask a question that gets answered',
         )

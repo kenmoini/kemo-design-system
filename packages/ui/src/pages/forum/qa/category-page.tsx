@@ -124,7 +124,14 @@ export function QaCategory(props: ForumCategoryPageProps) {
               </Box>
               <ListStatus count={sorted.length} noun="questions" />
               {sorted.length === 0 ? (
-                <EmptyState message="No questions yet." />
+                filter === 'newest' ? (
+                  <EmptyState message="No questions yet." />
+                ) : (
+                  <EmptyState
+                    message="No questions match this filter."
+                    action={{ label: 'Show all', onSelect: () => setFilter('newest') }}
+                  />
+                )
               ) : (
                 <>
                   <styled.ul m="0" p="0" borderTopWidth="1px" borderColor="border">
@@ -136,6 +143,7 @@ export function QaCategory(props: ForumCategoryPageProps) {
                         linkComponent={linkComponent}
                         now={now}
                         trailing={trailing}
+                        headingLevel={2}
                       />
                     ))}
                   </styled.ul>

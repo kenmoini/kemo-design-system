@@ -48,7 +48,12 @@ export function BoardsTopic(props: ForumTopicPageProps) {
   useEffect(() => {
     const hash = window.location.hash
     if (!hash.startsWith('#post-')) return
-    const id = decodeURIComponent(hash.slice('#post-'.length))
+    let id: string
+    try {
+      id = decodeURIComponent(hash.slice('#post-'.length))
+    } catch {
+      return // A malformed fragment (`#post-%`) is ignored.
+    }
     const index = posts.findIndex((p) => p.id === id)
     if (index < 0) return
     scrollTarget.current = id

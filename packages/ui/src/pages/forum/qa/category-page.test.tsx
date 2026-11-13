@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
+import { isSolved } from '../content'
 import { chrome, testCategories, testTopics } from '../test-data'
 import { QaCategory } from './category-page'
 
@@ -79,5 +80,27 @@ describe('QaCategory', () => {
     render(<QaCategory {...props} topics={[]} />)
     expect(screen.getByText('No questions yet.')).toBeInTheDocument()
     expect(screen.queryByRole('article')).not.toBeInTheDocument()
+  })
+
+  it('titles the rows with h2, directly under the h1', () => {
+    render(<QaCategory {...props} />)
+    expect(within(rows()[0]!).getByRole('heading', { level: 2 })).toBeInTheDocument()
+    expect(screen.queryAllByRole('heading', { level: 3 })).toHaveLength(0)
+  })
+
+  it('offers Show all when a filter matches nothing', async () => {
+    const user = userEvent.setup()
+    render(<QaCategory {...props} topics={testTopics.filter(isSolved)} />)
+    await user.click(screen.getByRole('button', { name: 'Unanswered' }))
+    expect(screen.getByText('No questions match this filter.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Show all' }))
+    expect(screen.getByRole('button', { name: 'Newest' })).toHaveAttribute('aria-pressed', 'true')
+    expect(rows().length).toBeGreaterThan(0)
+  })
+
+  it('keeps "No questions yet." without an action when the category is empty', () => {
+    render(<QaCategory {...props} topics={[]} />)
+    expect(screen.getByText('No questions yet.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Show all' })).not.toBeInTheDocument()
   })
 })
