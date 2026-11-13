@@ -18,7 +18,8 @@ export interface EventStreamProps {
   events: EventStreamEvent[]
   /**
    * The stream is live: announce additions politely to assistive tech as events arrive, and show a
-   * Pause / Resume toggle. The list also holds still while the pointer is over it or focus is inside.
+   * Pause / Resume toggle. The list also holds still (status "Paused while you read") while the
+   * pointer is over it or focus is inside.
    */
   live?: boolean
   /** The toggle's state, when the host owns it (it may also stop feeding events); else internal. */
@@ -62,9 +63,10 @@ export function EventStream({ events, live = false, paused, onPausedChange }: Ev
   const [reading, setReading] = useState(false)
   // The rows a reader is looking at, held while paused so the list never moves under them.
   const [held, setHeld] = useState<EventStreamEvent[] | null>(null)
-  const reader = useReaderPause(setReading)
+  const readerHandlers = useReaderPause(setReading)
 
   const toggled = paused ?? ownPaused
+  const reader = live && reading
   const frozen = live && (toggled || reading)
   if (frozen && !held) setHeld(events)
   if (!frozen && held) setHeld(null)
@@ -81,7 +83,7 @@ export function EventStream({ events, live = false, paused, onPausedChange }: Ev
         <Flex justify="space-between" align="center" gap="3" mb="3">
           {/* A persistent region whose text changes, so each change is announced once. */}
           <Text as="span" role="status" textStyle="xs" color="fg.muted">
-            {frozen ? 'Paused' : 'Live'}
+            {toggled && live ? 'Paused' : reader ? 'Paused while you read' : 'Live'}
           </Text>
           <Button size="xs" variant="outline" aria-pressed={toggled} onClick={toggle}>
             {toggled ? 'Resume' : 'Pause'}
@@ -90,7 +92,7 @@ export function EventStream({ events, live = false, paused, onPausedChange }: Ev
       ) : null}
       {/* The reader's pause covers the list, not the toggle: Resume must not be held by its own focus. */}
       <Box
-        {...reader}
+        {...(live ? readerHandlers : {})}
         {...(live
           ? { role: 'status', 'aria-label': 'Events', 'aria-live': 'polite', 'aria-atomic': false }
           : {})}

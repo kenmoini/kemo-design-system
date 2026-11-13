@@ -111,11 +111,23 @@ describe('EventStream', () => {
       const user = userEvent.setup()
       const { rerender } = render(<EventStream events={events} live />)
       await user.hover(screen.getAllByRole('listitem')[0]!)
-      expect(screen.getByText('Paused')).toBeInTheDocument()
+      expect(screen.getByText('Paused while you read')).toBeInTheDocument()
       rerender(<EventStream events={[newer, ...events]} live />)
       expect(screen.getAllByRole('listitem')).toHaveLength(5)
       await user.unhover(screen.getAllByRole('listitem')[0]!)
       expect(screen.getAllByRole('listitem')).toHaveLength(6)
+    })
+
+    it('words the status by the cause of the hold', async () => {
+      const user = userEvent.setup()
+      render(<EventStream events={events} live />)
+      await user.hover(screen.getAllByRole('listitem')[0]!)
+      expect(screen.getByText('Paused while you read')).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Pause' }))
+      expect(screen.getByText('Paused')).toBeInTheDocument()
+      await user.unhover(screen.getAllByRole('listitem')[0]!)
+      await user.click(screen.getByRole('button', { name: 'Resume' }))
+      expect(screen.getByText('Live')).toBeInTheDocument()
     })
 
     it('lets a host own the state with paused and onPausedChange', async () => {

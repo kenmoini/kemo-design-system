@@ -20,7 +20,7 @@ pieces, so the next app can copy it, drop widgets, or add its own. It is a demo 
   and opened as a Park `Drawer` from a menu button in the top bar.
 - **Top bar**: brand (logo slot + name), a search field (`Input` with a `Kbd` "⌘K" hint, placeholder "Search
   services, deployments, users"), an environment selector (Park `Select`, e.g. "prod-us-east"), help and
-  notifications icon buttons (notifications with a count `Badge`), and an `Avatar` that opens a `Menu`
+  notifications icon buttons (notifications with a count `Badge`; since the 2026-11-13 cleanup, rendered only when `onHelp` / `onNotifications` are given), and an `Avatar` that opens a `Menu`
   (Profile, Settings, Sign out). A visually hidden "Skip to content" link is the first focusable element.
 - **Side navigation**: groups with small muted labels ("Platform", "Manage"); items with a lucide icon, label,
   optional count badge; the active item uses `gray.subtle.bg` with `fg.default`; a footer slot (workspace
