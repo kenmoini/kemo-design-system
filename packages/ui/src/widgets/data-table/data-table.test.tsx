@@ -287,6 +287,16 @@ describe('DataTable', () => {
     expect(screen.getByText('1–10 of 25')).toBeInTheDocument()
   })
 
+  it('reserves the pager row on a single page so the card height does not shift', () => {
+    const { unmount } = renderTable({ rows: users.slice(0, 4) })
+    const placeholder = document.querySelector('[data-pager-placeholder]')
+    expect(placeholder).toHaveAttribute('aria-hidden', 'true')
+    expect(placeholder).toBeEmptyDOMElement()
+    unmount()
+    renderTable()
+    expect(document.querySelector('[data-pager-placeholder]')).toBeNull()
+  })
+
   it('paginates', async () => {
     const user = userEvent.setup()
     renderTable()

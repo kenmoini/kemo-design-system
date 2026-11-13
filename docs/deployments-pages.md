@@ -21,13 +21,15 @@ Screenshots: [gallery](gallery/README.md#deployments-pages).
   context line, actions, tab links), `ResourceYamlTab` (Save, Reload, Download, the status line,
   the editor, its problems and the schema browser; also a create mode), `ResourceEventsTab` (type
   and scope filters, a live mode that holds still for a reader), `ShortcutsDialog`,
-  `SchemaRegistry`, `schemaFor`, `defaultSchemaRegistry` and `downloadText`.
-- Widgets: `YamlEditor`, `useYamlDocument`, `SchemaBrowser` and `resolveNode`; `DataTable` gains a
+  `StatusBadge` (a dot and a word from `{ label, tone }`), `SchemaRegistry`, `createSchemaRegistry` (an
+  empty registry), `schemaFor` and `downloadText`.
+- Widgets: `YamlEditor`, `SchemaBrowser` and `resolveNode`; `DataTable` gains a
   `tags` filter kind (`key=value` chips; a row matches when it has every chip), a `countLabel` and
   the controlled `filterValues` the Deployments list uses to clear a stale Namespace filter;
   `MultiSelectField` gains `maxChips` (the rest collapse into a "+N" chip).
 - Helpers (`lib/kubernetes`, no UI): the types (`DeploymentResource`, `DeploymentSummary`,
-  `RelatedObjects`, `K8sEvent`, `ScopeValue`, `ClusterOption`, …), `deploymentStatus`,
+  `RelatedObjects`, `K8sEvent`, `ScopeValue`, `ClusterOption`, …), `deploymentStatus`
+  (paused, degraded, scaled to zero when `spec.replicas` is `0`, progressing, else available),
   `summarize`, `cleanResource`, `cleanYaml`, `toYaml`, `parseYaml`, `pathAtOffset`,
   `offsetForPath` and `relativeAge`.
 
@@ -119,7 +121,8 @@ The YAML tab, the editor and the schema browser take any JSON Schema (draft-07 s
 CRD's `openAPIV3Schema` or one converted from a cluster's OpenAPI v3), resolving `$ref`, `allOf`,
 `properties`, `items`, `additionalProperties` and `oneOf`/`anyOf`, and ignoring the
 `x-kubernetes-*` extensions. A `SchemaRegistry` holds one per kind, keyed
-`{apiVersion}/{kind}`; `defaultSchemaRegistry` has the bundled `apps/v1/Deployment` (trimmed to the
+`{apiVersion}/{kind}`; `defaultSchemaRegistry` (exported by the Deployments module, which registers its own schema into
+it; `pages/resources` imports nothing from `pages/deployments`) has the bundled `apps/v1/Deployment` (trimmed to the
 fields a Deployment author touches, every one with its description), and a host adds its own:
 
 ```ts

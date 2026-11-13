@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { LabelChips } from './cells'
+import { DeploymentStatusBadge, deploymentStatusOptions, LabelChips } from './cells'
 
 const labels = { app: 'checkout-api', tier: 'backend', team: 'payments' }
 
@@ -18,5 +18,21 @@ describe('LabelChips', () => {
     expect(container.firstElementChild).toHaveClass('flex-wrap_wrap')
     rerender(<LabelChips labels={labels} wrap={false} />)
     expect(container.firstElementChild).toHaveClass('flex-wrap_nowrap')
+  })
+})
+
+describe('DeploymentStatusBadge', () => {
+  it('says the status in words', () => {
+    render(<DeploymentStatusBadge status="degraded" />)
+    expect(screen.getByText('Degraded')).toBeInTheDocument()
+  })
+
+  it('reads a Deployment scaled to zero as neutral, and the filter lists it', () => {
+    render(<DeploymentStatusBadge status="scaled-to-zero" />)
+    expect(screen.getByText('Scaled to zero')).toHaveClass('color-palette_gray')
+    expect(deploymentStatusOptions).toContainEqual({
+      value: 'scaled-to-zero',
+      label: 'Scaled to zero',
+    })
   })
 })

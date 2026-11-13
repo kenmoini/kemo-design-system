@@ -2,5 +2,4 @@
 // `YamlEditorInstance` is a type-only re-export (erased at compile time).
 export type { YamlEditorInstance } from './extensions'
 export type { YamlProblem } from './types'
-export { useYamlDocument, type YamlDocument } from './use-yaml-document'
 export { YamlEditor, type YamlEditorProps } from './yaml-editor'

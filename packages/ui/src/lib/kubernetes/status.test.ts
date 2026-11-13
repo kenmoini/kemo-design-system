@@ -52,6 +52,14 @@ describe('deploymentStatus', () => {
     expect(deploymentStatus(d)).toBe('progressing')
   })
 
+  it('is scaled to zero when spec.replicas is 0, with or without a status', () => {
+    const d = deployment({ status: undefined })
+    d.spec.replicas = 0
+    expect(deploymentStatus(d)).toBe('scaled-to-zero')
+    d.status = { replicas: 0, updatedReplicas: 0 }
+    expect(deploymentStatus(d)).toBe('scaled-to-zero')
+  })
+
   it('is available when all is well', () => {
     const d = deployment({
       status: {

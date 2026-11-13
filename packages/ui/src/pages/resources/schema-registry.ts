@@ -1,7 +1,10 @@
-import { deploymentSchema } from '../deployments/schema/deployment-schema'
-
 /** One JSON Schema per kind, keyed `${apiVersion}/${kind}` (e.g. `apps/v1/Deployment`). */
 export type SchemaRegistry = Record<string, object>
+
+/** An empty registry; a kind's module (or the host) adds its schemas. */
+export function createSchemaRegistry(): SchemaRegistry {
+  return {}
+}
 
 export function schemaFor(
   registry: SchemaRegistry,
@@ -10,6 +13,3 @@ export function schemaFor(
 ): object | undefined {
   return registry[`${apiVersion}/${kind}`]
 }
-
-/** The schemas this package bundles: the trimmed `apps/v1` Deployment. */
-export const defaultSchemaRegistry: SchemaRegistry = { 'apps/v1/Deployment': deploymentSchema }

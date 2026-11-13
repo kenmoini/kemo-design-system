@@ -1,15 +1,16 @@
 import { HStack, styled } from '../../../styled-system/jsx'
 import { css } from '../../../styled-system/css'
-import { Badge, Code, Progress, Text } from '../../components/ui'
+import { Code, Progress, Text } from '../../components/ui'
 import { type DeploymentStatus, relativeAge } from '../../lib/kubernetes'
 import type { Option, StatusTone } from '../../widgets'
-import type { ResourceStatusBadge } from '../resources'
+import { type ResourceStatusBadge, StatusBadge } from '../resources'
 
 const STATUS_LABEL: Record<DeploymentStatus, string> = {
   available: 'Available',
   progressing: 'Progressing',
   degraded: 'Degraded',
   paused: 'Paused',
+  'scaled-to-zero': 'Scaled to zero',
 }
 
 const STATUS_TONE: Record<DeploymentStatus, StatusTone> = {
@@ -17,11 +18,12 @@ const STATUS_TONE: Record<DeploymentStatus, StatusTone> = {
   progressing: 'warning',
   degraded: 'critical',
   paused: 'off',
+  'scaled-to-zero': 'off',
 }
 
-/** The four statuses and their labels, in the order the Status filter lists them. */
+/** The statuses and their labels, in the order the Status filter lists them. */
 export const deploymentStatusOptions: Option[] = (
-  ['available', 'progressing', 'degraded', 'paused'] as const
+  ['available', 'progressing', 'degraded', 'paused', 'scaled-to-zero'] as const
 ).map((status) => ({ value: status, label: STATUS_LABEL[status] }))
 
 /** A status as the detail header's badge: its tone and its word. */
@@ -33,26 +35,9 @@ export interface DeploymentStatusBadgeProps {
   status: DeploymentStatus
 }
 
-/** A status as a subtle badge with a dot and its word, so colour is never the only signal. */
+/** A Deployment's status as the shared badge: a dot and its word, so colour is never the only signal. */
 export function DeploymentStatusBadge({ status }: DeploymentStatusBadgeProps) {
-  return (
-    <Badge
-      variant="subtle"
-      colorPalette={
-        status === 'available'
-          ? 'green'
-          : status === 'progressing'
-            ? 'amber'
-            : status === 'degraded'
-              ? 'red'
-              : 'gray'
-      }
-      whiteSpace="nowrap"
-    >
-      <styled.span aria-hidden="true" w="1.5" h="1.5" borderRadius="full" bg="currentColor" />
-      {STATUS_LABEL[status]}
-    </Badge>
-  )
+  return <StatusBadge {...resourceStatusFor(status)} />
 }
 
 const barFill: Record<StatusTone, string> = {

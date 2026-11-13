@@ -1,4 +1,5 @@
-export type DeploymentStatus = 'available' | 'progressing' | 'degraded' | 'paused'
+export type DeploymentStatus =
+  'available' | 'progressing' | 'degraded' | 'paused' | 'scaled-to-zero'
 
 /** `[]` means "All". */
 export interface ScopeValue {

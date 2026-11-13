@@ -1,6 +1,6 @@
 import type { DeploymentResource, DeploymentStatus, DeploymentSummary } from './types'
 
-/** Paused, then degraded, then progressing, else available. */
+/** Paused, then degraded, then scaled to zero, then progressing, else available. */
 export function deploymentStatus(d: DeploymentResource): DeploymentStatus {
   if (d.spec.paused) return 'paused'
   const conditions = d.status?.conditions ?? []
@@ -8,6 +8,8 @@ export function deploymentStatus(d: DeploymentResource): DeploymentStatus {
   if (find('Available')?.status === 'False' || find('ReplicaFailure')?.status === 'True') {
     return 'degraded'
   }
+  // Zero desired replicas is neither a rollout nor "available": nothing is running by design.
+  if (d.spec.replicas === 0) return 'scaled-to-zero'
   const progressing = find('Progressing')
   if (progressing?.status === 'True' && progressing.reason !== 'NewReplicaSetAvailable') {
     return 'progressing'

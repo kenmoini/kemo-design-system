@@ -22,9 +22,6 @@ export interface YamlEditorProps {
   height?: string
   /** Names the editable content for assistive tech. */
   ariaLabel: string
-  /** Moves the cursor to this key path (and focuses the editor) whenever a new array is passed:
-   * keep it in state, and pass a fresh array to request the same path again. */
-  cursorPathRequest?: (string | number)[]
   /** Called once CodeMirror has mounted, with the live editor (its `view` is the `EditorView`). */
   onReady?: (editor: YamlEditorInstance) => void
 }
@@ -59,7 +56,6 @@ export function YamlEditor({
   onSave,
   height = '32rem',
   ariaLabel,
-  cursorPathRequest,
   onReady,
 }: YamlEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null)
@@ -112,9 +108,6 @@ export function YamlEditor({
   useEffect(() => editor?.setReadOnly(readOnly), [editor, readOnly])
   useEffect(() => editor?.setAriaLabel(ariaLabel), [editor, ariaLabel])
   useEffect(() => editor?.setSchema(schema), [editor, schema])
-  useEffect(() => {
-    if (editor && cursorPathRequest) editor.moveToPath(cursorPathRequest)
-  }, [editor, cursorPathRequest])
 
   return (
     <div style={{ height }}>

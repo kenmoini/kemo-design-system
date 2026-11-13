@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { resolveNode, type SchemaNode } from '../../../widgets/schema-browser'
-import { defaultSchemaRegistry, schemaFor } from '../../resources'
+import { schemaFor } from '../../resources'
+import { defaultSchemaRegistry } from '../default-schema-registry'
 import { deploymentSchema } from './deployment-schema'
 
 const at = (path: (string | number)[]): SchemaNode => {

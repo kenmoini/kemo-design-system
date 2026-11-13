@@ -1,9 +1,9 @@
-import { act, render, renderHook, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { YamlEditorInstance } from './extensions'
-import { useYamlDocument } from './use-yaml-document'
 import { YamlEditor, type YamlEditorProps } from './yaml-editor'
 
 const deployment = [
@@ -104,11 +104,11 @@ describe('YamlEditor', () => {
     const user = userEvent.setup()
     let editor: YamlEditorInstance | undefined
     function Controlled() {
-      const doc = useYamlDocument({ initial: deployment })
+      const [text, setText] = useState(deployment)
       return (
         <YamlEditor
-          value={doc.text}
-          onChange={doc.setText}
+          value={text}
+          onChange={setText}
           ariaLabel="Deployment YAML"
           onReady={(e) => (editor = e)}
         />
@@ -223,15 +223,6 @@ describe('YamlEditor', () => {
     expect(onChange).toHaveBeenLastCalledWith(`${deployment}x`)
   })
 
-  it('moves the cursor to the key a cursorPathRequest names', async () => {
-    const { textbox, editor, rerender } = await mount()
-    rerender({ cursorPathRequest: ['spec', 'strategy', 'type'] })
-    await waitFor(() =>
-      expect(editor.view.state.selection.main.head).toBe(deployment.indexOf('type:')),
-    )
-    expect(textbox).toHaveFocus()
-  })
-
   it('moves the cursor to an offset, clamped to the text, and focuses the editor', async () => {
     const { textbox, editor } = await mount()
     act(() => editor.moveToOffset(deployment.indexOf('RollingUpdate')))
@@ -308,20 +299,5 @@ describe('YamlEditor', () => {
     expect(renderToString(<YamlEditor value="a: 1" ariaLabel="YAML" height="20rem" />)).toContain(
       'height:20rem',
     )
-  })
-})
-
-describe('useYamlDocument', () => {
-  it('tracks dirty against the baseline and resets to it or to a new one', () => {
-    const { result } = renderHook(() => useYamlDocument({ initial: 'a: 1\n' }))
-    expect(result.current).toMatchObject({ text: 'a: 1\n', dirty: false })
-    act(() => result.current.setText('a: 2\n'))
-    expect(result.current).toMatchObject({ text: 'a: 2\n', dirty: true })
-    act(() => result.current.reset())
-    expect(result.current).toMatchObject({ text: 'a: 1\n', dirty: false })
-    act(() => result.current.setText('a: 3\n'))
-    // Saving the current text makes it the new baseline.
-    act(() => result.current.reset('a: 3\n'))
-    expect(result.current).toMatchObject({ text: 'a: 3\n', dirty: false })
   })
 })

@@ -1,30 +1,9 @@
 import { Fragment } from 'react'
-import { HStack, Stack, styled } from '../../../styled-system/jsx'
-import { Badge, Breadcrumb, Heading, Tabs, Text } from '../../components/ui'
+import { HStack, Stack } from '../../../styled-system/jsx'
+import { Breadcrumb, Heading, Tabs, Text } from '../../components/ui'
 import { TabStripScroller } from '../access/tab-strip-scroller'
-import type { ResourceDetailShellProps, ResourceStatusBadge } from './types'
-
-/** The status badge beside the name: a dot and the label, so colour is never the only signal. */
-function StatusBadge({ status }: { status: ResourceStatusBadge }) {
-  const { tone, label } = status
-  return (
-    <Badge
-      variant="subtle"
-      colorPalette={
-        tone === 'good'
-          ? 'green'
-          : tone === 'warning'
-            ? 'amber'
-            : tone === 'critical'
-              ? 'red'
-              : 'gray'
-      }
-    >
-      <styled.span aria-hidden="true" w="1.5" h="1.5" borderRadius="full" bg="currentColor" />
-      {label}
-    </Badge>
-  )
-}
+import { StatusBadge } from './status-badge'
+import type { ResourceDetailShellProps } from './types'
 
 /**
  * The detail page of any Kubernetes resource: a breadcrumb, the name with its status, a context line,
@@ -88,7 +67,7 @@ export function ResourceDetailShell({
             {name}
             {/* The space keeps the badge a separate word in the heading's accessible name. */}
             {status ? ' ' : null}
-            {status ? <StatusBadge status={status} /> : null}
+            {status ? <StatusBadge {...status} /> : null}
           </Heading>
           <Text as="div" textStyle="sm" color="fg.muted">
             {context}

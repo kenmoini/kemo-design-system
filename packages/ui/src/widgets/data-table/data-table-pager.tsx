@@ -1,6 +1,6 @@
 'use client'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { HStack, styled } from '../../../styled-system/jsx'
+import { Box, HStack, styled } from '../../../styled-system/jsx'
 import { Button, IconButton, Pagination, Text } from '../../components/ui'
 import type { DataTableInstance } from './columns'
 
@@ -18,8 +18,9 @@ export function DataTablePager<T extends { id: string }>({ table, total }: DataT
   const pageIndex = Math.min(table.state.pagination.pageIndex, pageCount - 1)
   const from = total === 0 ? 0 : pageIndex * pageSize + 1
   const to = Math.min(total, pageIndex * pageSize + pageSize)
-  // One page: the toolbar's count already says how many rows there are.
-  if (pageCount <= 1) return null
+  // One page: the toolbar's count already says how many rows there are. An empty row of the pager's
+  // height keeps the card from changing height when the rows grow to a second page.
+  if (pageCount <= 1) return <Box aria-hidden="true" minH="8" data-pager-placeholder="" />
 
   return (
     <HStack justify="space-between" gap="3" flexWrap="wrap" minH="8">

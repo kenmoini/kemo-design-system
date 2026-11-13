@@ -9,6 +9,7 @@ export {
   ReadyCell,
   type ReadyCellProps,
 } from './cells'
+export { defaultSchemaRegistry } from './default-schema-registry'
 export {
   DeploymentDetailPage,
   type DeploymentDetailPageProps,
