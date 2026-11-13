@@ -29,14 +29,14 @@ network access.
 
 ## Testing
 
-| Command                         | What it runs                                                                       |
-| ------------------------------- | ---------------------------------------------------------------------------------- |
-| `make test` (`pnpm test`)       | Vitest in `packages/ui` and `apps/preview`, then Node's test runner for `scripts/` |
-| `pnpm test:scripts`             | Only the `scripts/park-ui` tests                                                   |
-| `make e2e-install`              | Once: installs Chromium for Playwright (`pnpm e2e:install`)                        |
-| `make e2e` (`pnpm test:e2e`)    | Builds, then runs the Playwright suite in `apps/preview/e2e` on port 3100          |
-| `make check`                    | Lint, format check, typecheck and unit tests                                       |
-| `make gallery` (`pnpm gallery`) | Builds, then captures the screenshot gallery into `docs/gallery` (see below)       |
+| Command                         | What it runs                                                                                   |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `make test` (`pnpm test`)       | Vitest in `packages/ui` and `apps/preview`, then Node's test runner for `scripts/`             |
+| `pnpm test:scripts`             | Only the `scripts/park-ui` tests                                                               |
+| `make e2e-install`              | Once: installs Chromium for Playwright (`pnpm e2e:install`)                                    |
+| `make e2e`                      | Builds, then runs the Playwright suite on port 3100; `pnpm test:e2e` alone needs a prior build |
+| `make check`                    | Lint, format check, typecheck and unit tests                                                   |
+| `make gallery` (`pnpm gallery`) | Builds, then captures the screenshot gallery into `docs/gallery` (see below)                   |
 
 The e2e suite loads every route (landing page, auth pages, component pages, dashboard, Access tabs,
 Deployments pages, FAQ, Blank page, blog pages and status pages) and fails on any console error or uncaught page error. It also checks the

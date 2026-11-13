@@ -89,7 +89,10 @@ export function PreviewPanel() {
           size="lg"
           borderRadius="full"
           position="fixed"
-          bottom="4"
+          // Top-right corner on phones, clear of the status and auth footers' version text, which
+          // sits on the bottom edge; bottom-right from `sm` up.
+          top={{ base: '4', sm: 'auto' }}
+          bottom={{ base: 'auto', sm: '4' }}
           insetInlineEnd="4"
           // Above the auth pages' drawer (zIndex modal), which covers narrow viewports.
           zIndex="toast"

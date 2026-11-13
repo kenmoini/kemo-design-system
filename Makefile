@@ -46,7 +46,7 @@ typecheck: ## Typecheck all packages
 test: ## Run unit tests (Vitest) and script tests
 	$(PNPM) test
 
-e2e: build ## Build, then run the Playwright smoke suite
+e2e: build ## Build, then run the Playwright suite
 	$(PNPM) --filter @kemo/preview test:e2e
 
 e2e-install: ## Install the Playwright Chromium browser (once)

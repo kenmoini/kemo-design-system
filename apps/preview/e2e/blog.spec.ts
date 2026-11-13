@@ -262,13 +262,18 @@ test.describe('blog routes', () => {
     await page.goto('/blog/journal-rail/cold-start-62')
     await hydrated(page)
 
-    const link = page
-      .getByRole('navigation', { name: 'On this page' })
-      .getByRole('link', { name: 'Results' })
+    const onThisPage = page.getByRole('navigation', { name: 'On this page' })
+    const link = onThisPage.getByRole('link', { name: 'Results' })
     await link.click()
 
     await expect(page).toHaveURL(/#section-results$/)
     await expect(link).toHaveAttribute('aria-current', 'location')
+    // Generated heading ids carry the `section-` prefix; the comments section keeps `comments`.
+    await expect(onThisPage.getByRole('link', { name: /^Comments/ })).toHaveAttribute(
+      'href',
+      '#comments',
+    )
+    await expect(page.locator('section#comments')).toHaveCount(1)
   })
 
   test('the journal rail stays reachable by role at 375px', async ({ page }) => {
