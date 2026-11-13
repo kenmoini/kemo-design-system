@@ -1,7 +1,6 @@
 'use client'
 import { Box, HStack, Stack, styled } from '../../../../styled-system/jsx'
 import { Button } from '../../../components/ui'
-import type { LinkComponent } from '../../auth/types'
 import { firstParagraphText, formatCount, vocabulary } from '../content'
 import { FollowButton } from '../follow-button'
 import { RelativeTime, StaffBadge, TagBadge, UserAvatar } from '../parts'
@@ -23,7 +22,6 @@ export interface QaAnswerProps {
   onAccept?: (postId: string) => Promise<void>
   onReply?: (input: { body: string; parentId?: string }) => Promise<void>
   onFollow?: (topicId: string, following: boolean) => Promise<void>
-  linkComponent?: LinkComponent
   commentOpen: boolean
   onOpenComment: () => void
   onCloseComment: () => void

@@ -70,6 +70,20 @@ describe('DiscussionsTopic', () => {
     expect(nested.map((a) => a.id)).toEqual(['post-p3'])
   })
 
+  it('nests a post replying to the original inside the original, not in the replies list', () => {
+    const child: ForumPost = {
+      id: 'pc',
+      parentId: 'p1',
+      author: dan,
+      postedAt: TEST_NOW,
+      body: [{ type: 'paragraph', content: 'Following up on the original.' }],
+    }
+    render(<DiscussionsTopic {...props} topic={{ ...topic, posts: [...topic.posts!, child] }} />)
+    expect(within(article('p1')).getByText('Following up on the original.')).toBeInTheDocument()
+    expect(repliesList()).not.toContainElement(article('pc'))
+    expect(topLevelIds()).not.toContain('post-pc')
+  })
+
   it('renders an orphan parentId as a top-level reply', () => {
     const orphan: ForumPost = {
       id: 'px',

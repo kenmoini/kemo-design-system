@@ -258,14 +258,22 @@ describe('groupReplies', () => {
     expect(g.replies.map((r) => r.post.id)).toEqual(['x'])
   })
 
-  it('makes a post whose parent is the original top-level', () => {
-    const g = groupReplies([post('o', ada, t), post('x', bo, t, { parentId: 'o' })])
-    expect(g.replies.map((r) => r.post.id)).toEqual(['x'])
-    expect(g.replies[0]?.children).toEqual([])
+  it('puts a post whose parent is the original into originalChildren, apart from orphans', () => {
+    const g = groupReplies([
+      post('o', ada, t),
+      post('x', bo, t, { parentId: 'o' }),
+      post('y', cy, t, { parentId: 'gone' }),
+    ])
+    expect(g.originalChildren.map((c) => c.id)).toEqual(['x'])
+    expect(g.replies.map((r) => r.post.id)).toEqual(['y'])
   })
 
   it('handles no posts', () => {
-    expect(groupReplies([])).toEqual({ original: undefined, replies: [] })
+    expect(groupReplies([])).toEqual({
+      original: undefined,
+      originalChildren: [],
+      replies: [],
+    })
   })
 })
 

@@ -199,13 +199,20 @@ export function participantsOf(topic: ForumTopic): ForumUser[] {
 
 export function groupReplies(posts: ForumPost[]): {
   original?: ForumPost
+  /** Posts replying to the original itself: comments on the question in Q&A, nested replies elsewhere. */
+  originalChildren: ForumPost[]
   replies: { post: ForumPost; children: ForumPost[] }[]
 } {
   const [original, ...rest] = posts
   const topLevelIds = new Set(rest.filter((p) => p.parentId === undefined).map((p) => p.id))
+  const originalChildren: ForumPost[] = []
   const replies: { post: ForumPost; children: ForumPost[] }[] = []
   const byId = new Map<string, { post: ForumPost; children: ForumPost[] }>()
   for (const p of rest) {
+    if (p.parentId !== undefined && p.parentId === original?.id) {
+      originalChildren.push(p)
+      continue
+    }
     if (p.parentId !== undefined && topLevelIds.has(p.parentId)) continue
     const entry = { post: p, children: [] as ForumPost[] }
     replies.push(entry)
@@ -215,7 +222,7 @@ export function groupReplies(posts: ForumPost[]): {
     if (p.parentId !== undefined && topLevelIds.has(p.parentId))
       byId.get(p.parentId)?.children.push(p)
   }
-  return { original, replies }
+  return { original, originalChildren, replies }
 }
 
 // Ordering and search

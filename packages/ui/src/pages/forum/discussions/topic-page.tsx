@@ -54,7 +54,7 @@ export function DiscussionsTopic(props: ForumTopicPageProps) {
   const posts = topic.posts ?? []
   const [sort, setSort] = useState<Sort>('oldest')
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
-  const { original, replies } = groupReplies(posts)
+  const { original, originalChildren, replies } = groupReplies(posts)
   const ordered = [...replies].sort(
     (a, b) =>
       Number(b.post.accepted === true) - Number(a.post.accepted === true) ||
@@ -154,6 +154,52 @@ export function DiscussionsTopic(props: ForumTopicPageProps) {
                         onReact={react?.(original.id)}
                       />
                     </Box>
+                    {originalChildren.length > 0 || (onReply && replyingTo === original.id) ? (
+                      <Box px="5" pb="4">
+                        {originalChildren.length > 0 ? (
+                          <styled.ul
+                            aria-label="Replies to the original post"
+                            m="0"
+                            p="0"
+                            ml={{ base: '4', md: '10' }}
+                            pl="4"
+                            borderLeftWidth="1px"
+                            borderColor="border"
+                            display="flex"
+                            flexDirection="column"
+                            gap="4"
+                          >
+                            {originalChildren.map((child) => (
+                              <DiscussionReply
+                                key={child.id}
+                                post={child}
+                                topic={topic}
+                                now={now}
+                                onReact={onReact}
+                                onReply={onReply ? () => setReplyingTo(original.id) : undefined}
+                                nested
+                              />
+                            ))}
+                          </styled.ul>
+                        ) : null}
+                        {onReply && replyingTo === original.id ? (
+                          <Box mt="3">
+                            <ReplyComposer
+                              variant="discussions"
+                              kind="reply"
+                              idPrefix={`reply-${original.id}`}
+                              viewer={viewer}
+                              autoFocus
+                              onCancel={() => setReplyingTo(null)}
+                              onSubmit={async (body) => {
+                                await onReply({ body, parentId: original.id })
+                                setReplyingTo(null)
+                              }}
+                            />
+                          </Box>
+                        ) : null}
+                      </Box>
+                    ) : null}
                   </article>
                 </Box>
               ) : null}

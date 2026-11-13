@@ -47,7 +47,7 @@ export function QaTopic(props: ForumTopicPageProps) {
   const [sort, setSort] = useState<Sort>('votes')
   const [commentingOn, setCommentingOn] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
-  const { original, replies } = groupReplies(topic.posts ?? [])
+  const { original, originalChildren, replies } = groupReplies(topic.posts ?? [])
   const ordered = [...replies].sort(
     (a, b) =>
       Number(b.post.accepted === true) - Number(a.post.accepted === true) ||
@@ -71,7 +71,6 @@ export function QaTopic(props: ForumTopicPageProps) {
         setAnnouncement('Comment posted.')
       }),
     onFollow: props.onFollow,
-    linkComponent,
   }
   const comment = (id: string) => ({
     commentOpen: commentingOn === id,
@@ -135,7 +134,7 @@ export function QaTopic(props: ForumTopicPageProps) {
               </div>
               {original ? (
                 <QaAnswer post={original} role="question" {...shared} {...comment(original.id)}>
-                  {[]}
+                  {originalChildren}
                 </QaAnswer>
               ) : null}
               <HStack justify="space-between" gap="3" flexWrap="wrap">

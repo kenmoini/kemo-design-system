@@ -115,6 +115,24 @@ describe('QaTopic', () => {
     expect(onAcceptAnswer).toHaveBeenCalledWith('p2')
   })
 
+  it('renders a post replying to the question as its comment, not an answer', () => {
+    const extra = {
+      id: 'pc',
+      parentId: 'p1',
+      author: topic.author,
+      postedAt: topic.lastActivityAt,
+      body: [{ type: 'paragraph' as const, content: 'Cluster is 1.30.' }],
+    }
+    render(<QaTopic {...props} topic={{ ...topic, posts: [...topic.posts!, extra] }} />)
+    expect(
+      within(within(post('p1')).getByRole('list', { name: 'Comments' })).getByText(
+        /Cluster is 1\.30\./,
+      ),
+    ).toBeInTheDocument()
+    expect(answerIds()).not.toContain('post-pc')
+    expect(screen.getByRole('heading', { level: 2, name: '9 answers' })).toBeInTheDocument()
+  })
+
   it('posts a comment under the question', async () => {
     const user = userEvent.setup()
     const onReply = vi.fn().mockResolvedValue(undefined)
