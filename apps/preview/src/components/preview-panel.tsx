@@ -34,6 +34,18 @@ const blogRoutes: Route[] = [
   { href: '/blog/journal-rail/cold-start-62', label: 'Journal with a rail: post' },
 ]
 
+const forumRoutes: Route[] = [
+  { href: '/forum/boards', label: 'Boards' },
+  { href: '/forum/boards/c/kemo-console', label: 'Boards: category' },
+  { href: '/forum/boards/t/schema-browser-crd', label: 'Boards: topic' },
+  { href: '/forum/discussions', label: 'Discussions feed' },
+  { href: '/forum/discussions/c/kemo-console', label: 'Discussions feed: category' },
+  { href: '/forum/discussions/t/schema-browser-crd', label: 'Discussions feed: topic' },
+  { href: '/forum/qa', label: 'Q&A desk' },
+  { href: '/forum/qa/c/kemo-console', label: 'Q&A desk: category' },
+  { href: '/forum/qa/t/schema-browser-crd', label: 'Q&A desk: topic' },
+]
+
 const statusRoutes: Route[] = [
   { href: '/maintenance', label: 'Maintenance' },
   { href: '/errors/401', label: '401 Unauthorized' },
@@ -105,6 +117,9 @@ export function PreviewPanel() {
                 </PanelSection>
                 <PanelSection title="Blog">
                   <RouteList routes={blogRoutes} pathname={pathname} onNavigate={close} />
+                </PanelSection>
+                <PanelSection title="Forum">
+                  <RouteList routes={forumRoutes} pathname={pathname} onNavigate={close} />
                 </PanelSection>
                 <PanelSection title="Status pages">
                   <RouteList routes={statusRoutes} pathname={pathname} onNavigate={close} />

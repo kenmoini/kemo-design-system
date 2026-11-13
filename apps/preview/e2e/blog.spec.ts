@@ -72,7 +72,7 @@ test.describe('blog routes', () => {
     ).toBeVisible()
   })
 
-  test('the preview panel lists the blog between pages and status pages', async ({ page }) => {
+  test('the preview panel lists the blog between pages and the forum', async ({ page }) => {
     await page.goto('/blog/editorial-list')
     await page.locator('html[data-hydrated]').waitFor({ state: 'attached' })
     await page.getByTestId('preview-panel-trigger').click()
@@ -80,7 +80,7 @@ test.describe('blog routes', () => {
     await expect(dialog).toBeVisible()
 
     const sections = await dialog.getByRole('heading', { level: 3 }).allInnerTexts()
-    expect(sections.slice(0, 4)).toEqual(['Pages', 'Blog', 'Status pages', 'Components'])
+    expect(sections.slice(0, 5)).toEqual(['Pages', 'Blog', 'Forum', 'Status pages', 'Components'])
     const blog = dialog
       .locator('section')
       .filter({ has: page.getByRole('heading', { name: 'Blog', exact: true }) })
