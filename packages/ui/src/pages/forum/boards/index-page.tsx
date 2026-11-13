@@ -7,6 +7,7 @@ import { HostLink } from '../../blog/host-link'
 import { formatCount, replyCountOf, searchTopics } from '../content'
 import { ForumLayout } from '../forum-layout'
 import { CategoryTile, Count, RelativeTime, StatusBadge, UserAvatar } from '../parts'
+import { ListStatus } from '../list-status'
 import { SearchField } from '../search-field'
 import { SearchResults } from '../search-results'
 import type { ForumCategory, ForumIndexPageProps, ForumTopic } from '../types'
@@ -114,6 +115,7 @@ export function BoardsIndex(props: ForumIndexPageProps) {
           <Box display={{ base: 'block', md: 'none' }}>
             <SearchField variant="boards" binding={{ ...search, inputRef: mobileRef }} size="sm" />
           </Box>
+          <ListStatus count={query ? results.length : null} noun="results" />
           {query ? (
             <SearchResults
               query={query}

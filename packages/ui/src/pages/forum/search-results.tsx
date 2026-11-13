@@ -3,7 +3,6 @@ import { Flex, styled } from '../../../styled-system/jsx'
 import { Button } from '../../components/ui'
 import { EmptyState } from '../../widgets/empty-state'
 import { formatCount } from './content'
-import { ListStatus } from './list-status'
 
 export interface SearchResultsProps {
   query: string
@@ -13,7 +12,7 @@ export interface SearchResultsProps {
   children: ReactNode
 }
 
-/** The results block of a search: heading, Clear, the live region, then the rows or an empty state. */
+/** The results block of a search: heading, Clear, then the rows or an empty state. */
 export function SearchResults({ query, count, noun, onClear, children }: SearchResultsProps) {
   return (
     <section>
@@ -25,7 +24,6 @@ export function SearchResults({ query, count, noun, onClear, children }: SearchR
           Clear
         </Button>
       </Flex>
-      <ListStatus count={count} noun="results" />
       {count === 0 ? (
         <EmptyState
           message={`No ${noun} match “${query}”`}

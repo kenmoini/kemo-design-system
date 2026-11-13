@@ -79,6 +79,10 @@ export function QaCategory(props: ForumCategoryPageProps) {
             </Text>
           </Box>
           <SearchField variant="qa" binding={binding} size="sm" label="Search questions" />
+          <ListStatus
+            count={query ? results.length : sorted.length}
+            noun={query ? 'results' : 'questions'}
+          />
           {query ? (
             <SearchResults
               query={query}
@@ -122,7 +126,6 @@ export function QaCategory(props: ForumCategoryPageProps) {
                   ))}
                 </HStack>
               </Box>
-              <ListStatus count={sorted.length} noun="questions" />
               {sorted.length === 0 ? (
                 filter === 'newest' ? (
                   <EmptyState message="No questions yet." />

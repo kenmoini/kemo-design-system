@@ -60,8 +60,8 @@ export function DiscussionsFeed(props: DiscussionsFeedProps) {
   const scoped = category ? topics.filter((t) => t.categoryId === category.id) : topics
   const list = sortTopics(scoped, filter, 'discussions')
   const { shown, hasMore, more } = useReveal(list.length, STEP, filter)
-  // "Load more" unmounts when it reveals the last batch: focus the first new row's title instead of
-  // letting it fall to the body.
+  // On every reveal, focus moves to the first newly revealed row's title (the button itself unmounts
+  // on the last batch and would drop focus to the body).
   const listRef = useRef<HTMLUListElement | null>(null)
   const focusFrom = useRef<number | null>(null)
   useEffect(() => {
@@ -145,6 +145,10 @@ export function DiscussionsFeed(props: DiscussionsFeedProps) {
                   size="sm"
                 />
               </Box>
+              <ListStatus
+                count={query ? results.length : list.length}
+                noun={query ? 'results' : 'discussions'}
+              />
               {query ? (
                 <SearchResults
                   query={query}
@@ -186,7 +190,6 @@ export function DiscussionsFeed(props: DiscussionsFeedProps) {
                       {countLabel(filter, list.length)}
                     </Text>
                   </HStack>
-                  <ListStatus count={list.length} noun="discussions" />
                   {list.length === 0 ? (
                     filter === 'latest' ? (
                       <EmptyState message="No discussions yet." />

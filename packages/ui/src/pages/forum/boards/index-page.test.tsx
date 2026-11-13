@@ -76,6 +76,16 @@ describe('BoardsIndex', () => {
     expect(card).toHaveTextContent(/· 1 reply$/)
   })
 
+  it('keeps one status node from before the first search, then announces the results', async () => {
+    const user = userEvent.setup()
+    render(<BoardsIndex {...props} />)
+    const status = screen.getByRole('status')
+    expect(status).toBeEmptyDOMElement()
+    await user.type(field(), 'crd{Enter}')
+    expect(screen.getByRole('status')).toBe(status)
+    expect(status).toHaveTextContent('1 result')
+  })
+
   it('searches on Enter and clears back to the page, focusing the input', async () => {
     const user = userEvent.setup()
     render(<BoardsIndex {...props} />)

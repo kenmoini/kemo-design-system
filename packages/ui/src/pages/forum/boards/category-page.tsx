@@ -84,6 +84,10 @@ export function BoardsCategory(props: ForumCategoryPageProps) {
           <Box display={{ base: 'block', md: 'none' }}>
             <SearchField variant="boards" binding={{ ...search, inputRef: mobileRef }} size="sm" />
           </Box>
+          <ListStatus
+            count={query ? results.length : sorted.length}
+            noun={query ? 'results' : 'topics'}
+          />
           {query ? (
             <SearchResults
               query={query}
@@ -127,7 +131,6 @@ export function BoardsCategory(props: ForumCategoryPageProps) {
                   ))}
                 </HStack>
               </Box>
-              <ListStatus count={sorted.length} noun="topics" />
               {sorted.length === 0 ? (
                 filter === 'all' ? (
                   <EmptyState message="No topics yet." />

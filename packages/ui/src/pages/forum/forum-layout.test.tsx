@@ -200,7 +200,7 @@ describe('ListStatus', () => {
 })
 
 describe('SearchResults', () => {
-  it('shows the heading, announces and renders children', () => {
+  it('shows the heading and renders children', () => {
     render(
       <SearchResults query="crd" count={3} noun="topics" onClear={vi.fn()}>
         <p>rows</p>
@@ -209,7 +209,6 @@ describe('SearchResults', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: '3 results for “crd”' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('3 results')
     expect(screen.getByText('rows')).toBeInTheDocument()
   })
 

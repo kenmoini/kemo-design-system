@@ -17,6 +17,7 @@ import {
 } from '../content'
 import { ForumLayout } from '../forum-layout'
 import { CategoryBadge } from '../parts'
+import { ListStatus } from '../list-status'
 import { SearchField } from '../search-field'
 import { SearchResults } from '../search-results'
 import type { ForumIndexPageProps, ForumTopic } from '../types'
@@ -138,6 +139,7 @@ export function QaIndex(props: ForumIndexPageProps) {
         </Stack>
       </Box>
       <Box maxW="62.5rem" mx="auto" px={{ base: '4', md: '7' }} py="7">
+        <ListStatus count={query ? results.length : null} noun="results" />
         {query ? (
           <SearchResults
             query={query}
